@@ -2,8 +2,8 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Flame, TrendingUp, Calendar, Target } from "lucide-react"
-import { DAYS, PLAN } from "@/lib/data"
-import { dayPct, streak, fmtDate, Weight } from "@/lib/store"
+import { DAYS, PLAN } from "@/lib/legacy/data"
+import { dayPct, streak, fmtDate, Weight } from "@/lib/legacy/store"
 
 const TIPS = [
   {tag:"FISIOLOGIA",text:"Músculo não cresce no treino. Cresce no descanso, no sono e na comida."},

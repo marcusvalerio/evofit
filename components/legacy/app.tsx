@@ -1,10 +1,10 @@
 "use client"
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Nav, Tab } from "@/components/nav"
-import { Dashboard } from "@/components/dashboard"
-import { DAYS, PLAN, MEALS_ORDER } from "@/lib/data"
-import { load, save, pad, todayStr, todayIdx, dayPct, Weight } from "@/lib/store"
+import { Nav, Tab } from "@/components/legacy/nav"
+import { Dashboard } from "@/components/legacy/dashboard"
+import { DAYS, PLAN, MEALS_ORDER } from "@/lib/legacy/data"
+import { load, save, pad, todayStr, todayIdx, dayPct, Weight } from "@/lib/legacy/store"
 
 const MEAL_LABEL: Record<string,string> = {Cafe:"Café da Manhã",Almoco:"Almoço",Lanche:"Lanche da Tarde",Jantar:"Jantar"}
 
