@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { ArrowRight, CalendarCheck, ClipboardList, Inbox, UserPlus } from "lucide-react"
-import { useData } from "@/lib/store"
+import { useData, useIsDemo } from "@/lib/store"
 import { completed, needsAttention, sessionProgress, weekAdherence, weekCount, weeklySeries } from "@/lib/metrics"
 import { addDays, fmtDate, fmtDayMonth, fmtTime, relativeDays } from "@/lib/date"
 import { BarChart } from "@/components/charts"
@@ -9,6 +9,7 @@ import { Avatar, EmptyState, PageHeader, Progress, Stat } from "@/components/ui"
 
 export default function StudioDashboard() {
   const d = useData()
+  const demo = useIsDemo()
   const now = new Date()
   const active = d.students.filter((s) => s.status === "ativo")
   const done = completed(d)
@@ -27,7 +28,7 @@ export default function StudioDashboard() {
       <PageHeader
         eyebrow={new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "numeric", month: "long" }).format(now)}
         title={`Olá, ${d.profile.name.split(" ")[0]}`}
-        description="Resumo calculado a partir dos alunos, fichas e sessões registradas nesta demonstração."
+        description={demo ? "Resumo calculado a partir dos alunos, fichas e sessões registradas nesta demonstração." : "Resumo calculado a partir dos seus alunos, fichas e treinos registrados."}
         actions={
           <>
             <Link href="/studio/alunos?novo=1" className="btn btn-outline">

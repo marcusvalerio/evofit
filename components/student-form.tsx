@@ -3,7 +3,7 @@ import { useState } from "react"
 import type { Level, Student } from "@/lib/types"
 import { LEVEL_LABEL } from "@/lib/types"
 import { addStudent, updateStudent, validateStudent, type StudentInput } from "@/lib/actions"
-import { update } from "@/lib/store"
+import { update, useIsDemo } from "@/lib/store"
 import { Field, Modal } from "./ui"
 import { useToast } from "./providers"
 
@@ -15,6 +15,7 @@ export function StudentFormModal({ open, onClose, student, onCreated }: { open: 
 
 function StudentForm({ onClose, student, onCreated }: { onClose: () => void; student?: Student; onCreated?: (id: string) => void }) {
   const toast = useToast()
+  const demo = useIsDemo()
   const [v, setV] = useState<StudentInput>(student ? { name: student.name, goal: student.goal, level: student.level, weeklyTarget: student.weeklyTarget, notes: student.notes } : EMPTY)
   const [touched, setTouched] = useState(false)
   const errors = validateStudent(v)
@@ -44,7 +45,7 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
       open
       onClose={onClose}
       title={student ? "Editar aluno" : "Novo aluno"}
-      description="Dados fictícios: evite cadastrar informações pessoais reais nesta demonstração."
+      description={demo ? "Dados fictícios: evite cadastrar informações pessoais reais nesta demonstração." : "Cadastre só o necessário para o acompanhamento, com o consentimento do aluno."}
       footer={
         <>
           <button type="button" className="btn btn-outline" onClick={onClose}>

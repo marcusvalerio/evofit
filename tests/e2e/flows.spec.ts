@@ -316,7 +316,7 @@ test.describe("Biblioteca EVOFIT", () => {
 test.describe("diretório", () => {
   test("busca, filtros e URL compartilhável", async ({ page }) => {
     await page.goto("/personais")
-    await expect(page.getByText(/9 profissionais encontrados/)).toBeVisible()
+    await expect(page.getByText(/\d+ profissionais encontrados/)).toBeVisible()
     await page.getByLabel(/Buscar por nome/).fill("curitiba")
     await expect(page.getByText("1 profissional encontrado")).toBeVisible()
     await expect(page.getByRole("link", { name: /Júlia Martins/ })).toBeVisible()
@@ -338,6 +338,8 @@ test.describe("diretório", () => {
   })
 
   test("solicitação de contato chega ao Studio e opt-out oculta o perfil", async ({ page }) => {
+    await page.goto("/personais?q=camila%20rocha")
+    await expect(page.getByText("1 profissional encontrado")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await page.getByLabel("Seu nome").fill("Visitante")
     await page.getByLabel("Como prefere ser contatado").fill("visitante@exemplo.com")
@@ -352,8 +354,8 @@ test.describe("diretório", () => {
     await page.getByLabel(/Aparecer em “Encontrar personal”/).uncheck()
     await page.getByRole("button", { name: "Salvar perfil" }).click()
     await expect(page.getByText("Oculto do diretório")).toBeVisible()
-    await page.goto("/personais")
-    await expect(page.getByText(/8 profissionais encontrados/)).toBeVisible()
+    await page.goto("/personais?q=camila%20rocha")
+    await expect(page.getByText("Nenhum profissional com esses filtros")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await expect(page.getByRole("heading", { name: "Perfil indisponível" })).toBeVisible()
   })

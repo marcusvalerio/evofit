@@ -5,15 +5,30 @@ import { usePathname } from "next/navigation"
 import { Check, Dumbbell, History, LayoutDashboard } from "lucide-react"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
-import { Avatar, LoadingScreen, Modal, cx } from "./ui"
+import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
 import { useToast } from "./providers"
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
-  const { data } = useDemoState()
+  const { data, mode, account } = useDemoState()
   const [picking, setPicking] = useState(false)
   const student = data?.students.find((s) => s.id === data.activeStudentId && s.status === "ativo")
   const inWorkout = path.startsWith("/aluno/treino/")
+  const role = mode === "account" ? account?.role : null
+
+  let content: React.ReactNode = data ? children : <LoadingScreen />
+  if (data && role === "trainer")
+    content = (
+      <NotFoundState title="Esta é a área do aluno" href="/studio/alunos" cta="Ir para meus alunos">
+        Você entrou como personal. Seus alunos acessam o app pelo link de convite que você gera na página de cada aluno.
+      </NotFoundState>
+    )
+  else if (data && role === "student" && !student)
+    content = (
+      <NotFoundState title="Acesso pausado" href="/" cta="Ir para o início">
+        Seu personal arquivou seu cadastro. Fale com ele para reativar o acesso.
+      </NotFoundState>
+    )
 
   return (
     <div className="min-h-dvh">
@@ -22,7 +37,13 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-14 max-w-xl items-center justify-between gap-2 px-4">
           <Brand suffix="Aluno" />
           <div className="flex items-center gap-1">
-            {student && (
+            {student && role === "student" && (
+              <span className="flex h-10 items-center gap-2 pl-1 pr-2">
+                <Avatar name={student.name} size="sm" />
+                <span className="max-w-[7rem] truncate text-sm font-semibold">{student.name.split(" ")[0]}</span>
+              </span>
+            )}
+            {student && !role && (
               <button type="button" onClick={() => setPicking(true)} className="flex h-10 items-center gap-2 rounded-full pl-1 pr-3 hover:bg-line" aria-label={`Aluno atual: ${student.name}. Trocar aluno`}>
                 <Avatar name={student.name} size="sm" />
                 <span className="max-w-[7rem] truncate text-sm font-semibold">{student.name.split(" ")[0]}</span>
@@ -33,15 +54,15 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className={cx("mx-auto max-w-xl px-4 pt-5", inWorkout ? "pb-40" : "pb-28")}>{data ? children : <LoadingScreen />}</main>
+      <main className={cx("mx-auto max-w-xl px-4 pt-5", inWorkout ? "pb-40" : "pb-28")}>{content}</main>
 
       {!inWorkout && (
         <nav aria-label="Aluno" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
-          <ul className="mx-auto grid max-w-xl grid-cols-3">
+          <ul className={cx("mx-auto grid max-w-xl", role ? "grid-cols-2" : "grid-cols-3")}>
             {[
               { href: "/aluno", label: "Treinos", icon: Dumbbell, on: path === "/aluno" },
               { href: "/aluno/historico", label: "Histórico", icon: History, on: path.startsWith("/aluno/historico") },
-              { href: "/studio", label: "Studio", icon: LayoutDashboard, on: false },
+              ...(role ? [] : [{ href: "/studio", label: "Studio", icon: LayoutDashboard, on: false }]),
             ].map(({ href, label, icon: Icon, on }) => (
               <li key={href}>
                 <Link href={href} aria-current={on ? "page" : undefined} className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}>

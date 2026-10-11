@@ -31,16 +31,24 @@ npm run dev     # http://localhost:3000
 
 ### Variáveis de ambiente
 
-**Nenhuma.** A demonstração não usa backend, chaves ou serviços externos. Por isso não há `.env.example`. Variáveis só serão necessárias quando houver backend real (ver “Próximos passos”).
+Veja `.env.example`. **Sem nenhuma variável o app roda no modo demonstração** (como antes). Para contas reais:
+
+| Variável | Onde | Para quê |
+|---|---|---|
+| `DATABASE_URL` | servidor (Vercel e `.env.local`) | Conexão com o Neon (URL *pooled*, com `-pooler` no host). Nunca vai para o navegador. |
+| `DATABASE_URL_MIGRATIONS` | opcional, só para `npm run db:migrate` | URL direta (sem `-pooler`). |
+| `DB_POOL_MAX` | opcional | Conexões por instância (padrão 5). |
+
+Para desenvolver sem o Neon: `npm run db:dev` sobe um Postgres em memória (PGlite) em `127.0.0.1:5433`; depois `DATABASE_URL=postgres://postgres@127.0.0.1:5433/postgres npm run db:migrate` e `npm run dev` com a mesma `DATABASE_URL`.
 
 ## Validação
 
 ```bash
 npm run lint        # ESLint (eslint-config-next, regras do React Compiler)
 npm run typecheck   # tsc --noEmit (strict)
-npm test            # Vitest — regras de dados, validação, métricas, diretório
+npm test            # Vitest — regras de dados, catálogo, GIFs e banco (PGlite: RLS, permissões, convites)
 npm run build       # build de produção
-npm run test:e2e    # Playwright — gera o build e testa desktop (1440px) e mobile (375px)
+npm run test:e2e    # Playwright — sobe um Postgres local (PGlite), gera o build e testa desktop e mobile, incluindo contas reais
 npm run check       # lint + typecheck + unitários + build
 ```
 
@@ -63,7 +71,7 @@ O projeto é um app Next.js padrão (App Router), sem configuração especial.
    - **Install Command:** `npm ci` (padrão da Vercel ao detectar `package-lock.json`)
    - **Build Command:** `npm run build` · **Output:** padrão do Next.js
    - **Node.js Version:** 22.x (ou 20.x; `engines` exige ≥ 20.9)
-   - **Environment Variables:** nenhuma
+   - **Environment Variables:** `DATABASE_URL` (Neon, URL *pooled*) para contas reais; sem ela, só demonstração
 3. Clique em **Deploy**. Cada push no branch configurado gera um novo deploy; outros branches geram previews.
 
 Pela CLI: `npm i -g vercel && vercel` (preview) e `vercel --prod` (produção).
@@ -128,7 +136,7 @@ Tipografia: Geist (UI). **Switzer não está disponível/licenciada no repositó
 
 - **Dados não sincronizam entre dispositivos ou navegadores** — cada navegador tem sua própria cópia da demonstração.
 - **Solicitações de contato não são enviadas a ninguém.** Ficam salvas no navegador; as do perfil do próprio Studio aparecem em Studio → Perfil. O formulário avisa isso explicitamente.
-- Não há autenticação, multiusuário, upload de foto, pagamentos ou notificações.
+- Sem `DATABASE_URL`, não há contas: tudo fica no navegador. Com ela, ainda não há recuperação de senha, verificação de e-mail, upload de foto, pagamentos ou notificações.
 - Exercícios do catálogo são somente leitura (o personal adiciona vídeo/dica); exercícios próprios podem ser editados/excluídos (exclusão bloqueada se estiverem em uso).
 - Os GIFs são feitos a partir de **dois quadros** (posição inicial e final) com transição suave — mostram claramente o início e o fim do movimento, mas não são um vídeo contínuo. Para o movimento completo, use o vídeo próprio do personal.
 - O app não hospeda vídeos: o personal usa um link do YouTube, Vimeo, Google Drive ou um arquivo já publicado. Vídeos privados não tocam para o aluno.
@@ -136,9 +144,27 @@ Tipografia: Geist (UI). **Switzer não está disponível/licenciada no repositó
 - O aplicativo antigo deste repositório (rastreador de dieta com checklist de refeições e peso, herdado do EVODIETA) foi substituído, pois não fazia parte do escopo do EVOFIT; ele continua disponível no histórico do Git (commit `ebeda05`). Os dados antigos no navegador (`evo_ch`, `evo_wt`) não são lidos nem apagados.
 - `npm audit` aponta `braces` (dependência apenas de desenvolvimento do ESLint, sem correção publicada); as dependências de produção não têm vulnerabilidades conhecidas.
 
-## Próximos passos para dados reais
+## Contas reais (Neon)
 
-1. Backend com autenticação (ex.: Supabase/Postgres) e **RLS por personal**: cada linha de aluno, ficha e sessão vinculada ao `trainer_id`; aluno acessa apenas as próprias sessões.
-2. Mover `lib/actions.ts` para Server Actions/rotas com validação no servidor (as validações já estão isoladas e testadas).
-3. Diretório servido do banco filtrando `directory_visible = true` no servidor; envio de contato com rate limit e anti-spam.
-4. Variáveis de ambiente: apenas a URL e a chave pública (anon) no cliente; chaves privilegiadas somente no servidor.
+A demonstração sem login continua igual. Com `DATABASE_URL` configurada, o app ganha contas:
+
+- **Personal:** cria conta em `/criar-conta` (começa vazia) e entra em `/entrar`. Tudo o que faz no Studio (alunos, fichas, exercícios próprios, vídeos e dicas, perfil, solicitações) é gravado no banco.
+- **Aluno:** o personal gera um **link de convite** na página do aluno (vale 7 dias, uso único; copiar ou enviar pelo WhatsApp). O aluno cria e-mail e senha pelo link e passa a ver só os próprios treinos, registrando séries e cargas que o personal acompanha.
+- **Diretório:** perfis reais com opt-in aparecem em “Encontrar personal” junto aos fictícios (identificados); o pedido de contato de um visitante chega ao personal.
+- **Excluir conta:** em Studio → Perfil (confirmando o e-mail). Apaga perfil, alunos, fichas, treinos, convites e os acessos dos alunos.
+
+**Como funciona**
+
+- `db/migrations/001_init.sql` — tabelas, restrições e **Row Level Security** em todas as tabelas de dados (`ENABLE` + `FORCE`). O app acessa os dados de treino sempre como o papel restrito `evofit_app` (`SET LOCAL ROLE` em cada transação) com o tenant em variáveis de transação: o personal só enxerga o que é dele; o aluno só lê o próprio cadastro, as fichas atribuídas a ele e as próprias sessões, e só grava as próprias sessões (treino concluído não volta a ser editado); o visitante só lê perfis com opt-in e só insere pedido de contato. Tabelas de login não são acessíveis a esse papel.
+- `lib/server/*` — conexão (`pg`), autenticação (senha com **scrypt**, sessão em cookie `httpOnly`/`SameSite=Lax`/`Secure`, token guardado só como hash SHA-256, 30 dias), limite de tentativas (login, cadastro, convite, contato), checagem de origem nas escritas, leitura/gravação do workspace.
+- As telas não mudaram: continuam usando as ações puras de `lib/actions.ts`. No modo conta, `lib/store.ts` calcula **só o que mudou** (`lib/sync.ts`) e envia para `PATCH /api/workspace`; o servidor revalida formato, regras e permissões e grava numa transação. Se algo for recusado, a tela volta ao que está salvo e mostra o motivo. A faixa superior indica “Salvando…/Salvo”.
+- Rotas: `/api/auth/{signup,login,logout}`, `/api/workspace`, `/api/invites`, `/api/invites/[code]`, `/api/account`, `/api/directory`, `/api/contact`.
+
+**Colocar no ar com o Neon**
+
+1. Crie o projeto em [neon.tech](https://neon.tech) (região São Paulo, `sa-east-1`, se disponível) e copie as strings de conexão *pooled* e *direct*.
+2. Rode as migrações uma vez (e a cada nova migração): `DATABASE_URL_MIGRATIONS="<direct>" npm run db:migrate`.
+3. Na Vercel, em *Settings → Environment Variables*, crie `DATABASE_URL` = string *pooled* (Production e Preview). Faça o redeploy.
+4. Teste: criar conta, cadastrar aluno, gerar convite, entrar como aluno em outro navegador e registrar um treino.
+
+**Limites atuais:** não há recuperação de senha por e-mail nem verificação de e-mail (exigem um serviço de e-mail); o personal pode gerar um novo convite se o aluno perder o acesso. Não há importação dos dados da demonstração para a conta.

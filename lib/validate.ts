@@ -1,4 +1,4 @@
-import type { DemoData } from "./types"
+import type { ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { DATA_VERSION } from "./seed"
 
 type Obj = Record<string, unknown>
@@ -9,7 +9,7 @@ const isNumOrNull = (v: unknown) => v === null || isNum(v)
 const isArr = (v: unknown, guard: (x: unknown) => boolean) => Array.isArray(v) && v.every(guard)
 const has = (o: Obj, keys: Record<string, (v: unknown) => boolean>) => Object.entries(keys).every(([k, g]) => g(o[k]))
 
-const isProfile = (v: unknown) =>
+export const isProfile = (v: unknown): v is TrainerProfile =>
   isObj(v) &&
   has(v, {
     slug: isStr, name: isStr, headline: isStr, bio: isStr, city: isStr, state: isStr, region: isStr,
@@ -20,7 +20,7 @@ const isProfile = (v: unknown) =>
     directoryVisible: (b) => typeof b === "boolean",
   })
 
-const isStudent = (v: unknown) =>
+export const isStudent = (v: unknown): v is Student =>
   isObj(v) &&
   has(v, {
     id: isStr, name: isStr, goal: isStr, notes: isStr, createdAt: isStr,
@@ -29,16 +29,16 @@ const isStudent = (v: unknown) =>
     status: (s) => s === "ativo" || s === "arquivado",
   })
 
-const isExercise = (v: unknown) =>
+export const isExercise = (v: unknown): v is Exercise =>
   isObj(v) && has(v, { id: isStr, name: isStr, muscleGroup: isStr, equipment: isStr, instructions: isStr, custom: (b) => typeof b === "boolean" })
 
 const isMediaMap = (v: unknown) =>
   isObj(v) && Object.values(v).every((m) => isObj(m) && has(m, { videoUrl: isStr, tip: isStr }))
 
-const isItem = (v: unknown) =>
+export const isItem = (v: unknown): v is WorkoutItem =>
   isObj(v) && has(v, { id: isStr, exerciseId: isStr, sets: isNum, reps: isStr, load: isNumOrNull, restSec: isNum, notes: isStr })
 
-const isWorkout = (v: unknown) =>
+export const isWorkout = (v: unknown): v is Workout =>
   isObj(v) &&
   has(v, { id: isStr, name: isStr, description: isStr, createdAt: isStr, updatedAt: isStr, items: (i) => isArr(i, isItem), studentIds: (s) => isArr(s, isStr) })
 
@@ -46,7 +46,7 @@ const isSet = (v: unknown) =>
   isObj(v) &&
   has(v, { itemId: isStr, exerciseId: isStr, exerciseName: isStr, setIndex: isNum, reps: isNumOrNull, load: isNumOrNull, done: (b) => typeof b === "boolean" })
 
-const isSession = (v: unknown) =>
+export const isSession = (v: unknown): v is Session =>
   isObj(v) &&
   has(v, {
     id: isStr, studentId: isStr, workoutId: isStr, workoutName: isStr, startedAt: isStr, note: isStr,
@@ -55,7 +55,7 @@ const isSession = (v: unknown) =>
     sets: (s) => isArr(s, isSet),
   })
 
-const isContact = (v: unknown) =>
+export const isContact = (v: unknown): v is ContactRequest =>
   isObj(v) && has(v, { id: isStr, trainerSlug: isStr, name: isStr, contact: isStr, message: isStr, createdAt: isStr })
 
 /** Valida o formato persistido. Dados de versões antigas ou corrompidos são rejeitados. */
