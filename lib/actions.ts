@@ -1,4 +1,6 @@
-import type { ContactRequest, DemoData, Exercise, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import type { ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import { CATALOG, exerciseName, fold, getExercise } from "./catalog"
+import { parseVideoUrl, validateVideoUrl } from "./video"
 
 export function uid(prefix: string) {
   const rnd =
@@ -49,7 +51,9 @@ export function validateExercise(e: ExerciseInput, d: DemoData, editingId?: stri
   const errors: Partial<Record<keyof ExerciseInput, string>> = {}
   const name = e.name.trim()
   if (name.length < 2) errors.name = "Informe o nome do exercício."
-  else if (d.exercises.some((x) => x.id !== editingId && x.name.toLowerCase() === name.toLowerCase())) errors.name = "Já existe um exercício com esse nome."
+  else if (name.length > 80) errors.name = "Use no máximo 80 caracteres."
+  else if (d.exercises.some((x) => x.id !== editingId && fold(x.name) === fold(name))) errors.name = "Você já tem um exercício com esse nome."
+  else if (CATALOG.some((x) => fold(x.name) === fold(name))) errors.name = "Esse exercício já existe no catálogo — use-o direto na ficha."
   if (!e.muscleGroup) errors.muscleGroup = "Selecione o grupo muscular."
   if (e.instructions.length > 600) errors.instructions = "Use no máximo 600 caracteres."
   return errors
@@ -60,7 +64,7 @@ export function addExercise(d: DemoData, input: ExerciseInput, id = uid("ex")): 
 }
 
 export function updateExercise(d: DemoData, id: string, input: ExerciseInput): DemoData {
-  return { ...d, exercises: d.exercises.map((e) => (e.id === id && e.custom ? { ...e, ...input, name: input.name.trim() } : e)) }
+  return { ...d, exercises: d.exercises.map((e) => (e.id === id ? { ...e, ...input, name: input.name.trim(), equipment: input.equipment.trim(), instructions: input.instructions.trim() } : e)) }
 }
 
 export function exerciseUsage(d: DemoData, id: string) {
@@ -69,8 +73,29 @@ export function exerciseUsage(d: DemoData, id: string) {
 
 export function deleteExercise(d: DemoData, id: string): DemoData {
   const ex = d.exercises.find((e) => e.id === id)
-  if (!ex || !ex.custom || exerciseUsage(d, id).length) return d
-  return { ...d, exercises: d.exercises.filter((e) => e.id !== id) }
+  if (!ex || exerciseUsage(d, id).length) return d
+  const exerciseMedia = { ...d.exerciseMedia }
+  delete exerciseMedia[id]
+  return { ...d, exercises: d.exercises.filter((e) => e.id !== id), exerciseMedia }
+}
+
+export function validateMedia(m: ExerciseMedia) {
+  const errors: Partial<Record<keyof ExerciseMedia, string>> = {}
+  const v = validateVideoUrl(m.videoUrl)
+  if (v) errors.videoUrl = v
+  if (m.tip.length > 300) errors.tip = "Use no máximo 300 caracteres."
+  return errors
+}
+
+/** Salva vídeo/dica do personal. Campos vazios removem o registro. */
+export function setExerciseMedia(d: DemoData, id: string, m: ExerciseMedia): DemoData {
+  if (!getExercise(d, id)) return d
+  const clean = { videoUrl: m.videoUrl.trim(), tip: m.tip.trim() }
+  if (clean.videoUrl && !parseVideoUrl(clean.videoUrl)) return d
+  const exerciseMedia = { ...d.exerciseMedia }
+  if (!clean.videoUrl && !clean.tip) delete exerciseMedia[id]
+  else exerciseMedia[id] = clean
+  return { ...d, exerciseMedia }
 }
 
 /* ---------- Fichas de treino ---------- */
@@ -144,14 +169,13 @@ export function startSession(d: DemoData, studentId: string, workoutId: string, 
   const w = d.workouts.find((x) => x.id === workoutId)
   if (!w || !w.studentIds.includes(studentId)) return d
   if (d.sessions.some((s) => s.studentId === studentId && s.status === "em_andamento")) return d
-  const exName = new Map(d.exercises.map((e) => [e.id, e.name]))
   const sets: SetLog[] = w.items.flatMap((it) => {
     const target = parseInt(it.reps, 10)
     const prev = lastLoad(d, studentId, it.exerciseId)
     return Array.from({ length: it.sets }, (_, i) => ({
       itemId: it.id,
       exerciseId: it.exerciseId,
-      exerciseName: exName.get(it.exerciseId) ?? "Exercício",
+      exerciseName: exerciseName(d, it.exerciseId),
       setIndex: i,
       reps: Number.isFinite(target) ? target : null,
       load: it.load === null ? null : (prev ?? it.load),

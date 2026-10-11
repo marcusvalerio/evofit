@@ -12,6 +12,11 @@ const nextConfig = {
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
+      {
+        // catálogo de exercícios: arquivos estáticos que só mudam com novo deploy
+        source: "/exercises/:path*",
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
+      },
     ]
   },
 }

@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from "react"
 import type { DemoData } from "./types"
 import { createSeed } from "./seed"
-import { isDemoData } from "./validate"
+import { migrate } from "./migrate"
 
 export const STORAGE_KEY = "evofit:demo:v1"
 
@@ -32,7 +32,8 @@ function read(): { data: DemoData; notice: string | null } {
   if (!raw) return { data: createSeed(), notice: null }
   try {
     const parsed: unknown = JSON.parse(raw)
-    if (isDemoData(parsed)) return { data: parsed, notice: null }
+    const data = migrate(parsed)
+    if (data) return { data, notice: null }
   } catch {
     /* JSON inválido: cai no reset abaixo */
   }

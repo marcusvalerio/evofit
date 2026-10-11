@@ -6,8 +6,11 @@ import { useActiveStudent } from "@/lib/use-student"
 import { inProgressSession, sessionProgress, sessionsOf, weekCount } from "@/lib/metrics"
 import { fmtDateLong, isSameDay, relativeDays } from "@/lib/date"
 import { StudentChoices } from "@/components/student-shell"
-import { EmptyState, Progress } from "@/components/ui"
+import { EmptyState } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { getExercise } from "@/lib/catalog"
+import { ExerciseThumb } from "@/components/exercise"
+import { CountUp, Ring } from "@/components/motion"
 
 export default function AlunoHome() {
   const { d, student } = useActiveStudent()
@@ -35,36 +38,32 @@ export default function AlunoHome() {
   const live = inProgressSession(d, student.id)
   const history = sessionsOf(d, student.id)
   const wk = weekCount(d, student.id, now)
-  const exName = new Map(d.exercises.map((e) => [e.id, e.name]))
 
   return (
     <div className="fade-in">
       <p className="t-eyebrow first-letter:uppercase">{fmtDateLong(now.toISOString())}</p>
       <h1 className="t-h1 mt-1">Bora treinar, {student.name.split(" ")[0]}</h1>
 
-      <section className="card mt-5 p-4" aria-label="Meta da semana">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="t-eyebrow">Meta da semana</p>
-            <p className="t-metric mt-2">
-              {wk}
-              <span className="ml-1 text-base font-semibold tracking-normal text-muted">/ {student.weeklyTarget} treinos</span>
-            </p>
-          </div>
-          <p className="text-right text-sm text-muted">
-            {wk >= student.weeklyTarget ? "Meta batida" : `Faltam ${student.weeklyTarget - wk}`}
-            <br />
-            {history.length} no total
+      <section className="card mt-5 flex items-center gap-4 p-4" aria-label="Meta da semana">
+        <Ring value={(wk / student.weeklyTarget) * 100} size={76} stroke={8} label={`${wk} de ${student.weeklyTarget} treinos nesta semana`}>
+          <span className="text-xl font-bold tabular">
+            <CountUp text={String(wk)} />
+          </span>
+        </Ring>
+        <div className="min-w-0 flex-1">
+          <p className="t-eyebrow">Meta da semana</p>
+          <p className="mt-1 text-lg font-bold leading-tight">
+            {wk >= student.weeklyTarget ? "Meta da semana batida!" : `Faltam ${student.weeklyTarget - wk} de ${student.weeklyTarget} treinos`}
           </p>
-        </div>
-        <div className="mt-3">
-          <Progress value={(wk / student.weeklyTarget) * 100} label={`${wk} de ${student.weeklyTarget} treinos nesta semana`} />
+          <p className="text-sm text-muted">
+            <CountUp text={String(history.length)} /> treinos no total
+          </p>
         </div>
       </section>
 
       {live && (
-        <Link href={`/aluno/treino/${live.workoutId}`} className="mt-4 flex items-center gap-4 rounded-2xl bg-primary p-4 text-on-primary shadow-[var(--shadow)]">
-          <span className="grid size-12 shrink-0 place-items-center rounded-full bg-black/10">
+        <Link href={`/aluno/treino/${live.workoutId}`} className="glow shine pop mt-4 flex items-center gap-4 rounded-2xl bg-primary p-4 text-on-primary shadow-[var(--shadow)]">
+          <span className="pulse-soft grid size-12 shrink-0 place-items-center rounded-full bg-black/10">
             <Play size={22} aria-hidden fill="currentColor" />
           </span>
           <span className="min-w-0 flex-1">
@@ -84,7 +83,7 @@ export default function AlunoHome() {
           Seu personal ainda não atribuiu uma ficha. No Studio, abra uma ficha e marque este aluno.
         </EmptyState>
       ) : (
-        <ul className="space-y-3">
+        <ul className="stagger space-y-3">
           {workouts.map((w) => {
             const last = [...history].reverse().find((s) => s.workoutId === w.id)
             const doneToday = last && isSameDay(new Date(last.startedAt), now)
@@ -92,13 +91,20 @@ export default function AlunoHome() {
             const est = Math.round(w.items.reduce((a, i) => a + i.sets * (45 + i.restSec), 0) / 60)
             return (
               <li key={w.id}>
-                <Link href={`/aluno/treino/${w.id}`} className="card flex items-center gap-4 p-4 transition-colors hover:border-line-strong">
+                <Link href={`/aluno/treino/${w.id}`} className="card lift group flex items-center gap-4 p-4">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-lg font-bold leading-tight">{w.name}</p>
                       {isLive ? <span className="badge badge-accent">Em andamento</span> : doneToday ? <span className="badge badge-success">Feito hoje</span> : null}
                     </div>
-                    <p className="mt-1 truncate text-sm text-muted">{w.items.map((i) => exName.get(i.exerciseId)).slice(0, 3).join(" · ")}</p>
+                    <p className="mt-1 truncate text-sm text-muted">{w.items.map((i) => getExercise(d, i.exerciseId)?.name ?? "Exercício").slice(0, 3).join(" · ")}</p>
+                    <div className="mt-3 flex -space-x-3" aria-hidden>
+                      {w.items.slice(0, 5).map((i) => {
+                        const ex = getExercise(d, i.exerciseId)
+                        return ex ? <ExerciseThumb key={i.id} ex={ex} className="w-14 shadow-sm ring-2 ring-surface transition-transform group-hover:translate-x-1" /> : null
+                      })}
+                      {w.items.length > 5 && <span className="thumb grid w-14 place-items-center bg-surface-2 text-xs font-bold text-muted ring-2 ring-surface">+{w.items.length - 5}</span>}
+                    </div>
                     <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
                       <span className="whitespace-nowrap">{w.items.length} exercícios</span>
                       <span className="inline-flex items-center gap-1 whitespace-nowrap">
@@ -107,7 +113,7 @@ export default function AlunoHome() {
                       <span className="whitespace-nowrap">{last ? `último: ${relativeDays(last.startedAt, now)}` : "nunca feito"}</span>
                     </p>
                   </div>
-                  <ChevronRight size={20} aria-hidden className="shrink-0 text-muted" />
+                  <ChevronRight size={20} aria-hidden className="shrink-0 text-muted transition-transform group-hover:translate-x-1" />
                 </Link>
               </li>
             )

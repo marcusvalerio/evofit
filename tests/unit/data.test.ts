@@ -6,6 +6,8 @@ import * as M from "@/lib/metrics"
 import { DIRECTORY_PROFILES, directoryList, filterProfiles } from "@/lib/directory"
 
 const NOW = new Date("2026-10-11T12:00:00")
+const SUPINO = "Barbell_Bench_Press_-_Medium_Grip"
+const AGACHAMENTO = "Barbell_Squat"
 const seed = () => createSeed(NOW)
 
 describe("seed e validação", () => {
@@ -59,11 +61,13 @@ describe("alunos", () => {
 describe("exercícios", () => {
   it("impede nomes duplicados e exclusão de exercício em uso", () => {
     const d0 = seed()
-    expect(A.validateExercise({ name: "supino reto com barra", muscleGroup: "Peito", equipment: "", instructions: "" }, d0).name).toBeTruthy()
+    // nome que já existe no catálogo (ignorando acento e caixa)
+    expect(A.validateExercise({ name: "cadeira EXTENSORA", muscleGroup: "Quadríceps", equipment: "", instructions: "" }, d0).name).toMatch(/catálogo/)
     let d = A.addExercise(d0, { name: "Remada cavalinho", muscleGroup: "Costas", equipment: "Barra T", instructions: "" }, "ex-x")
     expect(d.exercises.find((e) => e.id === "ex-x")?.custom).toBe(true)
-    // base não pode ser excluído
-    expect(A.deleteExercise(d, "ex-supino-reto").exercises.length).toBe(d.exercises.length)
+    expect(A.validateExercise({ name: "remada CAVALINHO", muscleGroup: "Costas", equipment: "", instructions: "" }, d).name).toBeTruthy()
+    // exercício do catálogo não pode ser excluído
+    expect(A.deleteExercise(d, SUPINO)).toBe(d)
     // em uso não pode ser excluído
     d = A.createWorkout(d, "Teste", "tr-x")
     d = A.saveWorkout(d, { ...d.workouts.find((w) => w.id === "tr-x")!, items: [A.newWorkoutItem("ex-x")] })
@@ -75,7 +79,7 @@ describe("exercícios", () => {
 
 describe("fichas", () => {
   it("valida séries, reps e descanso", () => {
-    const item = { ...A.newWorkoutItem("ex-agachamento"), id: "i1" }
+    const item = { ...A.newWorkoutItem(AGACHAMENTO), id: "i1" }
     expect(A.isWorkoutValid(A.validateWorkout({ name: "Ficha", items: [item] }))).toBe(true)
     expect(A.validateWorkout({ name: "Ficha", items: [] }).items).toBeTruthy()
     expect(A.validateWorkout({ name: "Ficha", items: [{ ...item, sets: 0 }] }).itemErrors.i1).toBeTruthy()
@@ -103,7 +107,7 @@ describe("execução do treino", () => {
     expect(s.status).toBe("em_andamento")
     expect(s.sets.length).toBe(4 + 4 + 3 + 3 + 3 + 3)
     // carga pré-preenchida com a última registrada
-    expect(s.sets[0].load).toBe(A.lastLoad(d0, "al-ana", "ex-supino-reto"))
+    expect(s.sets[0].load).toBe(A.lastLoad(d0, "al-ana", SUPINO))
     // não permite duas sessões simultâneas
     expect(A.startSession(d, "al-ana", "tr-b-inferiores", "se-y").sessions.length).toBe(d.sessions.length)
     d = A.updateSet(d, "se-x", s.sets[0].itemId, 0, { done: true, reps: 9, load: 42.5 })
@@ -113,7 +117,7 @@ describe("execução do treino", () => {
     expect(done.status).toBe("concluida")
     expect(done.finishedAt).not.toBeNull()
     expect(done.note).toBe("bom treino")
-    expect(A.lastLoad(d, "al-ana", "ex-supino-reto")).toBe(42.5)
+    expect(A.lastLoad(d, "al-ana", SUPINO)).toBe(42.5)
     expect(isDemoData(d)).toBe(true)
   })
 
@@ -147,7 +151,7 @@ describe("métricas", () => {
   })
 
   it("evolução de carga é crescente no histórico demonstrativo", () => {
-    const pts = M.loadProgression(seed(), "al-ana", "ex-agachamento")
+    const pts = M.loadProgression(seed(), "al-ana", AGACHAMENTO)
     expect(pts.length).toBeGreaterThan(2)
     expect(pts[pts.length - 1].value).toBeGreaterThanOrEqual(pts[0].value)
   })

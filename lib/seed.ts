@@ -1,7 +1,8 @@
 import type { DemoData, Exercise, Session, SetLog, Student, Workout, WorkoutItem } from "./types"
 import { addDays, startOfDay } from "./date"
+import { catalogExercise } from "./catalog"
 
-export const DATA_VERSION = 1
+export const DATA_VERSION = 2
 
 /** PRNG determinístico para que a demonstração seja reprodutível. */
 function mulberry32(seed: number) {
@@ -14,47 +15,55 @@ function mulberry32(seed: number) {
   }
 }
 
-const ex = (id: string, name: string, muscleGroup: string, equipment: string, instructions: string): Exercise => ({
-  id,
-  name,
-  muscleGroup,
-  equipment,
-  instructions,
-  custom: false,
-})
+/**
+ * Ids da versão 1 dos dados (biblioteca fixa de 30 exercícios) → exercício equivalente no catálogo.
+ * Usado pela migração para preservar fichas e histórico salvos no navegador.
+ */
+export const LEGACY_EXERCISE_IDS: Record<string, string> = {
+  "ex-supino-reto": "Barbell_Bench_Press_-_Medium_Grip",
+  "ex-supino-inclinado": "Incline_Dumbbell_Press",
+  "ex-crucifixo": "Butterfly",
+  "ex-flexao": "Pushups",
+  "ex-puxada-frente": "Wide-Grip_Lat_Pulldown",
+  "ex-remada-curvada": "Bent_Over_Barbell_Row",
+  "ex-remada-baixa": "Seated_Cable_Rows",
+  "ex-barra-fixa": "Band_Assisted_Pull-Up",
+  "ex-desenvolvimento": "Dumbbell_Shoulder_Press",
+  "ex-elevacao-lateral": "Side_Lateral_Raise",
+  "ex-face-pull": "Face_Pull",
+  "ex-rosca-direta": "EZ-Bar_Curl",
+  "ex-rosca-martelo": "Hammer_Curls",
+  "ex-triceps-corda": "Triceps_Pushdown_-_Rope_Attachment",
+  "ex-triceps-frances": "Standing_Dumbbell_Triceps_Extension",
+  "ex-agachamento": "Barbell_Squat",
+  "ex-leg-press": "Leg_Press",
+  "ex-cadeira-extensora": "Leg_Extensions",
+  "ex-afundo": "Dumbbell_Lunges",
+  "ex-terra-romeno": "Romanian_Deadlift",
+  "ex-mesa-flexora": "Lying_Leg_Curls",
+  "ex-elevacao-pelvica": "Barbell_Hip_Thrust",
+  "ex-abducao": "Thigh_Abductor",
+  "ex-panturrilha": "Standing_Calf_Raises",
+  "ex-prancha": "Plank",
+  "ex-abdominal-infra": "Reverse_Crunch",
+  "ex-kettlebell-swing": "One-Arm_Kettlebell_Swings",
+  "ex-bike": "Bicycling_Stationary",
+  "ex-esteira": "Walking_Treadmill",
+}
 
-export const BASE_EXERCISES: Exercise[] = [
-  ex("ex-supino-reto", "Supino reto com barra", "Peito", "Barra e banco", "Escápulas retraídas, pés firmes no chão. Desça a barra até a linha do peito e empurre sem tirar o quadril do banco."),
-  ex("ex-supino-inclinado", "Supino inclinado com halteres", "Peito", "Halteres e banco", "Banco a 30°. Desça os halteres controlando a fase excêntrica e mantenha os cotovelos levemente abaixo da linha dos ombros."),
-  ex("ex-crucifixo", "Crucifixo na máquina", "Peito", "Máquina", "Cotovelos semiflexionados e fixos. Feche os braços contraindo o peitoral, sem bater as manoplas."),
-  ex("ex-flexao", "Flexão de braços", "Peito", "Peso corporal", "Corpo alinhado da cabeça aos pés. Desça até o peito quase tocar o chão."),
-  ex("ex-puxada-frente", "Puxada frontal", "Costas", "Polia alta", "Puxe a barra até a parte alta do peito, conduzindo com os cotovelos. Evite balançar o tronco."),
-  ex("ex-remada-curvada", "Remada curvada com barra", "Costas", "Barra", "Tronco inclinado a ~45°, coluna neutra. Puxe a barra em direção ao umbigo."),
-  ex("ex-remada-baixa", "Remada baixa sentada", "Costas", "Polia baixa", "Peito aberto, puxe o triângulo até o abdômen e controle o retorno."),
-  ex("ex-barra-fixa", "Barra fixa assistida", "Costas", "Gravitron", "Pegada pronada na largura dos ombros. Suba até o queixo passar a barra."),
-  ex("ex-desenvolvimento", "Desenvolvimento com halteres", "Ombros", "Halteres", "Sentado, core firme. Empurre os halteres acima da cabeça sem hiperestender a lombar."),
-  ex("ex-elevacao-lateral", "Elevação lateral", "Ombros", "Halteres", "Eleve os braços até a linha dos ombros, cotovelos levemente flexionados."),
-  ex("ex-face-pull", "Face pull", "Ombros", "Polia com corda", "Puxe a corda em direção ao rosto, abrindo os cotovelos e rotacionando externamente os ombros."),
-  ex("ex-rosca-direta", "Rosca direta", "Bíceps", "Barra W", "Cotovelos fixos ao lado do corpo. Evite usar impulso do tronco."),
-  ex("ex-rosca-martelo", "Rosca martelo", "Bíceps", "Halteres", "Pegada neutra, suba alternando os braços com controle."),
-  ex("ex-triceps-corda", "Tríceps na polia com corda", "Tríceps", "Polia alta", "Cotovelos fixos, estenda completamente e afaste as pontas da corda no final."),
-  ex("ex-triceps-frances", "Tríceps francês", "Tríceps", "Halter", "Cotovelos apontados para cima. Desça o halter atrás da cabeça e estenda."),
-  ex("ex-agachamento", "Agachamento livre", "Quadríceps", "Barra", "Pés na largura dos ombros. Desça mantendo o tronco firme e os joelhos alinhados com os pés."),
-  ex("ex-leg-press", "Leg press 45°", "Quadríceps", "Máquina", "Lombar apoiada. Desça até ~90° de flexão de joelho e empurre sem travar os joelhos."),
-  ex("ex-cadeira-extensora", "Cadeira extensora", "Quadríceps", "Máquina", "Estenda os joelhos completamente e segure 1 s no topo."),
-  ex("ex-afundo", "Afundo com halteres", "Quadríceps", "Halteres", "Passo longo, desça até o joelho de trás quase tocar o chão."),
-  ex("ex-terra-romeno", "Levantamento terra romeno", "Posteriores", "Barra", "Joelhos semiflexionados, leve o quadril para trás mantendo a coluna neutra."),
-  ex("ex-mesa-flexora", "Mesa flexora", "Posteriores", "Máquina", "Quadril apoiado no banco. Flexione os joelhos e controle a descida."),
-  ex("ex-elevacao-pelvica", "Elevação pélvica", "Glúteos", "Barra e banco", "Escápulas no banco, queixo levemente baixo. Estenda o quadril e contraia os glúteos no topo."),
-  ex("ex-abducao", "Cadeira abdutora", "Glúteos", "Máquina", "Tronco levemente inclinado à frente, abra as pernas com controle."),
-  ex("ex-panturrilha", "Panturrilha em pé", "Panturrilha", "Máquina", "Amplitude completa: alongue embaixo e suba na ponta dos pés."),
-  ex("ex-prancha", "Prancha", "Core", "Peso corporal", "Antebraços no chão, corpo alinhado. Contraia abdômen e glúteos."),
-  ex("ex-abdominal-infra", "Abdominal infra", "Core", "Peso corporal", "Deitado, eleve o quadril trazendo os joelhos ao peito sem impulso."),
-  ex("ex-kettlebell-swing", "Kettlebell swing", "Corpo inteiro", "Kettlebell", "Movimento de dobradiça de quadril. Projete o kettlebell com a extensão do quadril, não com os braços."),
-  ex("ex-burpee", "Burpee", "Corpo inteiro", "Peso corporal", "Agache, leve os pés para trás, faça a flexão, retorne e salte."),
-  ex("ex-bike", "Bicicleta ergométrica", "Cardio", "Bicicleta", "Ritmo moderado. Ajuste o banco para leve flexão do joelho na pedalada mais baixa."),
-  ex("ex-esteira", "Caminhada inclinada", "Cardio", "Esteira", "Inclinação entre 8 e 12%, sem se apoiar nas barras laterais."),
+/** Exercício da v1 sem equivalente no catálogo: vira exercício próprio se estiver em uso. */
+export const LEGACY_CUSTOM: Exercise[] = [
+  {
+    id: "ex-burpee",
+    name: "Burpee",
+    muscleGroup: "Corpo inteiro",
+    equipment: "Peso corporal",
+    instructions: "Agache, leve os pés para trás, faça a flexão, retorne e salte.",
+    custom: true,
+  },
 ]
+
+const L = LEGACY_EXERCISE_IDS
 
 const item = (id: string, exerciseId: string, sets: number, reps: string, load: number | null, restSec: number, notes = ""): WorkoutItem => ({
   id,
@@ -87,12 +96,12 @@ export function createSeed(now = new Date()): DemoData {
       name: "Treino A — Superiores",
       description: "Empurrar e puxar com foco em volume moderado.",
       items: [
-        item("a1", "ex-supino-reto", 4, "8-10", 40, 90, "Última série até próximo da falha."),
-        item("a2", "ex-puxada-frente", 4, "10-12", 45, 75),
-        item("a3", "ex-desenvolvimento", 3, "10", 12, 75),
-        item("a4", "ex-remada-baixa", 3, "12", 40, 60),
-        item("a5", "ex-triceps-corda", 3, "12-15", 20, 45),
-        item("a6", "ex-rosca-direta", 3, "10-12", 20, 45),
+        item("a1", L["ex-supino-reto"], 4, "8-10", 40, 90, "Última série até próximo da falha."),
+        item("a2", L["ex-puxada-frente"], 4, "10-12", 45, 75),
+        item("a3", L["ex-desenvolvimento"], 3, "10", 12, 75),
+        item("a4", L["ex-remada-baixa"], 3, "12", 40, 60),
+        item("a5", L["ex-triceps-corda"], 3, "12-15", 20, 45),
+        item("a6", L["ex-rosca-direta"], 3, "10-12", 20, 45),
       ],
       studentIds: ["al-ana", "al-bruno", "al-fabio"],
       createdAt: created,
@@ -103,12 +112,12 @@ export function createSeed(now = new Date()): DemoData {
       name: "Treino B — Inferiores",
       description: "Quadríceps, posteriores e glúteos.",
       items: [
-        item("b1", "ex-agachamento", 4, "6-8", 50, 120, "Aquecer com 2 séries leves antes."),
-        item("b2", "ex-leg-press", 4, "10-12", 140, 90),
-        item("b3", "ex-terra-romeno", 3, "10", 40, 90),
-        item("b4", "ex-elevacao-pelvica", 3, "12", 60, 75),
-        item("b5", "ex-mesa-flexora", 3, "12", 30, 60),
-        item("b6", "ex-panturrilha", 4, "15", 50, 45),
+        item("b1", L["ex-agachamento"], 4, "6-8", 50, 120, "Aquecer com 2 séries leves antes."),
+        item("b2", L["ex-leg-press"], 4, "10-12", 140, 90),
+        item("b3", L["ex-terra-romeno"], 3, "10", 40, 90),
+        item("b4", L["ex-elevacao-pelvica"], 3, "12", 60, 75),
+        item("b5", L["ex-mesa-flexora"], 3, "12", 30, 60),
+        item("b6", L["ex-panturrilha"], 4, "15", 50, 45),
       ],
       studentIds: ["al-ana", "al-bruno", "al-fabio"],
       createdAt: created,
@@ -119,12 +128,12 @@ export function createSeed(now = new Date()): DemoData {
       name: "Full body — Base",
       description: "Treino de corpo inteiro para construir rotina e técnica.",
       items: [
-        item("f1", "ex-leg-press", 3, "12", 80, 75),
-        item("f2", "ex-puxada-frente", 3, "12", 30, 60),
-        item("f3", "ex-supino-inclinado", 3, "12", 10, 60),
-        item("f4", "ex-elevacao-pelvica", 3, "12", 30, 60),
-        item("f5", "ex-prancha", 3, "30 s", null, 45, "Contar o tempo, não repetições."),
-        item("f6", "ex-bike", 1, "10 min", null, 0, "Intensidade moderada para finalizar."),
+        item("f1", L["ex-leg-press"], 3, "12", 80, 75),
+        item("f2", L["ex-puxada-frente"], 3, "12", 30, 60),
+        item("f3", L["ex-supino-inclinado"], 3, "12", 10, 60),
+        item("f4", L["ex-elevacao-pelvica"], 3, "12", 30, 60),
+        item("f5", L["ex-prancha"], 3, "30 s", null, 45, "Contar o tempo, não repetições."),
+        item("f6", L["ex-bike"], 1, "10 min", null, 0, "Intensidade moderada para finalizar."),
       ],
       studentIds: ["al-carla", "al-diego"],
       createdAt: created,
@@ -135,10 +144,10 @@ export function createSeed(now = new Date()): DemoData {
       name: "Mobilidade e core",
       description: "Sessão leve para controle motor e estabilidade.",
       items: [
-        item("m1", "ex-face-pull", 3, "15", 10, 45),
-        item("m2", "ex-afundo", 3, "10 por perna", 6, 60),
-        item("m3", "ex-abdominal-infra", 3, "12", null, 45),
-        item("m4", "ex-prancha", 3, "40 s", null, 45),
+        item("m1", L["ex-face-pull"], 3, "15", 10, 45),
+        item("m2", L["ex-afundo"], 3, "10 por perna", 6, 60),
+        item("m3", L["ex-abdominal-infra"], 3, "12", null, 45),
+        item("m4", L["ex-prancha"], 3, "40 s", null, 45),
       ],
       studentIds: ["al-elisa"],
       createdAt: created,
@@ -146,7 +155,6 @@ export function createSeed(now = new Date()): DemoData {
     },
   ]
 
-  const exById = new Map(BASE_EXERCISES.map((e) => [e.id, e]))
   /** Probabilidade de cumprir a sessão planejada, por aluno. */
   const consistency: Record<string, number> = { "al-ana": 0.9, "al-bruno": 0.8, "al-carla": 0.65, "al-diego": 0.35, "al-elisa": 0.85, "al-fabio": 0.7 }
   const sessions: Session[] = []
@@ -176,7 +184,7 @@ export function createSeed(now = new Date()): DemoData {
           sets.push({
             itemId: it.id,
             exerciseId: it.exerciseId,
-            exerciseName: exById.get(it.exerciseId)?.name ?? "Exercício",
+            exerciseName: catalogExercise(it.exerciseId)?.name ?? "Exercício",
             setIndex: s,
             reps: Number.isFinite(target) ? Math.max(1, target - Math.floor(rand() * 3)) : null,
             load: it.load === null ? null : Math.round(it.load * progress * 2) / 2,
@@ -219,7 +227,12 @@ export function createSeed(now = new Date()): DemoData {
       directoryVisible: true,
     },
     students,
-    exercises: BASE_EXERCISES.map((e) => ({ ...e })),
+    exercises: [],
+    exerciseMedia: {
+      [L["ex-agachamento"]]: { videoUrl: "", tip: "Respire fundo e trave o abdômen antes de descer. Se o calcanhar sair do chão, reduza a amplitude." },
+      [L["ex-elevacao-pelvica"]]: { videoUrl: "", tip: "Segure 1 segundo no topo apertando os glúteos. Queixo levemente para baixo." },
+      [L["ex-prancha"]]: { videoUrl: "", tip: "Se a lombar começar a afundar, pare a série — qualidade vale mais que tempo." },
+    },
     workouts,
     sessions,
     contactRequests: [],

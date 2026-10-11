@@ -6,8 +6,8 @@ Três experiências conectadas, todas acessíveis sem login:
 
 | Experiência | Rota | O que faz |
 |---|---|---|
-| **EVOFIT Studio** (personal) | `/studio` | Painel com indicadores calculados dos dados, alunos (cadastro, edição, arquivamento, histórico, frequência, evolução de carga), biblioteca de exercícios, editor de fichas (séries, repetições, carga, descanso, instruções, ordem) e atribuição a alunos, perfil profissional e caixa de solicitações de contato. |
-| **EVOFIT Aluno** | `/aluno` | Mobile-first. Escolha de aluno fictício, treinos atribuídos, execução série a série (reps e kg editáveis, cronômetro de descanso), conclusão com observação, histórico e gráficos de frequência e carga. |
+| **EVOFIT Studio** (personal) | `/studio` | Painel com indicadores calculados dos dados, alunos (cadastro, edição, arquivamento, histórico, frequência, evolução de carga), biblioteca com 876 exercícios demonstrados (vídeo e dica próprios por exercício), editor de fichas (séries, repetições, carga, descanso, instruções, ordem) e atribuição a alunos, perfil profissional e caixa de solicitações de contato. |
+| **EVOFIT Aluno** | `/aluno` | Mobile-first. Escolha de aluno fictício, treinos atribuídos, execução série a série (reps e kg editáveis, cronômetro de descanso), “Como fazer” em cada exercício (demonstração animada, vídeo do personal, dica e passo a passo com leitura em voz alta), conclusão com observação, histórico e gráficos de frequência e carga. |
 | **Encontrar personal** | `/personais` | Diretório público com busca (sem acento), filtros por estado, modalidade e especialidade, URL compartilhável, perfil público e formulário de solicitação de contato. |
 
 ## Como a demonstração funciona
@@ -16,7 +16,7 @@ Três experiências conectadas, todas acessíveis sem login:
 - **Dados fictícios e locais.** Todo o estado (alunos, fichas, sessões, perfil, solicitações) fica no `localStorage` do navegador, na chave `evofit:demo:v1`. Nada é enviado a servidores, não há banco de dados e nenhum segredo é necessário.
 - **Identificação.** Uma faixa fixa no topo de todas as telas indica “Modo demonstração”. Perfis do diretório são rotulados como fictícios.
 - **Restaurar.** O botão **Restaurar** na faixa superior (com confirmação) recria os dados iniciais. A tela de erro também oferece restauração.
-- **Robustez.** Os dados lidos são validados (`lib/validate.ts`); formato antigo/corrompido é substituído pela demonstração inicial com aviso. Se o navegador bloquear a gravação (modo privado, cota), um aviso informa que as alterações valem só até recarregar. Abas abertas se sincronizam pelo evento `storage`.
+- **Robustez.** Os dados lidos são validados (`lib/validate.ts`); dados da versão 1 (biblioteca fixa de 30 exercícios) são migrados automaticamente para o catálogo sem perder fichas, histórico ou exercícios próprios (`lib/migrate.ts`); formato desconhecido/corrompido é substituído pela demonstração inicial com aviso. Se o navegador bloquear a gravação (modo privado, cota), um aviso informa que as alterações valem só até recarregar. Abas abertas se sincronizam pelo evento `storage`.
 - **Fluxo conectado.** Ficha atribuída no Studio aparece no app do aluno; o treino concluído entra no histórico e nos indicadores do Studio. Opt-in do perfil no Studio controla a presença no diretório (inclusive acesso direto pela URL).
 
 ## Executar localmente
@@ -76,12 +76,28 @@ Pela CLI: `npm i -g vercel && vercel` (preview) e `vercel --prod` (produção).
 5. Clique em **Restaurar** e confirme que tudo volta ao estado inicial.
 6. Opcional: `E2E_BASE_URL=<url> npx playwright test`.
 
+## Biblioteca de exercícios
+
+Pensada para os dias em que o personal não está junto do aluno.
+
+- **Catálogo aberto:** 876 exercícios do projeto [free-exercise-db](https://github.com/yuhonas/free-exercise-db) (licença **Unlicense / domínio público**), com nomes, músculos, equipamento, nível e passo a passo **traduzidos para PT-BR**. Cada exercício tem dois quadros (posição inicial e final) que o app alterna como uma animação leve; com “reduzir movimento” ativo, os quadros aparecem lado a lado. 3 exercícios do catálogo não têm imagem e mostram um aviso.
+- **Arquivos:** `data/exercises.pt-BR.json` é a fonte traduzida. `node scripts/build-exercises.mjs` gera `lib/exercise-index.json` (índice leve, ~25 KB gzip no bundle) e `public/exercises/data/<id>.json` (passo a passo, carregado sob demanda). As imagens ficam em `public/exercises/img/<id>-0|1.webp` (480 px, ~26 MB no total, servidas como estáticos com cache longo).
+- **Material do personal:** em Studio → Exercícios → (exercício), o personal cola um link de vídeo próprio e/ou escreve uma dica. Links aceitos: YouTube (incorporado via `youtube-nocookie.com`), Vimeo, Google Drive (compartilhado “com qualquer pessoa com o link”) ou arquivo `.mp4/.webm` em HTTPS. Qualquer outro link é recusado (`lib/video.ts`) — o app nunca incorpora uma URL arbitrária. O player de terceiros só carrega quando o aluno toca em “Assistir”.
+- **Exercícios próprios:** o personal pode criar exercícios que não existem no catálogo (nome repetido do catálogo é bloqueado); cada linha das instruções vira um passo numerado.
+- **Ouvir:** o passo a passo pode ser lido em voz alta pela síntese de voz do próprio navegador (sem serviço externo), quando disponível.
+- As imagens do catálogo mostram execuções de referência; não substituem a orientação do profissional. O guia sempre exibe o aviso para interromper o exercício em caso de dor.
+
+## Movimento e interface
+
+Entradas em cascata em listas e cards, números que contam até o valor, anéis de progresso (meta semanal e descanso), confirmação animada de série com vibração curta no celular, rolagem automática para o próximo exercício, comemoração ao concluir o treino, cards que elevam no hover e uma prévia animada do app na página inicial. Tudo em CSS/SVG, sem bibliotecas novas, e desligado com `prefers-reduced-motion`.
+
 ## Arquitetura
 
 - **Next.js 16 (App Router, Turbopack)**, React 19, TypeScript strict, Tailwind CSS 4, `lucide-react`, fonte **Geist** (pacote `geist`, licença OFL, servida localmente — o build não depende da internet).
-- `lib/types.ts` — modelo de dados · `lib/seed.ts` — dados demonstrativos (PRNG determinístico, datas relativas ao primeiro acesso) · `lib/actions.ts` — operações puras e validações · `lib/metrics.ts` — indicadores · `lib/store.ts` — persistência (`useSyncExternalStore` + `localStorage`) · `lib/directory.ts` — perfis fictícios e filtros.
+- `lib/types.ts` — modelo de dados · `lib/seed.ts` — dados demonstrativos (PRNG determinístico, datas relativas ao primeiro acesso) · `lib/actions.ts` — operações puras e validações · `lib/metrics.ts` — indicadores · `lib/store.ts` — persistência (`useSyncExternalStore` + `localStorage`) · `lib/directory.ts` — perfis fictícios e filtros · `lib/catalog.ts` — catálogo de exercícios, busca e passo a passo sob demanda · `lib/video.ts` — validação de links de vídeo · `lib/migrate.ts` — migração dos dados salvos.
+- `components/exercise.tsx` — demonstração animada, miniatura, player de vídeo, passo a passo e guia completo · `components/motion.tsx` — contagem animada, anel de progresso, confete, vibração.
 - `components/ui.tsx` — primitivas (Field, Modal com `<dialog>` nativo, ConfirmDialog, EmptyState, Stat, Progress, Avatar…) · `components/charts.tsx` — gráficos SVG com tooltip e tabela acessível.
-- Rotas dinâmicas (`/studio/alunos/[id]`, `/studio/treinos/[id]`, `/aluno/treino/[id]`, `/personais/[slug]`) são renderizadas sob demanda; as demais são estáticas.
+- Rotas dinâmicas (`/studio/alunos/[id]`, `/studio/treinos/[id]`, `/studio/exercicios/[id]`, `/aluno/treino/[id]`, `/personais/[slug]`) são renderizadas sob demanda; as demais são estáticas.
 
 ## Design system
 
@@ -111,7 +127,9 @@ Tipografia: Geist (UI). **Switzer não está disponível/licenciada no repositó
 - **Dados não sincronizam entre dispositivos ou navegadores** — cada navegador tem sua própria cópia da demonstração.
 - **Solicitações de contato não são enviadas a ninguém.** Ficam salvas no navegador; as do perfil do próprio Studio aparecem em Studio → Perfil. O formulário avisa isso explicitamente.
 - Não há autenticação, multiusuário, upload de foto, pagamentos ou notificações.
-- Exercícios-base da biblioteca são somente leitura; exercícios personalizados podem ser editados/excluídos (exclusão bloqueada se estiverem em uso).
+- Exercícios do catálogo são somente leitura (o personal adiciona vídeo/dica); exercícios próprios podem ser editados/excluídos (exclusão bloqueada se estiverem em uso).
+- O app não hospeda vídeos: o personal usa um link do YouTube, Vimeo, Google Drive ou um arquivo já publicado. Vídeos privados não tocam para o aluno.
+- A tradução do catálogo foi feita para este projeto; termos técnicos podem variar de região para região.
 - O aplicativo antigo deste repositório (rastreador de dieta com checklist de refeições e peso, herdado do EVODIETA) foi substituído, pois não fazia parte do escopo do EVOFIT; ele continua disponível no histórico do Git (commit `ebeda05`). Os dados antigos no navegador (`evo_ch`, `evo_wt`) não são lidos nem apagados.
 - `npm audit` aponta `braces` (dependência apenas de desenvolvimento do ESLint, sem correção publicada); as dependências de produção não têm vulnerabilidades conhecidas.
 

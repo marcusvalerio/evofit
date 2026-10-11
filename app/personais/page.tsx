@@ -111,10 +111,10 @@ function Directory() {
           Tente outra região ou remova alguma especialidade.
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((p) => (
             <li key={p.slug}>
-              <Link href={`/personais/${p.slug}`} className="card flex h-full flex-col p-5 transition-colors hover:border-line-strong">
+              <Link href={`/personais/${p.slug}`} className="card lift flex h-full flex-col p-5">
                 <div className="flex items-center gap-3">
                   <Avatar name={p.name} accent={p.accent} size="lg" />
                   <div className="min-w-0">

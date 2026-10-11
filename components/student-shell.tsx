@@ -44,8 +44,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
               { href: "/studio", label: "Studio", icon: LayoutDashboard, on: false },
             ].map(({ href, label, icon: Icon, on }) => (
               <li key={href}>
-                <Link href={href} aria-current={on ? "page" : undefined} className={cx("flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] font-semibold", on ? "text-accent" : "text-muted")}>
-                  <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
+                <Link href={href} aria-current={on ? "page" : undefined} className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}>
+                  <span className={cx("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
+                    <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
+                  </span>
                   {label}
                 </Link>
               </li>

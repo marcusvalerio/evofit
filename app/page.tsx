@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { ArrowRight, LayoutDashboard, Search, Smartphone } from "lucide-react"
 import { PublicShell } from "@/components/public-shell"
+import { HeroShowcase } from "@/components/hero-showcase"
+import { CATALOG_SIZE } from "@/lib/catalog"
 
 const EXPERIENCES = [
   {
@@ -8,7 +10,7 @@ const EXPERIENCES = [
     icon: LayoutDashboard,
     eyebrow: "Para o personal",
     title: "EVOFIT Studio",
-    text: "Painel com frequência real dos alunos, cadastro de alunos, biblioteca de exercícios e editor de fichas com séries, repetições, carga e descanso.",
+    text: "Painel com frequência real dos alunos, editor de fichas e uma biblioteca com centenas de exercícios demonstrados — com espaço para o seu vídeo e a sua dica.",
     cta: "Abrir o Studio",
   },
   {
@@ -16,7 +18,7 @@ const EXPERIENCES = [
     icon: Smartphone,
     eyebrow: "Para o aluno",
     title: "EVOFIT Aluno",
-    text: "O treino do dia no celular: séries na ordem prescrita, registro de carga e repetições, cronômetro de descanso e histórico de evolução.",
+    text: "O treino do dia no celular, mesmo sem o personal por perto: como fazer cada exercício, registro de carga, cronômetro de descanso e histórico.",
     cta: "Abrir o app do aluno",
   },
   {
@@ -32,7 +34,8 @@ const EXPERIENCES = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in max-w-3xl py-6 sm:py-12">
+      <div className="grid items-center gap-10 py-6 sm:py-12 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+      <section className="fade-in max-w-3xl">
         <p className="t-eyebrow">Plataforma para personal trainers autônomos</p>
         <h1 className="t-display mt-3">
           Prescreva, acompanhe e <span className="text-accent">evolua</span> cada aluno.
@@ -48,20 +51,37 @@ export default function Home() {
             Ver como aluno
           </Link>
         </div>
+        <dl className="stagger mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+          {[
+            { v: String(CATALOG_SIZE), l: "exercícios com demonstração" },
+            { v: "PT-BR", l: "passo a passo traduzido" },
+            { v: "3", l: "experiências conectadas" },
+          ].map((x) => (
+            <div key={x.l}>
+              <dt className="sr-only">{x.l}</dt>
+              <dd className="text-2xl font-bold tracking-tight tabular">{x.v}</dd>
+              <dd className="mt-0.5 text-xs leading-snug text-muted">{x.l}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
+      <div className="fade-in [animation-delay:150ms]">
+        <HeroShowcase />
+      </div>
+      </div>
 
-      <ul className="mt-6 grid gap-4 md:grid-cols-3">
+      <ul className="stagger mt-6 grid gap-4 md:grid-cols-3">
         {EXPERIENCES.map(({ href, icon: Icon, eyebrow, title, text, cta }) => (
           <li key={href}>
-            <Link href={href} className="card group flex h-full flex-col p-6 transition-colors hover:border-line-strong">
-              <span className="grid size-11 place-items-center rounded-xl bg-inverse text-on-inverse">
+            <Link href={href} className="card lift group flex h-full flex-col p-6">
+              <span className="grid size-11 place-items-center rounded-xl bg-inverse text-on-inverse transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110">
                 <Icon size={20} aria-hidden />
               </span>
               <p className="t-eyebrow mt-5">{eyebrow}</p>
               <h2 className="mt-1 text-xl font-bold tracking-tight">{title}</h2>
               <p className="mt-2 flex-1 text-[0.9375rem] leading-relaxed text-muted">{text}</p>
               <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-accent">
-                {cta} <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-0.5" />
+                {cta} <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
               </span>
             </Link>
           </li>

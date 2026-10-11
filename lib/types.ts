@@ -33,6 +33,7 @@ export interface Student {
   createdAt: string
 }
 
+/** Exercício criado pelo personal. Os exercícios do catálogo ficam em lib/catalog.ts e não são persistidos. */
 export interface Exercise {
   id: string
   name: string
@@ -40,6 +41,14 @@ export interface Exercise {
   equipment: string
   instructions: string
   custom: boolean
+}
+
+/** Material próprio do personal para um exercício (catálogo ou próprio). */
+export interface ExerciseMedia {
+  /** Link de vídeo (YouTube, Vimeo, Google Drive ou arquivo direto em HTTPS). Vazio = sem vídeo. */
+  videoUrl: string
+  /** Dica do personal exibida ao aluno durante o treino. */
+  tip: string
 }
 
 export interface WorkoutItem {
@@ -102,6 +111,8 @@ export interface DemoData {
   profile: TrainerProfile
   students: Student[]
   exercises: Exercise[]
+  /** Vídeos e dicas do personal, por id de exercício. */
+  exerciseMedia: Record<string, ExerciseMedia>
   workouts: Workout[]
   sessions: Session[]
   contactRequests: ContactRequest[]
@@ -140,11 +151,17 @@ export const MUSCLE_GROUPS = [
   "Ombros",
   "Bíceps",
   "Tríceps",
+  "Antebraço",
+  "Trapézio",
+  "Abdômen",
+  "Lombar",
   "Quadríceps",
   "Posteriores",
   "Glúteos",
+  "Adutores",
+  "Abdutores",
   "Panturrilha",
-  "Core",
+  "Pescoço",
   "Corpo inteiro",
   "Cardio",
 ] as const

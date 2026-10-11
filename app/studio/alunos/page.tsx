@@ -89,14 +89,14 @@ function Alunos() {
           {q ? `Nada corresponde a “${q}”.` : status === "arquivado" ? "Alunos arquivados aparecem aqui e podem ser reativados." : "Comece adicionando seu primeiro aluno."}
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {list.map((s) => {
             const last = lastSession(d, s.id)
             const wk = weekCount(d, s.id)
             const plans = d.workouts.filter((w) => w.studentIds.includes(s.id)).length
             return (
               <li key={s.id}>
-                <Link href={`/studio/alunos/${s.id}`} className="card flex h-full flex-col gap-4 p-4 transition-colors hover:border-line-strong">
+                <Link href={`/studio/alunos/${s.id}`} className="card lift flex h-full flex-col gap-4 p-4">
                   <div className="flex items-center gap-3">
                     <Avatar name={s.name} />
                     <div className="min-w-0 flex-1">

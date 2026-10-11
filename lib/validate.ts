@@ -32,6 +32,9 @@ const isStudent = (v: unknown) =>
 const isExercise = (v: unknown) =>
   isObj(v) && has(v, { id: isStr, name: isStr, muscleGroup: isStr, equipment: isStr, instructions: isStr, custom: (b) => typeof b === "boolean" })
 
+const isMediaMap = (v: unknown) =>
+  isObj(v) && Object.values(v).every((m) => isObj(m) && has(m, { videoUrl: isStr, tip: isStr }))
+
 const isItem = (v: unknown) =>
   isObj(v) && has(v, { id: isStr, exerciseId: isStr, sets: isNum, reps: isStr, load: isNumOrNull, restSec: isNum, notes: isStr })
 
@@ -64,6 +67,7 @@ export function isDemoData(v: unknown): v is DemoData {
     isProfile(v.profile) &&
     isArr(v.students, isStudent) &&
     isArr(v.exercises, isExercise) &&
+    isMediaMap(v.exerciseMedia) &&
     isArr(v.workouts, isWorkout) &&
     isArr(v.sessions, isSession) &&
     isArr(v.contactRequests, isContact) &&

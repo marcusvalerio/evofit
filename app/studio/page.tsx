@@ -40,14 +40,14 @@ export default function StudioDashboard() {
         }
       />
 
-      <section aria-label="Indicadores" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section aria-label="Indicadores" className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Alunos ativos" value={String(active.length)} hint={`${d.students.length - active.length} arquivado(s)`} />
         <Stat label="Treinos · 7 dias" value={String(last7)} hint="sessões concluídas" />
         <Stat label="Aderência da semana" value={adherence === null ? "—" : String(adherence)} unit={adherence === null ? undefined : "%"} hint="sessões feitas ÷ metas semanais" tone="accent" />
         <Stat label="Sem treinar 7+ dias" value={String(attention.length)} hint="alunos ativos" tone={attention.length ? "warning" : undefined} />
       </section>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="stagger mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="card p-5" aria-labelledby="freq-title">
           <div className="mb-5 flex items-baseline justify-between gap-3">
             <h2 id="freq-title" className="t-h2">
@@ -94,7 +94,7 @@ export default function StudioDashboard() {
         </section>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+      <div className="stagger mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="card p-5" aria-labelledby="recent-title">
           <div className="mb-3 flex items-center justify-between">
             <h2 id="recent-title" className="t-h2">

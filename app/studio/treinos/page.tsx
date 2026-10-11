@@ -73,11 +73,11 @@ function Treinos() {
           Fichas atribuídas aparecem automaticamente no app do aluno.
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
           {d.workouts.map((w) => {
             const assigned = w.studentIds.map((id) => studentById.get(id)).filter((s) => s && s.status === "ativo")
             return (
-              <li key={w.id} className="card flex flex-col p-4">
+              <li key={w.id} className="card lift flex flex-col p-4">
                 <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
                   <p className="font-semibold">{w.name}</p>
                   <p className="mt-0.5 line-clamp-2 text-sm text-muted">{w.description || "Sem descrição"}</p>

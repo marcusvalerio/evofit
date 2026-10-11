@@ -5,10 +5,11 @@ import { useParams, useRouter } from "next/navigation"
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import type { Workout, WorkoutItem } from "@/lib/types"
-import { MUSCLE_GROUPS } from "@/lib/types"
+import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
 import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
 import { ConfirmDialog, Field, Modal, NotFoundState, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { ExerciseThumb } from "@/components/exercise"
 
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>()
@@ -34,7 +35,6 @@ function Editor({ workout }: { workout: Workout }) {
   const [picking, setPicking] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [tried, setTried] = useState(false)
-  const exById = useMemo(() => new Map(d.exercises.map((e) => [e.id, e])), [d.exercises])
   const errors = validateWorkout(draft)
   const valid = isWorkoutValid(errors)
   const dirty = JSON.stringify(draft) !== JSON.stringify(workout)
@@ -110,15 +110,28 @@ function Editor({ workout }: { workout: Workout }) {
           ) : (
             <ol className="space-y-3">
               {draft.items.map((it, idx) => {
-                const ex = exById.get(it.exerciseId)
+                const ex = getExercise(d, it.exerciseId)
                 const err = show.itemErrors[it.id]
                 return (
                   <li key={it.id} className={cx("card p-4", err && "border-danger")}>
                     <div className="mb-3 flex items-start gap-3">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-inverse text-sm font-bold text-on-inverse tabular">{idx + 1}</span>
+                      <span className="relative shrink-0">
+                        {ex ? <ExerciseThumb ex={ex} className="w-16 sm:w-20" /> : <span className="thumb w-16 sm:w-20" />}
+                        <span className="absolute -left-1.5 -top-1.5 grid size-6 place-items-center rounded-full bg-inverse text-xs font-bold text-on-inverse tabular">{idx + 1}</span>
+                      </span>
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold">{ex?.name ?? "Exercício removido"}</p>
-                        <p className="text-sm text-muted">{ex?.muscleGroup}</p>
+                        <p className="text-sm text-muted">
+                          {ex ? `${ex.group} · ${ex.equipment}` : ""}
+                          {ex && (
+                            <>
+                              {" · "}
+                              <Link href={`/studio/exercicios/${encodeURIComponent(ex.id)}`} className="font-medium text-accent hover:underline">
+                                ver execução
+                              </Link>
+                            </>
+                          )}
+                        </p>
                       </div>
                       <div className="flex shrink-0">
                         <button type="button" className="btn btn-ghost btn-icon btn-sm" disabled={idx === 0} onClick={() => move(idx, -1)} aria-label={`Mover ${ex?.name} para cima`}>
@@ -248,18 +261,24 @@ function Editor({ workout }: { workout: Workout }) {
   )
 }
 
+const PAGE = 40
+
 function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; onPick: (id: string) => void; selected: string[] }) {
   const d = useData()
   const [q, setQ] = useState("")
   const [group, setGroup] = useState("")
+  const [equipment, setEquipment] = useState("")
+  const [limit, setLimit] = useState(PAGE)
   const [added, setAdded] = useState<string[]>([])
-  const list = d.exercises.filter((e) => (!group || e.muscleGroup === group) && (!q.trim() || e.name.toLowerCase().includes(q.trim().toLowerCase())))
+  const all = useMemo(() => allExercises(d), [d])
+  const list = useMemo(() => filterExercises(all, { q, group, equipment }), [all, q, group, equipment])
+  const reset = () => setLimit(PAGE)
   return (
     <Modal
       open
       onClose={onClose}
       title="Adicionar exercícios"
-      description="Toque para adicionar. Você pode adicionar vários antes de fechar."
+      description={`${all.length} exercícios com demonstração. Toque para adicionar — dá para escolher vários antes de fechar.`}
       wide
       footer={
         <button type="button" className="btn btn-primary" onClick={onClose}>
@@ -268,58 +287,81 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
       }
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 space-y-2 bg-surface px-5 pb-3 pt-4">
-        <div className="relative">
-          <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <label htmlFor="pick-q" className="sr-only">
-            Buscar exercício
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+            <label htmlFor="pick-q" className="sr-only">
+              Buscar exercício
+            </label>
+            <input id="pick-q" type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus />
+          </div>
+          <label htmlFor="pick-eq" className="sr-only">
+            Equipamento
           </label>
-          <input id="pick-q" type="search" className="input pl-10" placeholder="Buscar exercício" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+          <select id="pick-eq" className="input !w-36 sm:!w-48" value={equipment} onChange={(e) => (setEquipment(e.target.value), reset())}>
+            <option value="">Equipamento</option>
+            {CATALOG_EQUIPMENT.map((g) => (
+              <option key={g}>{g}</option>
+            ))}
+          </select>
         </div>
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Grupo muscular">
-          <button type="button" className="chip shrink-0" aria-pressed={!group} onClick={() => setGroup("")}>
+        <div className="scroll-x -mx-5 px-5 pb-1" role="group" aria-label="Grupo muscular">
+          <button type="button" className="chip shrink-0" aria-pressed={!group} onClick={() => (setGroup(""), reset())}>
             Todos
           </button>
-          {MUSCLE_GROUPS.map((g) => (
-            <button key={g} type="button" className="chip shrink-0" aria-pressed={group === g} onClick={() => setGroup(group === g ? "" : g)}>
+          {CATALOG_GROUPS.map((g) => (
+            <button key={g} type="button" className="chip shrink-0" aria-pressed={group === g} onClick={() => (setGroup(group === g ? "" : g), reset())}>
               {g}
             </button>
           ))}
         </div>
+        <p className="text-xs text-muted" aria-live="polite">
+          {list.length} resultado{list.length === 1 ? "" : "s"}
+        </p>
       </div>
       {list.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted">Nenhum exercício encontrado. Crie novos em Exercícios.</p>
+        <p className="py-8 text-center text-sm text-muted">Nenhum exercício encontrado. Tente outro termo ou crie um exercício próprio em Exercícios.</p>
       ) : (
-        <ul className="divide-y divide-line">
-          {list.map((e) => {
-            const count = selected.filter((s) => s === e.id).length
-            return (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3 rounded-lg py-3 text-left hover:bg-line/40"
-                  onClick={() => {
-                    onPick(e.id)
-                    setAdded((a) => [...a, e.id])
-                  }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{e.name}</p>
-                    <p className="text-sm text-muted">
-                      {e.muscleGroup} · {e.equipment}
-                    </p>
-                  </div>
-                  {count > 0 ? (
-                    <span className="badge badge-success">
-                      <Check size={12} aria-hidden /> {count > 1 ? `${count}×` : "na ficha"}
-                    </span>
-                  ) : (
-                    <Plus size={18} aria-hidden className="text-muted" />
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <>
+          <ul className="divide-y divide-line">
+            {list.slice(0, limit).map((e) => {
+              const count = selected.filter((s) => s === e.id).length
+              return (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    className="group flex w-full items-center gap-3 rounded-lg py-2.5 text-left transition-colors hover:bg-line/40"
+                    onClick={() => {
+                      onPick(e.id)
+                      setAdded((a) => [...a, e.id])
+                    }}
+                  >
+                    <ExerciseThumb ex={e} className="w-16" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{e.name}</p>
+                      <p className="truncate text-sm text-muted">
+                        {e.group} · {e.equipment}
+                        {e.custom && " · próprio"}
+                      </p>
+                    </div>
+                    {count > 0 ? (
+                      <span key={count} className="badge badge-success pop">
+                        <Check size={12} aria-hidden /> {count > 1 ? `${count}×` : "na ficha"}
+                      </span>
+                    ) : (
+                      <Plus size={18} aria-hidden className="text-muted transition-transform group-hover:scale-125" />
+                    )}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {list.length > limit && (
+            <button type="button" className="btn btn-outline mt-3 w-full" onClick={() => setLimit((l) => l + PAGE)}>
+              Mostrar mais ({list.length - limit})
+            </button>
+          )}
+        </>
       )}
       <span className="sr-only" aria-live="polite">
         {added.length ? `${added.length} exercício(s) adicionado(s)` : ""}
