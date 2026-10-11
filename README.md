@@ -156,14 +156,15 @@ A demonstração sem login continua igual. Com `DATABASE_URL` configurada, o app
 **Como funciona**
 
 - `db/migrations/001_init.sql` — tabelas, restrições e **Row Level Security** em todas as tabelas de dados (`ENABLE` + `FORCE`). O app acessa os dados de treino sempre como o papel restrito `evofit_app` (`SET LOCAL ROLE` em cada transação) com o tenant em variáveis de transação: o personal só enxerga o que é dele; o aluno só lê o próprio cadastro, as fichas atribuídas a ele e as próprias sessões, e só grava as próprias sessões (treino concluído não volta a ser editado); o visitante só lê perfis com opt-in e só insere pedido de contato. Tabelas de login não são acessíveis a esse papel.
+- No Neon, o papel dono do banco (`neondb_owner`) tem `BYPASSRLS` — por isso o app **nunca** consulta dados de treino como dono: cada transação troca para `evofit_app` (`NOBYPASSRLS`). Isso foi verificado no banco real: com `evofit_app`, um personal grava os próprios dados e outro personal enxerga 0 linhas.
 - `lib/server/*` — conexão (`pg`), autenticação (senha com **scrypt**, sessão em cookie `httpOnly`/`SameSite=Lax`/`Secure`, token guardado só como hash SHA-256, 30 dias), limite de tentativas (login, cadastro, convite, contato), checagem de origem nas escritas, leitura/gravação do workspace.
 - As telas não mudaram: continuam usando as ações puras de `lib/actions.ts`. No modo conta, `lib/store.ts` calcula **só o que mudou** (`lib/sync.ts`) e envia para `PATCH /api/workspace`; o servidor revalida formato, regras e permissões e grava numa transação. Se algo for recusado, a tela volta ao que está salvo e mostra o motivo. A faixa superior indica “Salvando…/Salvo”.
 - Rotas: `/api/auth/{signup,login,logout}`, `/api/workspace`, `/api/invites`, `/api/invites/[code]`, `/api/account`, `/api/directory`, `/api/contact`.
 
 **Colocar no ar com o Neon**
 
-1. Crie o projeto em [neon.tech](https://neon.tech) (região São Paulo, `sa-east-1`, se disponível) e copie as strings de conexão *pooled* e *direct*.
-2. Rode as migrações uma vez (e a cada nova migração): `DATABASE_URL_MIGRATIONS="<direct>" npm run db:migrate`.
+1. Projeto Neon: **`evofit`** (`quiet-heart-54557463`, região `aws-sa-east-1` / São Paulo, Postgres 17), com a migração `001_init.sql` já aplicada. Copie a string de conexão *pooled* em Neon → `evofit` → *Connect*.
+2. Novas migrações: `DATABASE_URL_MIGRATIONS="<string direct>" npm run db:migrate` (o script pula as já aplicadas, registradas em `schema_migrations`).
 3. Na Vercel, em *Settings → Environment Variables*, crie `DATABASE_URL` = string *pooled* (Production e Preview). Faça o redeploy.
 4. Teste: criar conta, cadastrar aluno, gerar convite, entrar como aluno em outro navegador e registrar um treino.
 
