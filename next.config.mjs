@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  // A rota que gera os GIFs lê as imagens do catálogo e as fontes direto do disco.
+  outputFileTracingIncludes: {
+    "/api/gif/[id]": ["./public/exercises/img/**", "./node_modules/geist/dist/fonts/geist-sans/Geist-{Bold,SemiBold,BlackItalic}.ttf"],
+  },
   async headers() {
     return [
       {

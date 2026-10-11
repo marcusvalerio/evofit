@@ -164,3 +164,8 @@ export function loadDetail(id: string): Promise<ExerciseDetail | null> {
 
 export const MECHANIC_LABEL: Record<string, string> = { compound: "Multiarticular", isolation: "Isolado" }
 export const FORCE_LABEL: Record<string, string> = { push: "Empurrar", pull: "Puxar", static: "Isométrico" }
+
+/** Animação com a marca EVOFIT gerada pela rota /api/gif (somente exercícios do catálogo com dois quadros). */
+export const animUrl = (id: string, format: "gif" | "webp" = "gif", download = false) =>
+  `/api/gif/${encodeURIComponent(id)}${format === "webp" ? "?f=webp" : ""}${download ? `${format === "webp" ? "&" : "?"}download` : ""}`
+export const libraryUrl = (id: string) => `/biblioteca/${encodeURIComponent(id)}`

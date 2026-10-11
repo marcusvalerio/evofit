@@ -88,6 +88,17 @@ export default function Home() {
         ))}
       </ul>
 
+      <Link href="/biblioteca" className="card lift group mt-4 flex flex-col gap-3 bg-inverse p-6 text-on-inverse sm:flex-row sm:items-center">
+        <div className="min-w-0 flex-1">
+          <p className="t-eyebrow !text-on-inverse/70">Aberta para todos</p>
+          <h2 className="mt-1 text-xl font-bold tracking-tight">Biblioteca EVOFIT: {CATALOG_SIZE} exercícios em GIF</h2>
+          <p className="mt-1 text-[0.9375rem] opacity-80">Como fazer cada exercício, com passo a passo em português. Baixe ou compartilhe com seus alunos.</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 font-semibold underline-offset-4 group-hover:underline">
+          Abrir biblioteca <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
+        </span>
+      </Link>
+
       <section className="mt-12 grid gap-4 rounded-2xl border border-line p-6 text-sm sm:grid-cols-3" aria-label="Sobre a demonstração">
         <div>
           <h2 className="font-semibold">Sem cadastro</h2>

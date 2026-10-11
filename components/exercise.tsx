@@ -1,11 +1,12 @@
 "use client"
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { AlertTriangle, Dumbbell, ExternalLink, Pause, Play, PlayCircle, Volume2, VolumeX } from "lucide-react"
+import { AlertTriangle, Download, Dumbbell, ExternalLink, Link2, Pause, Play, PlayCircle, Share2, Volume2, VolumeX } from "lucide-react"
 import type { DemoData } from "@/lib/types"
 import { LEVEL_LABEL } from "@/lib/types"
-import { FORCE_LABEL, MECHANIC_LABEL, frameUrl, getExercise, loadDetail, type ExerciseDetail, type ExerciseView } from "@/lib/catalog"
+import { FORCE_LABEL, MECHANIC_LABEL, animUrl, frameUrl, getExercise, libraryUrl, loadDetail, type ExerciseDetail, type ExerciseView } from "@/lib/catalog"
 import { parseVideoUrl } from "@/lib/video"
 import { cx } from "./ui"
+import { useToast } from "./providers"
 
 /* ---------- Demonstração animada (quadros de início e fim) ---------- */
 
@@ -74,6 +75,77 @@ export function ExerciseThumb({ ex, className }: { ex: ExerciseView; className?:
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={frameUrl(ex.id, 1)} alt="" loading="lazy" decoding="async" width={480} height={320} className="thumb-b" />
     </span>
+  )
+}
+
+/* ---------- GIF da Biblioteca EVOFIT ---------- */
+
+/** Animação com a marca EVOFIT (gerada no servidor). Mostra a demonstração local enquanto carrega ou se falhar. */
+export function AnimatedExercise({ ex, className }: { ex: ExerciseView; className?: string }) {
+  const [state, setState] = useState<"loading" | "ok" | "error">("loading")
+  if (ex.frames < 2 || ex.custom) return <ExerciseDemo ex={ex} className={className} />
+  return (
+    <div className={cx("relative overflow-hidden rounded-2xl border border-line bg-brand-cobblestone", className)} style={{ aspectRatio: "480 / 380" }}>
+      {state !== "ok" && <ExerciseDemo ex={ex} compact className="!absolute inset-x-0 top-0 !rounded-none !border-0" />}
+      {state !== "error" && (
+        // eslint-disable-next-line @next/next/no-img-element -- GIF animado gerado pela rota /api/gif
+        <img
+          src={animUrl(ex.id, "webp")}
+          alt={`Animação EVOFIT: ${ex.name}, da posição inicial à final`}
+          width={480}
+          height={380}
+          className={cx("absolute inset-0 size-full transition-opacity duration-500", state === "ok" ? "opacity-100" : "opacity-0")}
+          onLoad={() => setState("ok")}
+          onError={() => setState("error")}
+        />
+      )}
+    </div>
+  )
+}
+
+/** Baixar o GIF, compartilhar (WhatsApp etc. pelo menu do celular) ou copiar o link da biblioteca pública. */
+export function GifActions({ ex, compact }: { ex: ExerciseView; compact?: boolean }) {
+  const toast = useToast()
+  const [busy, setBusy] = useState(false)
+  if (ex.custom || ex.frames < 2) return null
+  const pageUrl = () => new URL(libraryUrl(ex.id), window.location.origin).toString()
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(pageUrl())
+      toast("Link copiado. Cole no WhatsApp ou onde preferir.")
+    } catch {
+      toast("Não foi possível copiar o link neste navegador.", "info")
+    }
+  }
+
+  const share = async () => {
+    if (!("share" in navigator)) return copy()
+    setBusy(true)
+    try {
+      const res = await fetch(animUrl(ex.id, "gif"))
+      const file = res.ok ? new File([await res.blob()], `evofit-${ex.id.toLowerCase()}.gif`, { type: "image/gif" }) : null
+      const data: ShareData = file && navigator.canShare?.({ files: [file] }) ? { files: [file], title: ex.name, text: `${ex.name} — Biblioteca EVOFIT` } : { title: ex.name, text: `${ex.name} — Biblioteca EVOFIT`, url: pageUrl() }
+      await navigator.share(data)
+    } catch (e) {
+      if ((e as Error)?.name !== "AbortError") await copy()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      <a href={animUrl(ex.id, "gif", true)} download className={cx("btn btn-outline", compact && "btn-sm")}>
+        <Download size={16} aria-hidden /> Baixar GIF
+      </a>
+      <button type="button" className={cx("btn btn-outline", compact && "btn-sm")} onClick={share} disabled={busy}>
+        {busy ? <span className="spinner" aria-hidden /> : <Share2 size={16} aria-hidden />} Compartilhar
+      </button>
+      <button type="button" className={cx("btn btn-ghost", compact && "btn-sm")} onClick={copy}>
+        <Link2 size={16} aria-hidden /> Copiar link
+      </button>
+    </div>
   )
 }
 
@@ -237,6 +309,7 @@ export function ExerciseGuide({ d, id, showMeta = true }: { d: DemoData; id: str
       <div className="space-y-4">
         {hasVideo && <VideoPlayer url={media!.videoUrl} title={`Vídeo: ${ex.name}`} />}
         <ExerciseDemo ex={ex} className={hasVideo ? "max-w-sm" : undefined} />
+        <GifActions ex={ex} compact />
         {media?.tip && (
           <div className="rounded-2xl border border-line bg-accent-soft p-4">
             <p className="t-eyebrow !text-accent">Dica do seu personal</p>

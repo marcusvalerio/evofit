@@ -19,6 +19,8 @@ test.describe("acesso público sem login", () => {
     ["/studio/perfil", /Perfil profissional/],
     ["/aluno", /Bora treinar/],
     ["/aluno/historico", /Histórico/],
+    ["/biblioteca", /Veja como se faz/],
+    ["/biblioteca/Barbell_Squat", /Agachamento com barra/],
     ["/personais", /Encontre um personal/],
     ["/personais/lucas-andrade-demo", /Lucas Andrade/],
   ]
@@ -276,6 +278,38 @@ test.describe("persistência", () => {
     await page.goto("/studio")
     await expect(page.getByRole("alert").filter({ hasText: "dados salvos" })).toContainText("formato antigo ou inválido")
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Olá/)
+  })
+})
+
+test.describe("Biblioteca EVOFIT", () => {
+  test("busca, abre o exercício e o GIF com a marca carrega", async ({ page }) => {
+    await page.goto("/")
+    await page.getByRole("link", { name: /Biblioteca EVOFIT: \d+ exercícios em GIF/ }).click()
+    await expect(page).toHaveURL("/biblioteca")
+    await page.getByLabel("Buscar exercício").fill("prancha")
+    await page.getByRole("link", { name: /^Prancha Abdômen/ }).click()
+    await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()
+    const gif = page.getByRole("img", { name: /Animação EVOFIT: Prancha/ })
+    await expect.poll(() => gif.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBe(480)
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?download")
+    await expect(page.locator("ol.steps > li").first()).toBeVisible()
+  })
+
+  test("rota de GIF responde só para exercícios do catálogo", async ({ request }) => {
+    const ok = await request.get("/api/gif/Plank")
+    expect(ok.status()).toBe(200)
+    expect(ok.headers()["content-type"]).toBe("image/gif")
+    expect(ok.headers()["cache-control"]).toContain("immutable")
+    expect((await ok.body()).subarray(0, 6).toString()).toBe("GIF89a")
+    const dl = await request.get("/api/gif/Plank?download")
+    expect(dl.headers()["content-disposition"]).toBe('attachment; filename="evofit-prancha.gif"')
+    for (const bad of ["nao-existe", "Kettlebell_Halo", "..%2F..%2Fpackage.json"]) expect((await request.get(`/api/gif/${bad}`)).status()).toBe(404)
+  })
+
+  test("Studio oferece baixar e compartilhar o GIF", async ({ page }) => {
+    await page.goto("/studio/exercicios/Leg_Press")
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Compartilhar" })).toBeVisible()
   })
 })
 

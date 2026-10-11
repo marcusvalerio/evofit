@@ -7,6 +7,7 @@ import { cx } from "./ui"
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const links = [
+    { href: "/biblioteca", label: "Biblioteca" },
     { href: "/personais", label: "Encontrar personal" },
     { href: "/studio", label: "Studio" },
     { href: "/aluno", label: "App do aluno" },
@@ -23,7 +24,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
                 key={l.href}
                 href={l.href}
                 aria-current={path.startsWith(l.href) ? "page" : undefined}
-                className={cx("hidden h-9 items-center rounded-full px-3 text-sm font-medium sm:inline-flex", path.startsWith(l.href) ? "bg-surface text-fg" : "text-muted hover:text-fg")}
+                className={cx("h-9 items-center rounded-full px-3 text-sm font-medium", l.href === "/biblioteca" ? "inline-flex" : "hidden sm:inline-flex", path.startsWith(l.href) ? "bg-surface text-fg" : "text-muted hover:text-fg")}
               >
                 {l.label}
               </Link>
