@@ -1,25 +1,36 @@
-import type { Metadata, Viewport } from 'next'
-import './globals.css'
+import type { Metadata, Viewport } from "next"
+import { GeistSans } from "geist/font/sans"
+import { Providers } from "@/components/providers"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: 'EVO',
-  description: 'Performance Telemetry System',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'EVO' },
+  title: { default: "EVOFIT — plataforma para personal trainers", template: "%s · EVOFIT" },
+  description: "Gestão de alunos, fichas de treino, execução pelo aluno e diretório de profissionais. Versão de demonstração.",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EVOFIT" },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#002030',
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: 'cover',
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#DAD8CF" },
+    { media: "(prefers-color-scheme: dark)", color: "#1F282E" },
+  ],
 }
+
+/** Aplica o tema salvo antes da pintura, evitando flash de tema incorreto. */
+const themeScript = `try{var t=localStorage.getItem("evofit:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
-      <body>{children}</body>
+    <html lang="pt-BR" className={GeistSans.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

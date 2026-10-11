@@ -1,0 +1,329 @@
+"use client"
+import { useEffect, useMemo, useState } from "react"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Plus, Search, Trash2 } from "lucide-react"
+import { update, useData } from "@/lib/store"
+import type { Workout, WorkoutItem } from "@/lib/types"
+import { MUSCLE_GROUPS } from "@/lib/types"
+import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
+import { ConfirmDialog, Field, Modal, NotFoundState, cx } from "@/components/ui"
+import { useToast } from "@/components/providers"
+
+export default function EditorPage() {
+  const { id } = useParams<{ id: string }>()
+  const d = useData()
+  const workout = d.workouts.find((w) => w.id === id)
+  if (!workout) {
+    return (
+      <NotFoundState title="Ficha não encontrada" href="/studio/treinos" cta="Voltar para fichas">
+        Esta ficha foi excluída ou a demonstração foi restaurada.
+      </NotFoundState>
+    )
+  }
+  return <Editor key={workout.id + workout.updatedAt} workout={workout} />
+}
+
+const num = (v: number) => (Number.isFinite(v) ? v : "")
+
+function Editor({ workout }: { workout: Workout }) {
+  const d = useData()
+  const router = useRouter()
+  const toast = useToast()
+  const [draft, setDraft] = useState<Workout>(workout)
+  const [picking, setPicking] = useState(false)
+  const [removing, setRemoving] = useState(false)
+  const [tried, setTried] = useState(false)
+  const exById = useMemo(() => new Map(d.exercises.map((e) => [e.id, e])), [d.exercises])
+  const errors = validateWorkout(draft)
+  const valid = isWorkoutValid(errors)
+  const dirty = JSON.stringify(draft) !== JSON.stringify(workout)
+  const activeStudents = d.students.filter((s) => s.status === "ativo")
+
+  useEffect(() => {
+    if (!dirty) return
+    const h = (e: BeforeUnloadEvent) => e.preventDefault()
+    window.addEventListener("beforeunload", h)
+    return () => window.removeEventListener("beforeunload", h)
+  }, [dirty])
+
+  const setItem = (itemId: string, patch: Partial<WorkoutItem>) => setDraft((w) => ({ ...w, items: w.items.map((i) => (i.id === itemId ? { ...i, ...patch } : i)) }))
+  const move = (idx: number, dir: -1 | 1) =>
+    setDraft((w) => {
+      const items = [...w.items]
+      const j = idx + dir
+      if (j < 0 || j >= items.length) return w
+      ;[items[idx], items[j]] = [items[j], items[idx]]
+      return { ...w, items }
+    })
+
+  const save = () => {
+    setTried(true)
+    if (!valid) {
+      toast("Corrija os campos destacados antes de salvar.", "error")
+      return
+    }
+    update((x) => saveWorkout(x, draft))
+    toast("Ficha salva.")
+  }
+
+  const show = tried ? errors : { itemErrors: {} as Record<string, string>, name: undefined, items: undefined }
+
+  return (
+    <div className="fade-in pb-20 lg:pb-0">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <Link href="/studio/treinos" className="btn btn-ghost btn-sm -ml-3">
+          <ArrowLeft size={16} aria-hidden /> Fichas
+        </Link>
+        <span className={cx("badge", dirty ? "badge-warning" : "badge-success")} aria-live="polite">
+          {dirty ? "Alterações não salvas" : "Salvo"}
+        </span>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+        <div className="min-w-0 space-y-4">
+          <div className="card space-y-4 p-5">
+            <Field label="Nome da ficha" error={show.name}>
+              {(p) => <input {...p} className="input text-lg font-semibold" value={draft.name} maxLength={80} onChange={(e) => setDraft({ ...draft, name: e.target.value })} />}
+            </Field>
+            <Field label="Descrição / foco" hint="Opcional. Aparece para o aluno antes de iniciar.">
+              {(p) => <textarea {...p} className="input" rows={2} maxLength={300} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />}
+            </Field>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <h2 className="t-h2">
+              Exercícios <span className="text-muted tabular">({draft.items.length})</span>
+            </h2>
+            <button type="button" className="btn btn-outline btn-sm" onClick={() => setPicking(true)}>
+              <Plus size={16} aria-hidden /> Adicionar
+            </button>
+          </div>
+          {show.items && <p className="field-error">{show.items}</p>}
+
+          {draft.items.length === 0 ? (
+            <button type="button" onClick={() => setPicking(true)} className="flex w-full flex-col items-center rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center text-muted hover:border-fg">
+              <Plus size={22} aria-hidden />
+              <span className="mt-2 font-semibold text-fg">Adicionar o primeiro exercício</span>
+              <span className="text-sm">Escolha na biblioteca</span>
+            </button>
+          ) : (
+            <ol className="space-y-3">
+              {draft.items.map((it, idx) => {
+                const ex = exById.get(it.exerciseId)
+                const err = show.itemErrors[it.id]
+                return (
+                  <li key={it.id} className={cx("card p-4", err && "border-danger")}>
+                    <div className="mb-3 flex items-start gap-3">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-inverse text-sm font-bold text-on-inverse tabular">{idx + 1}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold">{ex?.name ?? "Exercício removido"}</p>
+                        <p className="text-sm text-muted">{ex?.muscleGroup}</p>
+                      </div>
+                      <div className="flex shrink-0">
+                        <button type="button" className="btn btn-ghost btn-icon btn-sm" disabled={idx === 0} onClick={() => move(idx, -1)} aria-label={`Mover ${ex?.name} para cima`}>
+                          <ArrowUp size={16} />
+                        </button>
+                        <button type="button" className="btn btn-ghost btn-icon btn-sm" disabled={idx === draft.items.length - 1} onClick={() => move(idx, 1)} aria-label={`Mover ${ex?.name} para baixo`}>
+                          <ArrowDown size={16} />
+                        </button>
+                        <button type="button" className="btn btn-ghost btn-icon btn-sm" onClick={() => setDraft((w) => ({ ...w, items: w.items.filter((i) => i.id !== it.id) }))} aria-label={`Remover ${ex?.name}`}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <Field label="Séries">
+                        {(p) => <input {...p} className="input tabular" type="number" inputMode="numeric" min={1} max={20} value={num(it.sets)} onChange={(e) => setItem(it.id, { sets: parseInt(e.target.value, 10) })} />}
+                      </Field>
+                      <Field label="Repetições">
+                        {(p) => <input {...p} className="input tabular" value={it.reps} maxLength={20} placeholder="8-12" onChange={(e) => setItem(it.id, { reps: e.target.value })} />}
+                      </Field>
+                      <Field label="Carga (kg)">
+                        {(p) => (
+                          <input
+                            {...p}
+                            className="input tabular"
+                            type="number"
+                            inputMode="decimal"
+                            step="0.5"
+                            min={0}
+                            placeholder="livre"
+                            value={it.load ?? ""}
+                            onChange={(e) => setItem(it.id, { load: e.target.value === "" ? null : parseFloat(e.target.value) })}
+                          />
+                        )}
+                      </Field>
+                      <Field label="Descanso (s)">
+                        {(p) => <input {...p} className="input tabular" type="number" inputMode="numeric" min={0} max={600} step={15} value={num(it.restSec)} onChange={(e) => setItem(it.id, { restSec: parseInt(e.target.value, 10) })} />}
+                      </Field>
+                      <Field label="Instruções para o aluno" className="col-span-2 sm:col-span-4">
+                        {(p) => <input {...p} className="input" value={it.notes} maxLength={200} placeholder="Opcional" onChange={(e) => setItem(it.id, { notes: e.target.value })} />}
+                      </Field>
+                    </div>
+                    {err && <p className="field-error">{err}</p>}
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
+
+        <aside className="space-y-4">
+          <div className="card p-5">
+            <h2 className="t-h2">Alunos</h2>
+            <p className="mt-1 text-sm text-muted">Quem verá esta ficha no app.</p>
+            {activeStudents.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">Nenhum aluno ativo.</p>
+            ) : (
+              <ul className="mt-3 space-y-1">
+                {activeStudents.map((s) => {
+                  const on = draft.studentIds.includes(s.id)
+                  return (
+                    <li key={s.id}>
+                      <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1">
+                        <input
+                          type="checkbox"
+                          className="size-5 accent-[var(--primary)]"
+                          checked={on}
+                          onChange={() => setDraft((w) => ({ ...w, studentIds: on ? w.studentIds.filter((x) => x !== s.id) : [...w.studentIds, s.id] }))}
+                        />
+                        <span className="text-[0.9375rem]">{s.name}</span>
+                      </label>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </div>
+          <div className="card hidden space-y-2 p-5 lg:block">
+            <button type="button" className="btn btn-primary w-full" onClick={save} disabled={!dirty}>
+              <Check size={18} aria-hidden /> Salvar ficha
+            </button>
+            <button type="button" className="btn btn-outline w-full" onClick={() => setDraft(workout)} disabled={!dirty}>
+              Descartar alterações
+            </button>
+            <button type="button" className="btn btn-ghost w-full" onClick={() => setRemoving(true)}>
+              <Trash2 size={16} aria-hidden /> Excluir ficha
+            </button>
+          </div>
+          <button type="button" className="btn btn-ghost w-full lg:hidden" onClick={() => setRemoving(true)}>
+            <Trash2 size={16} aria-hidden /> Excluir ficha
+          </button>
+        </aside>
+      </div>
+
+      {/* Barra de salvar (mobile) */}
+      <div className="glass fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex gap-2 border-t border-line px-4 py-3 lg:hidden">
+        <button type="button" className="btn btn-outline flex-1" onClick={() => setDraft(workout)} disabled={!dirty}>
+          Descartar
+        </button>
+        <button type="button" className="btn btn-primary flex-[2]" onClick={save} disabled={!dirty}>
+          <Check size={18} aria-hidden /> Salvar ficha
+        </button>
+      </div>
+
+      {picking && (
+        <ExercisePicker
+          onClose={() => setPicking(false)}
+          onPick={(exerciseId) => setDraft((w) => ({ ...w, items: [...w.items, newWorkoutItem(exerciseId)] }))}
+          selected={draft.items.map((i) => i.exerciseId)}
+        />
+      )}
+
+      <ConfirmDialog
+        open={removing}
+        onClose={() => setRemoving(false)}
+        title={`Excluir “${workout.name}”?`}
+        message="A ficha deixa de aparecer para os alunos. Sessões concluídas continuam no histórico."
+        confirmLabel="Excluir ficha"
+        danger
+        onConfirm={() => {
+          update((x) => deleteWorkout(x, workout.id))
+          toast("Ficha excluída.")
+          router.push("/studio/treinos")
+        }}
+      />
+    </div>
+  )
+}
+
+function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; onPick: (id: string) => void; selected: string[] }) {
+  const d = useData()
+  const [q, setQ] = useState("")
+  const [group, setGroup] = useState("")
+  const [added, setAdded] = useState<string[]>([])
+  const list = d.exercises.filter((e) => (!group || e.muscleGroup === group) && (!q.trim() || e.name.toLowerCase().includes(q.trim().toLowerCase())))
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Adicionar exercícios"
+      description="Toque para adicionar. Você pode adicionar vários antes de fechar."
+      wide
+      footer={
+        <button type="button" className="btn btn-primary" onClick={onClose}>
+          Concluir{added.length > 0 && ` (${added.length} adicionado${added.length > 1 ? "s" : ""})`}
+        </button>
+      }
+    >
+      <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 space-y-2 bg-surface px-5 pb-3 pt-4">
+        <div className="relative">
+          <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+          <label htmlFor="pick-q" className="sr-only">
+            Buscar exercício
+          </label>
+          <input id="pick-q" type="search" className="input pl-10" placeholder="Buscar exercício" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+        </div>
+        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Grupo muscular">
+          <button type="button" className="chip shrink-0" aria-pressed={!group} onClick={() => setGroup("")}>
+            Todos
+          </button>
+          {MUSCLE_GROUPS.map((g) => (
+            <button key={g} type="button" className="chip shrink-0" aria-pressed={group === g} onClick={() => setGroup(group === g ? "" : g)}>
+              {g}
+            </button>
+          ))}
+        </div>
+      </div>
+      {list.length === 0 ? (
+        <p className="py-8 text-center text-sm text-muted">Nenhum exercício encontrado. Crie novos em Exercícios.</p>
+      ) : (
+        <ul className="divide-y divide-line">
+          {list.map((e) => {
+            const count = selected.filter((s) => s === e.id).length
+            return (
+              <li key={e.id}>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-lg py-3 text-left hover:bg-line/40"
+                  onClick={() => {
+                    onPick(e.id)
+                    setAdded((a) => [...a, e.id])
+                  }}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium">{e.name}</p>
+                    <p className="text-sm text-muted">
+                      {e.muscleGroup} · {e.equipment}
+                    </p>
+                  </div>
+                  {count > 0 ? (
+                    <span className="badge badge-success">
+                      <Check size={12} aria-hidden /> {count > 1 ? `${count}×` : "na ficha"}
+                    </span>
+                  ) : (
+                    <Plus size={18} aria-hidden className="text-muted" />
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <span className="sr-only" aria-live="polite">
+        {added.length ? `${added.length} exercício(s) adicionado(s)` : ""}
+      </span>
+    </Modal>
+  )
+}
