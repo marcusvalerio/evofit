@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+
+/*
+ * EVOFIT — tokens de design (fonte única de verdade).
+ *
+ * `--color-*: initial` remove a paleta padrão do Tailwind: só existem as cores abaixo,
+ * então não dá para "inventar" uma cor fora da identidade usando uma classe utilitária.
+ * Os pares de texto/fundo são verificados por lib/ui/contrast.test.ts, que lê este arquivo.
+ */
+@theme {
+  --color-*: initial;
+
+  /* Marca */
+  --color-maastricht: #06283d; /* Maastricht Blue — superfícies escuras e ação secundária */
+  --color-maastricht-hi: #0d3a57; /* hover/realce sobre Maastricht */
+  --color-maastricht-lo: #041c2b; /* fundo mais profundo (telas de execução) */
+  --color-gainsboro: #d6e4e5; /* Gainsboro — bordas, divisórias, superfícies suaves */
+  --color-gainsboro-soft: #e6eff0; /* hover de linhas e superfícies suaves */
+  --color-paper: #f2f7f7; /* fundo da página (Gainsboro clareado) */
+  --color-surface: #ffffff; /* cards e campos */
+  --color-portland: #f45334; /* Portland Orange — ação prioritária e movimento */
+  --color-portland-hi: #ff6a4d; /* hover do laranja */
+  --color-portland-ink: #b8310f; /* laranja para TEXTO/links sobre fundo claro (contraste ≥ 4,5) */
+  --color-portland-wash: #fde9e4; /* fundo suave de destaque */
+
+  /* Texto: preto suavizado em três níveis */
+  --color-ink: #101820;
+  --color-ink-2: #36444e;
+  --color-ink-3: #5a6a75;
+
+  /* Linhas e bordas */
+  --color-line: #c3d5d7; /* divisórias e bordas DECORATIVAS de cards (baixo contraste, de propósito) */
+  --color-line-soft: #d6e4e5;
+  --color-line-strong: #6f848f; /* borda de CAMPOS e controles: ≥ 3:1 (WCAG 1.4.11) */
+
+  /* Estados */
+  --color-success: #1b6e46;
+  --color-success-wash: #e1f2e9;
+  --color-danger: #b3261e;
+  --color-danger-wash: #fbe7e5;
+  --color-warning: #8a5a00;
+  --color-warning-wash: #fbf0d6;
+
+  /* Tipografia */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.35rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.7rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.1rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.6rem;
+  --text-4xl: 3rem;
+  --text-4xl--line-height: 3.2rem;
+
+  /* Raios por nível de hierarquia: campo < card < painel flutuante */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Elevação: sombras ambientais, tingidas com o azul da marca (nunca cinza puro) */
+  --shadow-xs: 0 1px 2px rgb(6 40 61 / 0.06);
+  --shadow-sm: 0 1px 2px rgb(6 40 61 / 0.06), 0 4px 12px -2px rgb(6 40 61 / 0.08);
+  --shadow-md: 0 2px 4px rgb(6 40 61 / 0.05), 0 12px 28px -6px rgb(6 40 61 / 0.14);
+  --shadow-pop: 0 8px 16px -4px rgb(6 40 61 / 0.12), 0 32px 64px -12px rgb(6 40 61 / 0.28);
+
+  /* Larguras de layout */
+  --container-page: 72rem;
+  --container-reading: 40rem;
+  --container-app: 30rem;
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  :root {
+    --focus: var(--color-maastricht);
+    color-scheme: light;
+  }
+
+  html {
+    background: var(--color-paper);
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Foco sempre visível. Sobre superfícies escuras o anel muda para Gainsboro. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .on-dark {
+    --focus: var(--color-gainsboro);
+  }
+
+  ::selection {
+    background: var(--color-portland);
+    color: var(--color-ink);
+  }
+
+  /* Diálogo nativo */
+  dialog::backdrop {
+    background: rgb(4 28 43 / 0.55);
+    backdrop-filter: blur(2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Números alinhados em colunas (cargas, repetições, métricas) */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .safe-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+  }
+
+  @keyframes evo-pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes evo-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes evo-pop {
+    from {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
