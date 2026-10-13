@@ -41,6 +41,17 @@ export default function StudioDashboard() {
         }
       />
 
+      <section className="studio-command mt-6 mb-5 overflow-hidden rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-xl">
+            <p className="studio-command-kicker">EVOFIT / STUDIO OVERVIEW</p>
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.055em] leading-tight sm:text-4xl">Treino planejado.<br className="hidden sm:block" /> Evolução acompanhada.</h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed opacity-75">Uma visão clara da rotina dos seus alunos, das sessões concluídas e de quem precisa de atenção.</p>
+          </div>
+          <div className="studio-command-mark" aria-hidden="true">EF<span>.</span></div>
+        </div>
+      </section>
+
       <section aria-label="Indicadores" className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Alunos ativos" value={String(active.length)} hint={`${d.students.length - active.length} arquivado(s)`} />
         <Stat label="Treinos · 7 dias" value={String(last7)} hint="sessões concluídas" />
