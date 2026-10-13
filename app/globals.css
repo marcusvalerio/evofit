@@ -1364,3 +1364,86 @@
     background: linear-gradient(90deg, rgb(53 53 53 / .91), rgb(53 53 53 / .62)), linear-gradient(0deg, rgb(53 53 53 / .68), transparent 90%);
   }
 }
+
+
+/* Art direction revision: reference-led geometry, not ambient gradient decoration.
+   Large interlocking circles and a restrained palette live on brand/entry screens only. */
+.editorial-hero {
+  background: #F4F4F4;
+  color: #353535;
+  border: 1px solid rgb(53 53 53 / .16);
+  box-shadow: 0 24px 70px -48px rgb(53 53 53 / .34);
+}
+.editorial-hero::before {
+  width: min(34vw, 27rem);
+  right: -2rem;
+  top: 6.5rem;
+  opacity: .9;
+  border-radius: 0;
+  mask-image: linear-gradient(135deg, #000 0%, #000 60%, transparent 100%);
+  background-color: #D4ECF8;
+  background-image:
+    radial-gradient(circle at 0 0, #739DB4 0 49.5%, transparent 50%),
+    radial-gradient(circle at 100% 0, #D4ECF8 0 49.5%, transparent 50%),
+    radial-gradient(circle at 0 100%, #D4ECF8 0 49.5%, transparent 50%),
+    radial-gradient(circle at 100% 100%, #739DB4 0 49.5%, transparent 50%);
+  background-size: 8.5rem 8.5rem;
+  background-position: 0 0, 4.25rem 4.25rem, 4.25rem 0, 0 4.25rem;
+  background-repeat: repeat;
+}
+.editorial-hero .editorial-title { color: #353535; }
+.editorial-hero .editorial-title-accent,
+.editorial-hero .editorial-index,
+.editorial-hero .editorial-text-link span { color: #7659A5; }
+.editorial-hero .editorial-label {
+  color: #353535;
+  border-color: rgb(53 53 53 / .22);
+  background: rgb(244 244 244 / .82);
+}
+.editorial-hero .editorial-label > span {
+  background: #B599F2;
+  box-shadow: 0 0 0 4px rgb(181 153 242 / .18);
+}
+.editorial-hero .editorial-proof,
+.editorial-hero .editorial-hero-top,
+.editorial-hero .editorial-hero-bottom { color: #727272; }
+.editorial-hero .editorial-stamp {
+  background: #CFFFE0;
+  color: #353535;
+  box-shadow: 0 8px 24px rgb(53 53 53 / .12);
+}
+.editorial-hero .editorial-stamp span { color: #7659A5; }
+.editorial-hero .editorial-stamp i { color: #727272; }
+.editorial-hero .editorial-photo-meta { color: #CFFFE0; }
+.editorial-hero .editorial-photo-meta i { background: #B599F2; }
+.editorial-hero .editorial-hero-top,
+.editorial-hero .editorial-hero-bottom { border-color: rgb(53 53 53 / .14); }
+.studio-command {
+  background: #353535;
+  border-color: rgb(53 53 53 / .18);
+}
+.studio-command::after {
+  border-radius: 0;
+  width: 13rem;
+  height: 13rem;
+  right: -2rem;
+  top: -3rem;
+  border-color: rgb(207 255 224 / .5);
+  box-shadow: 0 0 0 1.6rem rgb(181 153 242 / .15), 0 0 0 3.2rem rgb(207 255 224 / .08);
+}
+.studio-command-kicker { color: #CFFFE0; }
+.studio-command-mark span { color: #B599F2; }
+.studio-command-photo .studio-command-shade {
+  background: linear-gradient(90deg, rgb(53 53 53 / .95) 0%, rgb(53 53 53 / .75) 48%, rgb(53 53 53 / .2) 100%), linear-gradient(0deg, rgb(53 53 53 / .35), transparent 70%);
+}
+@media (max-width: 639px) {
+  .editorial-hero::before {
+    width: 18rem;
+    right: -7.5rem;
+    top: 11rem;
+    opacity: .45;
+    background-size: 5.5rem 5.5rem;
+    background-position: 0 0, 2.75rem 2.75rem, 2.75rem 0, 0 2.75rem;
+    mask-image: linear-gradient(135deg, #000 0%, transparent 85%);
+  }
+}
