@@ -1044,3 +1044,35 @@
   .editorial-stamp { width: 3.3rem; height: 3.3rem; right: .1rem; top: 2.1rem; font-size: 1.05rem; }
   .editorial-proof { gap: .65rem 1rem; }
 }
+
+
+/* Typography refinement: bold without collisions */
+.editorial-title {
+  font-size: clamp(3rem, 7.3vw, 5.65rem);
+  font-weight: 800;
+  letter-spacing: -.055em;
+  line-height: .99;
+  max-width: 12ch;
+  text-wrap: balance;
+}
+.studio-command h2 {
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.editorial-proof strong {
+  letter-spacing: -.025em;
+}
+@media (max-width: 639px) {
+  .editorial-title {
+    font-size: clamp(2.85rem, 12.4vw, 4.2rem);
+    letter-spacing: -.045em;
+    line-height: 1.02;
+    max-width: 11.5ch;
+  }
+  .studio-command h2 {
+    letter-spacing: -.025em;
+    line-height: 1.1;
+  }
+}
