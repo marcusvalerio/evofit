@@ -77,8 +77,23 @@ export default function Home() {
             </div>
           </div>
           <div className="editorial-showcase relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="editorial-showcase-label"><span>EXPERIÊNCIA DO ALUNO</span><span>LIVE PREVIEW ↘</span></div>
-            <HeroShowcase />
+            <div className="editorial-showcase-label"><span>FORÇA EM MOVIMENTO</span><span>EVOFIT / 001</span></div>
+            <div className="editorial-photo-panel">
+              <img
+                src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1100&q=85"
+                alt="Atleta treinando força em uma academia"
+                className="editorial-photo"
+                loading="eager"
+              />
+              <div className="editorial-photo-shade" aria-hidden="true" />
+              <div className="editorial-photo-top"><span>STRENGTH / CONDITIONING</span><span>01—04</span></div>
+              <div className="editorial-photo-caption">
+                <span className="editorial-photo-kicker">TREINO COM INTENÇÃO</span>
+                <strong>Consistência<br/>constrói evolução.</strong>
+                <span className="editorial-photo-meta"><i /> PLANEJADO NO EVOFIT STUDIO</span>
+              </div>
+              <div className="editorial-photo-chip"><span>04</span><small>SÉRIES<br/>PLANEJADAS</small></div>
+            </div>
             <div className="editorial-stamp" aria-hidden="true">E<span>F</span><i>.</i></div>
           </div>
         </div>
