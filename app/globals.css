@@ -1,101 +1,98 @@
 @import "tailwindcss";
 
 /*
- * EVOFIT — tokens de design.
- * Paleta oficial: Cobblestone #1F282E · Midnight Smoke #414E58 · Red Gravy #B83312
- * Bright Sandstone #DAD8CF · Dusty Cotton #E4E3DC · Ōtan Red #FF4E20
- * Contrastes (WCAG 2.x) verificados — ver README, seção "Design system".
- * Componentes usam apenas os tokens semânticos abaixo, nunca hexadecimais.
+ * EVOFIT — palette experimental: Dark Eclipse, Blueberry Twist,
+ * Grey Morning, Isabelline, Larb Gai e Maple Sugar.
  */
 :root {
-  --brand-cobblestone: #1f282e;
-  --brand-smoke: #414e58;
-  --brand-gravy: #b83312;
-  --brand-sandstone: #dad8cf;
-  --brand-cotton: #e4e3dc;
-  --brand-otan: #ff4e20;
+  --brand-ink: #112244;
+  --brand-blue: #24547d;
+  --brand-sage: #9eb0aa;
+  --brand-paper: #f4f0ec;
+  --brand-sand: #dfc6aa;
+  --brand-clay: #c1967c;
 
   color-scheme: light;
-  --bg: var(--brand-sandstone);
-  --surface: var(--brand-cotton);
-  --surface-2: #efeee9;
-  --glass: rgb(228 227 220 / 0.72);
-  --fg: var(--brand-cobblestone);
-  --fg-muted: var(--brand-smoke); /* 5.99:1 sobre o fundo */
-  --line: rgb(31 40 46 / 0.12);
-  --line-strong: rgb(31 40 46 / 0.26);
-  --primary: var(--brand-otan);
-  --primary-hover: #ff6a40;
-  --on-primary: var(--brand-cobblestone); /* 4.54:1 — texto branco reprovaria (3.30:1) */
-  --accent-text: #9e2b0e; /* Red Gravy escurecido: 5.24:1 sobre Sandstone */
-  --accent-soft: rgb(255 78 32 / 0.14);
-  --inverse: var(--brand-cobblestone);
-  --on-inverse: var(--brand-cotton);
-  --success: #2b6a45;
-  --success-soft: rgb(43 106 69 / 0.12);
-  --warning: #8a5a00;
-  --warning-soft: rgb(138 90 0 / 0.12);
-  --danger: #9e2b0e;
-  --danger-soft: rgb(184 51 18 / 0.12);
-  --focus: var(--brand-gravy);
-  --shadow: 0 1px 2px rgb(31 40 46 / 0.06), 0 8px 24px -12px rgb(31 40 46 / 0.18);
-  --shadow-lg: 0 24px 64px -24px rgb(31 40 46 / 0.45);
+  --bg: var(--brand-paper);
+  --surface: #ffffff;
+  --surface-2: #ebe6e0;
+  --glass: rgb(244 240 236 / 0.86);
+  --fg: var(--brand-ink);
+  --fg-muted: #536274;
+  --line: rgb(17 34 68 / 0.11);
+  --line-strong: rgb(17 34 68 / 0.24);
+  --primary: var(--brand-ink);
+  --primary-hover: #1c3764;
+  --on-primary: #ffffff;
+  --accent-text: var(--brand-blue);
+  --accent-soft: rgb(36 84 125 / 0.12);
+  --inverse: var(--brand-ink);
+  --on-inverse: var(--brand-paper);
+  --success: #356b59;
+  --success-soft: rgb(53 107 89 / 0.12);
+  --warning: #8a5b2d;
+  --warning-soft: rgb(193 150 124 / 0.22);
+  --danger: #a33c35;
+  --danger-soft: rgb(163 60 53 / 0.12);
+  --focus: var(--brand-blue);
+  --shadow: 0 1px 2px rgb(17 34 68 / 0.04), 0 10px 30px -18px rgb(17 34 68 / 0.2);
+  --shadow-lg: 0 24px 64px -24px rgb(17 34 68 / 0.32);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: var(--brand-cobblestone);
-    --surface: #2a343b;
-    --surface-2: var(--brand-smoke);
-    --glass: rgb(31 40 46 / 0.72);
-    --fg: var(--brand-cotton);
-    --fg-muted: #bcc2c5;
-    --line: rgb(228 227 220 / 0.1);
-    --line-strong: rgb(228 227 220 / 0.22);
-    --primary: var(--brand-gravy);
-    --primary-hover: #cc3a15;
-    --on-primary: var(--brand-cotton); /* 4.64:1 */
-    --accent-text: #ff7a52; /* 4.94:1 sobre a superfície */
-    --accent-soft: rgb(255 78 32 / 0.16);
-    --inverse: var(--brand-cotton);
-    --on-inverse: var(--brand-cobblestone);
-    --success: #6fcf97;
-    --success-soft: rgb(111 207 151 / 0.14);
-    --warning: #e5b65c;
-    --warning-soft: rgb(229 182 92 / 0.14);
-    --danger: #ff7a52;
-    --danger-soft: rgb(255 122 82 / 0.14);
-    --focus: #ff7a52;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+    --bg: #101a2e;
+    --surface: #172541;
+    --surface-2: #223451;
+    --glass: rgb(17 34 68 / 0.86);
+    --fg: #f4f0ec;
+    --fg-muted: #c1cbd3;
+    --line: rgb(244 240 236 / 0.12);
+    --line-strong: rgb(244 240 236 / 0.24);
+    --primary: #dfc6aa;
+    --primary-hover: #ead7c3;
+    --on-primary: #112244;
+    --accent-text: #b7c9c4;
+    --accent-soft: rgb(158 176 170 / 0.16);
+    --inverse: #f4f0ec;
+    --on-inverse: #112244;
+    --success: #9eb0aa;
+    --success-soft: rgb(158 176 170 / 0.14);
+    --warning: #dfc6aa;
+    --warning-soft: rgb(223 198 170 / 0.14);
+    --danger: #f09a8e;
+    --danger-soft: rgb(240 154 142 / 0.14);
+    --focus: #dfc6aa;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.6);
     --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / 0.7);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: var(--brand-cobblestone);
-  --surface: #2a343b;
-  --surface-2: var(--brand-smoke);
-  --glass: rgb(31 40 46 / 0.72);
-  --fg: var(--brand-cotton);
-  --fg-muted: #bcc2c5;
-  --line: rgb(228 227 220 / 0.1);
-  --line-strong: rgb(228 227 220 / 0.22);
-  --primary: var(--brand-gravy);
-  --primary-hover: #cc3a15;
-  --on-primary: var(--brand-cotton);
-  --accent-text: #ff7a52;
-  --accent-soft: rgb(255 78 32 / 0.16);
-  --inverse: var(--brand-cotton);
-  --on-inverse: var(--brand-cobblestone);
-  --success: #6fcf97;
-  --success-soft: rgb(111 207 151 / 0.14);
-  --warning: #e5b65c;
-  --warning-soft: rgb(229 182 92 / 0.14);
-  --danger: #ff7a52;
-  --danger-soft: rgb(255 122 82 / 0.14);
-  --focus: #ff7a52;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 8px 24px -12px rgb(0 0 0 / 0.5);
+  --bg: #101a2e;
+  --surface: #172541;
+  --surface-2: #223451;
+  --glass: rgb(17 34 68 / 0.86);
+  --fg: #f4f0ec;
+  --fg-muted: #c1cbd3;
+  --line: rgb(244 240 236 / 0.12);
+  --line-strong: rgb(244 240 236 / 0.24);
+  --primary: #dfc6aa;
+  --primary-hover: #ead7c3;
+  --on-primary: #112244;
+  --accent-text: #b7c9c4;
+  --accent-soft: rgb(158 176 170 / 0.16);
+  --inverse: #f4f0ec;
+  --on-inverse: #112244;
+  --success: #9eb0aa;
+  --success-soft: rgb(158 176 170 / 0.14);
+  --warning: #dfc6aa;
+  --warning-soft: rgb(223 198 170 / 0.14);
+  --danger: #f09a8e;
+  --danger-soft: rgb(240 154 142 / 0.14);
+  --focus: #dfc6aa;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.6);
   --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / 0.7);
 }
 
