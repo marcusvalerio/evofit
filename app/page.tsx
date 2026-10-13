@@ -49,21 +49,21 @@ const FLOW = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in relative overflow-hidden rounded-[2rem] border border-line bg-surface px-5 py-8 shadow-sm sm:px-10 sm:py-12 lg:px-14 lg:py-16">
+      <section className="fade-in relative overflow-hidden rounded-[1.5rem] border border-line bg-surface px-4 py-6 shadow-sm sm:rounded-[2rem] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-accent-soft blur-3xl sm:size-80" />
-        <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
+        <div className="relative grid items-center gap-7 sm:gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-bg/70 px-3 py-1.5 text-xs font-semibold text-muted">
+            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-line-strong bg-bg/70 px-3 py-1.5 text-[0.7rem] font-semibold text-muted sm:text-xs">
               <span className="size-2 rounded-full bg-success" />
               Feito para personal trainers autônomos
             </div>
-            <h1 className="t-display mt-6 max-w-3xl">
+            <h1 className="t-display mt-5 max-w-3xl sm:mt-6">
               Menos tempo organizando. <span className="text-accent">Mais tempo evoluindo</span> seus alunos.
             </h1>
-            <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted sm:text-lg">
+            <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-muted sm:mt-5 sm:text-lg">
               Do planejamento à execução do treino, mantenha alunos, fichas e progresso conectados em uma experiência simples — para você e para quem treina com você.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
               <Link href="/studio" className="btn btn-primary btn-lg btn-pill w-full sm:w-auto">
                 Experimentar o Studio <ArrowRight size={18} aria-hidden />
               </Link>
@@ -71,7 +71,7 @@ export default function Home() {
                 Ver a experiência do aluno
               </Link>
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted sm:mt-5">
               <span className="inline-flex items-center gap-1.5"><Check size={15} className="text-accent" aria-hidden /> Sem cadastro para explorar</span>
               <span className="inline-flex items-center gap-1.5"><Check size={15} className="text-accent" aria-hidden /> {CATALOG_SIZE} exercícios</span>
             </div>
