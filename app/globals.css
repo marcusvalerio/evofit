@@ -936,3 +936,111 @@
 @media (max-width: 639px) {
   .studio-command { border-radius: 1.25rem; }
 }
+
+
+/* Landing page — editorial art direction, not just recoloring */
+.editorial-hero {
+  color: #112244;
+  background: #F4F0EC;
+  border: 1px solid rgb(17 34 68 / .12);
+  box-shadow: 0 24px 70px -48px rgb(17 34 68 / .36);
+}
+.editorial-hero-top, .editorial-hero-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .95rem 1.25rem;
+  color: #536274;
+  font-size: .625rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.editorial-hero-top { border-bottom: 1px solid rgb(17 34 68 / .13); }
+.editorial-hero-bottom { border-top: 1px solid rgb(17 34 68 / .13); }
+.editorial-index { color: #24547D; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.editorial-label {
+  display: inline-flex;
+  align-items: center;
+  gap: .65rem;
+  border: 1px solid rgb(17 34 68 / .22);
+  border-radius: 999px;
+  padding: .55rem .8rem;
+  color: #536274;
+  font-size: .75rem;
+  font-weight: 650;
+}
+.editorial-label > span { width: .5rem; height: .5rem; border-radius: 50%; background: #9EB0AA; box-shadow: 0 0 0 4px rgb(158 176 170 / .18); }
+.editorial-title {
+  font-size: clamp(3.35rem, 8.5vw, 6.75rem);
+  font-weight: 900;
+  letter-spacing: -.085em;
+  line-height: .84;
+  max-width: 11ch;
+}
+.editorial-period { color: #C1967C; }
+.editorial-title-accent { color: #24547D; }
+.editorial-text-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .65rem;
+  padding: .8rem .3rem;
+  color: #112244;
+  font-size: .9rem;
+  font-weight: 750;
+}
+.editorial-text-link span { color: #24547D; font-size: 1.2rem; }
+.editorial-proof {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .7rem 1.25rem;
+  color: #536274;
+  font-size: .75rem;
+}
+.editorial-proof span { display: inline-flex; align-items: center; gap: .45rem; }
+.editorial-proof strong { color: #112244; font-size: 1.05rem; font-weight: 900; letter-spacing: -.05em; }
+.editorial-showcase { padding-top: 1.5rem; }
+.editorial-showcase-label {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  padding: 0 .2rem .75rem;
+  color: #536274;
+  font-size: .6rem;
+  font-weight: 800;
+  letter-spacing: .1em;
+}
+.editorial-showcase > div[aria-label="Prévia ilustrativa do app do aluno"] { max-width: 100%; }
+.editorial-showcase .card { border: 1px solid rgb(17 34 68 / .12); border-radius: 1.25rem; background: #fff; }
+.editorial-stamp {
+  position: absolute;
+  z-index: 3;
+  right: -.2rem;
+  top: 3.4rem;
+  display: grid;
+  place-items: center;
+  width: 4.1rem;
+  height: 4.1rem;
+  border-radius: 50%;
+  background: #DFC6AA;
+  color: #112244;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -.12em;
+  transform: rotate(9deg);
+  box-shadow: 0 8px 24px rgb(17 34 68 / .12);
+}
+.editorial-stamp span { color: #24547D; }
+.editorial-stamp i { color: #C1967C; font-style: normal; }
+@media (min-width: 1024px) {
+  .editorial-showcase { padding-left: 1.5rem; }
+}
+@media (max-width: 639px) {
+  .editorial-hero-top, .editorial-hero-bottom { padding: .8rem 1rem; font-size: .53rem; letter-spacing: .08em; }
+  .editorial-title { font-size: clamp(3.2rem, 15vw, 5rem); max-width: 10ch; }
+  .editorial-showcase { padding-top: .2rem; }
+  .editorial-stamp { width: 3.3rem; height: 3.3rem; right: .1rem; top: 2.1rem; font-size: 1.05rem; }
+  .editorial-proof { gap: .65rem 1rem; }
+}
