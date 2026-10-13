@@ -16,7 +16,7 @@ function illustrationFor(ex: ExerciseView): string {
     hash ^= char.charCodeAt(0)
     hash = Math.imul(hash, 16777619)
   }
-  const slug = ex.id.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "exercise"
+  const slug = ex.id.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "exercise"
   const key = slug + "-" + (hash >>> 0).toString(36)
   return `/illustrations/catalog/${key}.svg`
 }
