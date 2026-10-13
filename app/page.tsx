@@ -49,37 +49,40 @@ const FLOW = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in relative overflow-hidden rounded-[1.5rem] border border-line bg-surface px-4 py-6 shadow-sm sm:rounded-[2rem] sm:px-10 sm:py-12 lg:px-14 lg:py-16">
-        <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 size-64 rounded-full bg-accent-soft blur-3xl sm:size-80" />
-        <div className="relative grid items-center gap-7 sm:gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)]">
-          <div className="max-w-3xl">
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-line-strong bg-bg/70 px-3 py-1.5 text-[0.7rem] font-semibold text-muted sm:text-xs">
-              <span className="size-2 rounded-full bg-success" />
-              Feito para personal trainers autônomos
-            </div>
-            <h1 className="t-display mt-5 max-w-3xl sm:mt-6">
-              Menos tempo organizando. <span className="text-accent">Mais tempo evoluindo</span> seus alunos.
+      <section className="fade-in editorial-hero relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
+        <div className="editorial-hero-top">
+          <span>PERSONAL TRAINING / MANAGEMENT PLATFORM</span>
+          <span className="editorial-index">01 — 03</span>
+        </div>
+        <div className="relative grid items-center gap-8 px-5 pb-6 pt-7 sm:px-9 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.78fr)] lg:gap-5 lg:px-12 lg:py-12">
+          <div className="relative z-10 max-w-3xl">
+            <div className="editorial-label"><span /> Feito para personal trainers autônomos</div>
+            <h1 className="editorial-title mt-6">
+              Menos tempo<br />organizando<span className="editorial-period">.</span><br /><span className="editorial-title-accent">Mais evolução.</span>
             </h1>
-            <p className="mt-4 max-w-2xl text-[0.98rem] leading-relaxed text-muted sm:mt-5 sm:text-lg">
-              Do planejamento à execução do treino, mantenha alunos, fichas e progresso conectados em uma experiência simples — para você e para quem treina com você.
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
+              Alunos, fichas e progresso conectados em uma ferramenta feita para o trabalho real de quem prescreve e acompanha treinos.
             </p>
-            <div className="mt-6 flex flex-col gap-2.5 sm:mt-7 sm:flex-row sm:gap-3">
-              <Link href="/studio" className="btn btn-primary btn-lg btn-pill w-full sm:w-auto">
-                Experimentar o Studio <ArrowRight size={18} aria-hidden />
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href="/studio" className="btn btn-primary btn-lg w-full sm:w-auto">
+                Explorar o Studio <ArrowRight size={18} aria-hidden />
               </Link>
-              <Link href="/aluno" className="btn btn-outline btn-lg btn-pill w-full sm:w-auto">
-                Ver a experiência do aluno
+              <Link href="/aluno" className="editorial-text-link">
+                Conhecer o app do aluno <span aria-hidden>↗</span>
               </Link>
             </div>
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted sm:mt-5">
-              <span className="inline-flex items-center gap-1.5"><Check size={15} className="text-accent" aria-hidden /> Sem cadastro para explorar</span>
-              <span className="inline-flex items-center gap-1.5"><Check size={15} className="text-accent" aria-hidden /> {CATALOG_SIZE} exercícios</span>
+            <div className="editorial-proof mt-8">
+              <span><strong>01</strong> Sem cadastro para explorar</span>
+              <span><strong>{CATALOG_SIZE}</strong> exercícios no catálogo</span>
             </div>
           </div>
-          <div className="relative mx-auto w-full max-w-md lg:max-w-none">
+          <div className="editorial-showcase relative mx-auto w-full max-w-md lg:max-w-none">
+            <div className="editorial-showcase-label"><span>EXPERIÊNCIA DO ALUNO</span><span>LIVE PREVIEW ↘</span></div>
             <HeroShowcase />
+            <div className="editorial-stamp" aria-hidden="true">E<span>F</span><i>.</i></div>
           </div>
         </div>
+        <div className="editorial-hero-bottom"><span>EVOFIT STUDIO</span><span>PLANEJAR / PRESCREVER / ACOMPANHAR</span></div>
       </section>
 
       <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
