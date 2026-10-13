@@ -1279,3 +1279,88 @@
     background: linear-gradient(90deg, rgb(17 34 68 / .9), rgb(17 34 68 / .58)), linear-gradient(0deg, rgb(17 34 68 / .65), transparent 90%);
   }
 }
+
+
+/* EVOFIT signature system — geometric motifs only on key/brand screens.
+   The active student workout flow intentionally keeps its clean, task-focused UI. */
+:root {
+  --evo-mint: #CFFFE0;
+  --evo-lilac: #B599F2;
+  --evo-charcoal: #353535;
+  --evo-concord: #727272;
+  --evo-paper: #F4F4F4;
+}
+.editorial-hero {
+  background: var(--evo-paper);
+  border-color: rgb(53 53 53 / .12);
+}
+.editorial-hero::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  width: min(48vw, 34rem);
+  aspect-ratio: 1;
+  right: -8rem;
+  top: 5rem;
+  border-radius: 50%;
+  opacity: .54;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 22%, var(--evo-mint) 22.3% 35%, transparent 35.3%),
+    radial-gradient(circle at 0% 50%, var(--evo-lilac) 0 22%, transparent 22.3%),
+    radial-gradient(circle at 100% 50%, var(--evo-mint) 0 22%, transparent 22.3%),
+    radial-gradient(circle at 50% 0%, var(--evo-lilac) 0 22%, transparent 22.3%),
+    radial-gradient(circle at 50% 100%, var(--evo-mint) 0 22%, transparent 22.3%);
+  mask-image: linear-gradient(135deg, #000 0%, transparent 80%);
+}
+.editorial-hero .editorial-index,
+.editorial-hero .editorial-title-accent,
+.editorial-hero .editorial-text-link span {
+  color: #7455AE;
+}
+.editorial-hero .editorial-label > span {
+  background: var(--evo-lilac);
+  box-shadow: 0 0 0 4px rgb(181 153 242 / .2);
+}
+.editorial-hero .editorial-stamp {
+  background: var(--evo-mint);
+  color: var(--evo-charcoal);
+}
+.editorial-hero .editorial-stamp span { color: #7455AE; }
+.editorial-hero .editorial-stamp i { color: var(--evo-concord); }
+.editorial-hero .editorial-photo-meta { color: var(--evo-mint); }
+.editorial-hero .editorial-photo-meta i { background: var(--evo-lilac); }
+.editorial-hero-bottom {
+  color: var(--evo-concord);
+}
+.editorial-hero-bottom,
+.editorial-hero-top {
+  border-color: rgb(53 53 53 / .12);
+}
+.editorial-hero .editorial-photo-chip {
+  background: rgb(244 244 244 / .92);
+  border-color: rgb(244 244 244 / .7);
+}
+.studio-command {
+  background: var(--evo-charcoal);
+}
+.studio-command::after {
+  border-color: rgb(207 255 224 / .38);
+  box-shadow: 0 0 0 2rem rgb(181 153 242 / .12), 0 0 0 4rem rgb(207 255 224 / .07);
+}
+.studio-command-kicker { color: var(--evo-mint); }
+.studio-command-mark span { color: var(--evo-lilac); }
+.studio-command-photo .studio-command-shade {
+  background: linear-gradient(90deg, rgb(53 53 53 / .96) 0%, rgb(53 53 53 / .78) 46%, rgb(53 53 53 / .25) 100%), linear-gradient(0deg, rgb(53 53 53 / .35), transparent 70%);
+}
+@media (max-width: 639px) {
+  .editorial-hero::before {
+    width: 25rem;
+    right: -13rem;
+    top: 10rem;
+    opacity: .32;
+  }
+  .studio-command-photo .studio-command-shade {
+    background: linear-gradient(90deg, rgb(53 53 53 / .91), rgb(53 53 53 / .62)), linear-gradient(0deg, rgb(53 53 53 / .68), transparent 90%);
+  }
+}
