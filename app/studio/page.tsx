@@ -41,8 +41,10 @@ export default function StudioDashboard() {
         }
       />
 
-      <section className="studio-command mt-6 mb-5 overflow-hidden rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <section className="studio-command studio-command-photo mt-6 mb-5 overflow-hidden rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
+        <img className="studio-command-image" src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=85" alt="" aria-hidden="true" loading="eager" />
+        <div className="studio-command-shade" aria-hidden="true" />
+        <div className="studio-command-content flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xl">
             <p className="studio-command-kicker">EVOFIT / STUDIO OVERVIEW</p>
             <h2 className="mt-3 text-2xl font-black tracking-[-0.055em] leading-tight sm:text-4xl">Treino planejado.<br className="hidden sm:block" /> Evolução acompanhada.</h2>
