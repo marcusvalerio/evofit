@@ -10,7 +10,6 @@ import {
   Users,
 } from "lucide-react"
 import { PublicShell } from "@/components/public-shell"
-import { HeroShowcase } from "@/components/hero-showcase"
 import { CATALOG_SIZE } from "@/lib/catalog"
 
 const EXPERIENCES = [
