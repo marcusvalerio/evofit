@@ -10,9 +10,7 @@ import { useToast } from "./providers"
 export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
   return (
     <Link href="/" className={cx("inline-flex items-baseline gap-1.5 rounded-md", className)} aria-label="EVOFIT — início">
-      <span className="t-brand text-xl leading-none">
-        EVO<span className="text-accent">FIT</span>
-      </span>
+      <span className="t-brand text-xl leading-none text-fg">EVOFIT</span>
       {suffix && <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{suffix}</span>}
     </Link>
   )
