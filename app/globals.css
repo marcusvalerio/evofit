@@ -1076,3 +1076,79 @@
     line-height: 1.1;
   }
 }
+
+
+/* EVOFIT system pass — disciplined heavy typography and responsive composition */
+.t-brand {
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: -.065em;
+}
+.t-display {
+  font-weight: 800;
+  letter-spacing: -.045em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+.t-h1, .t-h2 {
+  font-weight: 750;
+  letter-spacing: -.025em;
+  line-height: 1.16;
+  text-wrap: balance;
+}
+.t-metric {
+  font-weight: 900;
+  letter-spacing: -.045em;
+  line-height: .98;
+  font-variant-numeric: tabular-nums;
+}
+.card {
+  border-radius: 1.15rem;
+  box-shadow: 0 2px 5px rgb(17 34 68 / .025), 0 12px 32px -28px rgb(17 34 68 / .24);
+}
+.btn { transition: background-color .18s ease, border-color .18s ease, transform .18s ease; }
+.btn:active { transform: translateY(1px); }
+.editorial-title {
+  font-size: clamp(3rem, 6.4vw, 5.4rem);
+  font-weight: 800;
+  letter-spacing: -.055em;
+  line-height: 1.01;
+  max-width: 12ch;
+  text-wrap: balance;
+}
+.studio-command {
+  min-height: 0;
+  border-radius: 1.35rem;
+}
+.studio-command h2 {
+  font-size: clamp(1.8rem, 3.6vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+.studio-command-mark {
+  font-weight: 900;
+  letter-spacing: -.09em;
+  line-height: .9;
+}
+.editorial-label, .editorial-proof, .editorial-showcase-label {
+  letter-spacing: normal;
+}
+@media (max-width: 639px) {
+  .t-display { font-size: clamp(2rem, 8vw, 2.8rem); line-height: 1.06; letter-spacing: -.04em; }
+  .t-h1 { font-size: 1.5rem; }
+  .t-h2 { font-size: 1.0625rem; }
+  .t-metric { font-size: 2rem; letter-spacing: -.035em; }
+  .editorial-hero-top, .editorial-hero-bottom { font-size: .52rem; }
+  .editorial-title {
+    font-size: clamp(2.85rem, 11.5vw, 4rem);
+    letter-spacing: -.045em;
+    line-height: 1.04;
+    max-width: 12ch;
+  }
+  .studio-command { padding: 1.25rem; }
+  .studio-command h2 { font-size: clamp(1.65rem, 7vw, 2.2rem); letter-spacing: -.03em; line-height: 1.1; }
+  .studio-command-mark { font-size: 4.5rem; }
+  .card { border-radius: 1rem; }
+}
