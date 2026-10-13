@@ -8,6 +8,17 @@ import { parseVideoUrl } from "@/lib/video"
 import { cx } from "./ui"
 import { useToast } from "./providers"
 
+/* ---------- Ilustrações vetoriais EVOFIT ---------- */
+
+function illustrationFor(ex: ExerciseView): string | null {
+  const name = ex.name.normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
+  if (name.includes("supino reto com barra") || name.includes("supino reto (barra)")) return "/illustrations/supino-reto.svg"
+  if (name.includes("agachamento com barra") || name === "agachamento livre completo" || name === "agachamento livre (peso corporal)") return "/illustrations/agachamento.svg"
+  if (name.includes("rosca direta")) return "/illustrations/rosca-direta.svg"
+  if (name.includes("remada curvada")) return "/illustrations/remada-curvada.svg"
+  return null
+}
+
 /* ---------- Demonstração animada (quadros de início e fim) ---------- */
 
 /**
