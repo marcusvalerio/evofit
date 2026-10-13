@@ -29,20 +29,12 @@ function illustrationFor(ex: ExerciseView): string {
  */
 export function ExerciseDemo({ ex, className, compact }: { ex: ExerciseView; className?: string; compact?: boolean }) {
   const [paused, setPaused] = useState(false)
-  if (ex.frames < 2) return <DemoPlaceholder ex={ex} className={className} />
+  if (ex.custom) return <DemoPlaceholder ex={ex} className={className} />
   return (
-    <figure className={cx("demo", paused && "demo-paused", className)} aria-label={`Demonstração: ${ex.name}`}>
+    <figure className={cx("demo", paused && "demo-paused", className)} aria-label={`Demonstração vetorial: ${ex.name}`}>
       <div className="demo-stage">
-        {/* eslint-disable-next-line @next/next/no-img-element -- imagens estáticas já otimizadas (webp 480px) */}
-        <img src={frameUrl(ex.id, 0)} alt={`${ex.name} — posição inicial`} className="demo-frame demo-a" width={480} height={320} decoding="async" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={frameUrl(ex.id, 1)} alt={`${ex.name} — posição final`} className="demo-frame demo-b" width={480} height={320} decoding="async" />
-        <span className="demo-label demo-label-a" aria-hidden>
-          Início
-        </span>
-        <span className="demo-label demo-label-b" aria-hidden>
-          Fim
-        </span>
+        {/* eslint-disable-next-line @next/next/no-img-element -- SVG vetorial gerado para cada exercício do catálogo */}
+        <img src={illustrationFor(ex)} alt={ex.name + " — duas fases do movimento"} className="size-full object-contain" width={480} height={320} decoding="async" />
       </div>
       {!compact && (
         <button
@@ -75,7 +67,7 @@ function DemoPlaceholder({ ex, className }: { ex: ExerciseView; className?: stri
 
 /** Miniatura para listas. Ao passar o mouse (ou focar o card) mostra a posição final. */
 export function ExerciseThumb({ ex, className }: { ex: ExerciseView; className?: string }) {
-  if (ex.frames < 2)
+  if (ex.custom)
     return (
       <span className={cx("thumb grid place-items-center bg-accent-soft text-accent", className)} aria-hidden>
         <Dumbbell size={18} />
@@ -83,10 +75,8 @@ export function ExerciseThumb({ ex, className }: { ex: ExerciseView; className?:
     )
   return (
     <span className={cx("thumb", className)} aria-hidden>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={frameUrl(ex.id, 0)} alt="" loading="lazy" decoding="async" width={480} height={320} />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={frameUrl(ex.id, 1)} alt="" loading="lazy" decoding="async" width={480} height={320} className="thumb-b" />
+      {/* eslint-disable-next-line @next/next/no-img-element -- SVG vetorial gerado para cada exercício do catálogo */}
+      <img src={illustrationFor(ex)} alt="" loading="lazy" decoding="async" width={480} height={320} />
     </span>
   )
 }
