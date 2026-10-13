@@ -1152,3 +1152,89 @@
   .studio-command-mark { font-size: 4.5rem; }
   .card { border-radius: 1rem; }
 }
+
+
+/* Editorial fitness photography */
+.editorial-photo-panel {
+  position: relative;
+  min-height: 29rem;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid rgb(17 34 68 / .14);
+  border-radius: 1.4rem;
+  background: #112244;
+  box-shadow: 0 28px 60px -36px rgb(17 34 68 / .48);
+}
+.editorial-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: -2;
+  filter: saturate(.82) contrast(1.03);
+}
+.editorial-photo-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(180deg, rgb(17 34 68 / .08) 15%, rgb(17 34 68 / .15) 42%, rgb(17 34 68 / .92) 100%);
+}
+.editorial-photo-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  color: #F4F0EC;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.editorial-photo-caption {
+  position: absolute;
+  left: 1.25rem;
+  right: 1.25rem;
+  bottom: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .7rem;
+  color: #F4F0EC;
+}
+.editorial-photo-kicker, .editorial-photo-meta {
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.editorial-photo-caption strong {
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 850;
+  letter-spacing: -.055em;
+  line-height: .98;
+  text-wrap: balance;
+}
+.editorial-photo-meta { display: inline-flex; align-items: center; gap: .5rem; color: #DFC6AA; }
+.editorial-photo-meta i { width: .45rem; height: .45rem; border-radius: 50%; background: #9EB0AA; }
+.editorial-photo-chip {
+  position: absolute;
+  right: 1rem;
+  top: 42%;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding: .7rem .85rem;
+  border: 1px solid rgb(244 240 236 / .55);
+  border-radius: .9rem;
+  background: rgb(244 240 236 / .9);
+  color: #112244;
+  backdrop-filter: blur(12px);
+}
+.editorial-photo-chip span { font-size: 2rem; line-height: 1; font-weight: 900; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+.editorial-photo-chip small { font-size: .55rem; font-weight: 800; line-height: 1.25; letter-spacing: .08em; }
+@media (max-width: 639px) {
+  .editorial-photo-panel { min-height: 25rem; border-radius: 1.15rem; }
+  .editorial-photo-caption { left: 1rem; right: 1rem; bottom: 1rem; }
+  .editorial-photo-caption strong { font-size: clamp(2.35rem, 10vw, 3.25rem); }
+  .editorial-photo-chip { top: 38%; right: .75rem; }
+}
