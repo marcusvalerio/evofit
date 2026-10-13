@@ -8,19 +8,6 @@ import { parseVideoUrl } from "@/lib/video"
 import { cx } from "./ui"
 import { useToast } from "./providers"
 
-/* ---------- Ilustrações vetoriais EVOFIT ---------- */
-
-function illustrationFor(ex: ExerciseView): string {
-  let hash = 2166136261
-  for (const char of ex.id) {
-    hash ^= char.charCodeAt(0)
-    hash = Math.imul(hash, 16777619)
-  }
-  const slug = ex.id.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48) || "exercise"
-  const key = slug + "-" + (hash >>> 0).toString(36)
-  return `/illustrations/catalog/${key}.svg`
-}
-
 /* ---------- Demonstração animada (quadros de início e fim) ---------- */
 
 /**
@@ -29,21 +16,21 @@ function illustrationFor(ex: ExerciseView): string {
  */
 export function ExerciseDemo({ ex, className, compact }: { ex: ExerciseView; className?: string; compact?: boolean }) {
   const [paused, setPaused] = useState(false)
-  if (ex.custom) return <DemoPlaceholder ex={ex} className={className} />
+  const [phase, setPhase] = useState(0)
+  useEffect(() => {
+    if (paused || ex.frames < 2 || ex.custom) return
+    const timer = window.setInterval(() => setPhase((p) => (p === 0 ? 1 : 0)), 900)
+    return () => window.clearInterval(timer)
+  }, [paused, ex.frames, ex.custom])
+  if (ex.custom || ex.frames < 2) return <DemoPlaceholder ex={ex} className={className} />
   return (
-    <figure className={cx("demo", paused && "demo-paused", className)} aria-label={`Demonstração vetorial: ${ex.name}`}>
+    <figure className={cx("demo", paused && "demo-paused", className)} aria-label={`Demonstração do exercício: ${ex.name}`}>
       <div className="demo-stage">
-        {/* eslint-disable-next-line @next/next/no-img-element -- SVG vetorial gerado para cada exercício do catálogo */}
-        <img src={illustrationFor(ex)} alt={ex.name + " — duas fases do movimento"} className="size-full object-contain" width={480} height={320} decoding="async" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- imagens originais do catálogo */}
+        <img src={frameUrl(ex.id, phase)} alt={ex.name} className="size-full object-contain" width={480} height={320} decoding="async" />
       </div>
       {!compact && (
-        <button
-          type="button"
-          className="demo-toggle btn btn-sm btn-icon btn-pill glass"
-          onClick={() => setPaused((p) => !p)}
-          aria-label={paused ? "Retomar animação" : "Pausar animação"}
-          aria-pressed={paused}
-        >
+        <button type="button" className="demo-toggle btn btn-sm btn-icon btn-pill glass" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar animação" : "Pausar animação"} aria-pressed={paused}>
           {paused ? <Play size={16} aria-hidden /> : <Pause size={16} aria-hidden />}
         </button>
       )}
@@ -67,7 +54,7 @@ function DemoPlaceholder({ ex, className }: { ex: ExerciseView; className?: stri
 
 /** Miniatura para listas. Ao passar o mouse (ou focar o card) mostra a posição final. */
 export function ExerciseThumb({ ex, className }: { ex: ExerciseView; className?: string }) {
-  if (ex.custom)
+  if (ex.custom || ex.frames < 2)
     return (
       <span className={cx("thumb grid place-items-center bg-accent-soft text-accent", className)} aria-hidden>
         <Dumbbell size={18} />
@@ -75,8 +62,8 @@ export function ExerciseThumb({ ex, className }: { ex: ExerciseView; className?:
     )
   return (
     <span className={cx("thumb", className)} aria-hidden>
-      {/* eslint-disable-next-line @next/next/no-img-element -- SVG vetorial gerado para cada exercício do catálogo */}
-      <img src={illustrationFor(ex)} alt="" loading="lazy" decoding="async" width={480} height={320} />
+      {/* eslint-disable-next-line @next/next/no-img-element -- imagem original do catálogo */}
+      <img src={frameUrl(ex.id, 0)} alt="" loading="lazy" decoding="async" width={480} height={320} onError={(event) => { event.currentTarget.style.display = "none" }} />
     </span>
   )
 }
