@@ -120,7 +120,8 @@
   --color-brand-blue: var(--brand-blue);
   --color-brand-sage: var(--brand-sage);
   --color-brand-paper: var(--brand-paper);
-  --color-brand-sand: var(--brand-sand);\n  --color-brand-clay: var(--brand-clay);
+  --color-brand-sand: var(--brand-sand);
+  --color-brand-clay: var(--brand-clay);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
