@@ -116,11 +116,11 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --color-brand-otan: var(--brand-otan);
-  --color-brand-gravy: var(--brand-gravy);
-  --color-brand-cobblestone: var(--brand-cobblestone);
-  --color-brand-smoke: var(--brand-smoke);
-  --color-brand-cotton: var(--brand-cotton);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-sage: var(--brand-sage);
+  --color-brand-paper: var(--brand-paper);
+  --color-brand-sand: var(--brand-sand);\n  --color-brand-clay: var(--brand-clay);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
