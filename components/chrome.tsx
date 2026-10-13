@@ -87,7 +87,7 @@ function AccountBar() {
   return (
     <>
       <div className="border-b border-line bg-inverse text-on-inverse">
-        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-1.5 text-[0.8125rem]">
+        <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-2 px-3 py-1 text-xs sm:gap-3 sm:px-4 sm:py-1.5 sm:text-[0.8125rem]">
           <UserRound size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
             <strong className="font-semibold">{account?.role === "student" ? "Conta de aluno" : "Conta de personal"}</strong>
@@ -111,7 +111,7 @@ function AccountBar() {
               setBusy(true)
               await logout()
             }}
-            className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 font-semibold hover:bg-white/10"
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-2 font-semibold hover:bg-white/10 sm:gap-1.5 sm:px-2.5"
           >
             <LogOut size={14} aria-hidden /> Sair
           </button>
@@ -143,9 +143,9 @@ function DemoStrip() {
           <FlaskConical size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
             <strong className="font-semibold">Modo demonstração</strong>
-            <span className="opacity-80"> · dados fictícios salvos apenas neste navegador</span>
+            <span className="hidden opacity-80 sm:inline"> · dados fictícios salvos apenas neste navegador</span>
           </p>
-          <Link href="/entrar" className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 font-semibold hover:bg-white/10">
+          <Link href="/entrar" className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-2 font-semibold hover:bg-white/10 sm:gap-1.5 sm:px-2.5">
             <LogIn size={14} aria-hidden /> Entrar
           </Link>
           <button type="button" onClick={() => setConfirm(true)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 font-semibold hover:bg-white/10">
