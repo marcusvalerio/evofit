@@ -114,7 +114,7 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -1510,7 +1510,7 @@
 .evo-campaign-copy h1 { font-size:clamp(3.2rem,5.5vw,6.2rem); line-height:.84; font-weight:1000; letter-spacing:-.075em; }
 .evo-campaign-copy h1 span { color:var(--evo-acid); }
 .evo-campaign-description { max-width:23rem; margin-top:1.4rem; color:rgb(255 255 255 / .82); font-size:.9rem; line-height:1.55; }
-.evo-lime-button { display:inline-flex; align-items:center; justify-content:center; gap:.8rem; margin-top:1.4rem; min-height:3.35rem; padding:0 1.25rem; border-radius:999px; background:var(--evo-acid); color:var(--evo-black); font-size:.72rem; font-weight:950; letter-spacing:.04em; transition:transform .2s, background .2s; }
+.evo-lime-button { display:inline-flex; align-items:center; justify-content:center; gap:.8rem; margin-top:1.4rem; min-height:3.35rem; padding:0 1.25rem; border-radius:999px; background:var(--evo-gradient-lavender); color:var(--evo-black); font-size:.72rem; font-weight:950; letter-spacing:.04em; transition:transform .2s, background .2s; }
 .evo-lime-button:hover { transform:translateY(-2px); background:#D7D9EC; }
 .evo-campaign-bottom { padding-top:1rem; border-top:1px solid rgb(255 255 255 / .3); color:rgb(255 255 255 / .65); font-size:.55rem; }
 .evo-phone-stage { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1rem 0; }
@@ -1545,7 +1545,7 @@
 .evo-exercise-row strong { font-size:.68rem; font-weight:900; }
 .evo-exercise-row small { color:#A8B1D7; font-size:.58rem; }
 .evo-exercise-row>span { color:var(--evo-acid); padding:0 .3rem; }
-.evo-phone-cta { display:flex; align-items:center; justify-content:center; gap:.55rem; margin-top:.8rem; min-height:2.9rem; border-radius:999px; background:var(--evo-acid); color:#051040; font-size:.6rem; font-weight:950; }
+.evo-phone-cta { display:flex; align-items:center; justify-content:center; gap:.55rem; margin-top:.8rem; min-height:2.9rem; border-radius:999px; background:var(--evo-gradient-lavender); color:#051040; font-size:.6rem; font-weight:950; }
 .evo-phone-caption { display:flex; align-items:center; gap:.8rem; max-width:25rem; margin-top:1.2rem; color:#051040; font-size:.58rem; line-height:1.5; font-weight:850; letter-spacing:.08em; }
 .evo-phone-caption span { color:#051040; white-space:nowrap; }
 @media (max-width: 850px) {
@@ -1967,9 +1967,9 @@ body { background-color:var(--bg); }
   --evo-shadow-card: 0 10px 32px -24px rgb(5 16 64 / .35), 0 1px 2px rgb(5 16 64 / .06);
 }
 html { scroll-behavior: smooth; }
-body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-h1, h2, h3, .t-h1, .t-h2, .evo-workout-title {
-  font-family: Outfit, Inter, ui-sans-serif, system-ui, sans-serif;
+body { font-family: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+h1, h2, h3, h4, .t-display, .t-h1, .t-h2, .evo-workout-title, .evo-campaign-copy h1 {
+  font-family: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -.035em;
 }
 .t-h1 { line-height: 1.04; text-wrap: balance; }
@@ -1990,7 +1990,7 @@ h1, h2, h3, .t-h1, .t-h2, .evo-workout-title {
   background-image: var(--evo-gradient-action);
   background-color: var(--evo-auburn);
   border-color: transparent;
-  color: #fff;
+  color: #F6F4F5;
   box-shadow: 0 5px 14px -9px rgb(146 39 36 / .8);
 }
 .btn-primary:hover { filter: saturate(1.06) brightness(1.04); box-shadow: 0 8px 20px -10px rgb(146 39 36 / .75); }
@@ -2008,10 +2008,12 @@ h1, h2, h3, .t-h1, .t-h2, .evo-workout-title {
 .badge-success {
   background: linear-gradient(120deg, #A8B1D7, #F6F4F5);
   color: #051040;
+  border: 1px solid rgb(5 16 64 / .12);
 }
 .badge-warning {
   background: var(--evo-gradient-peach);
-  color: #672A2A;
+  color: #051040;
+  border: 1px solid rgb(5 16 64 / .12);
 }
 .input, input, select, textarea {
   border-radius: .75rem;
