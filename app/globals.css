@@ -1595,3 +1595,95 @@
   .evo-experience-photo { height:10rem; }
   .evo-phone-caption { font-size:.52rem; }
 }
+
+
+/* EVOFIT visual system — applied across real product screens, not only the marketing page. */
+:root {
+  --brand-ink:#080D0D;
+  --brand-blue:#353535;
+  --brand-sage:#BFD4CE;
+  --brand-paper:#F4F4F4;
+  --brand-sand:#D6D1C5;
+  --brand-clay:#B599F2;
+  --bg:#F4F4F4;
+  --surface:#FFFFFF;
+  --surface-2:#E2E2E2;
+  --glass:rgb(244 244 244 / .92);
+  --fg:#080D0D;
+  --fg-muted:#727272;
+  --line:rgb(8 13 13 / .11);
+  --line-strong:rgb(8 13 13 / .25);
+  --primary:#080D0D;
+  --primary-hover:#353535;
+  --on-primary:#F4F4F4;
+  --accent-text:#146C4D;
+  --accent-soft:#CFFFE0;
+  --inverse:#080D0D;
+  --on-inverse:#F4F4F4;
+  --success:#146C4D;
+  --success-soft:#CFFFE0;
+  --warning:#8B642E;
+  --warning-soft:#F9DA93;
+  --focus:#B599F2;
+  --shadow:0 2px 4px rgb(8 13 13 / .04),0 16px 36px -24px rgb(8 13 13 / .25);
+  --shadow-lg:0 28px 70px -32px rgb(8 13 13 / .32);
+}
+:root[data-theme="dark"] {
+  --bg:#080D0D;
+  --surface:#141A19;
+  --surface-2:#222827;
+  --glass:rgb(8 13 13 / .9);
+  --fg:#F4F4F4;
+  --fg-muted:#A8B4B1;
+  --line:rgb(244 244 244 / .12);
+  --line-strong:rgb(244 244 244 / .25);
+  --primary:#CFFFE0;
+  --primary-hover:#B5F9D0;
+  --on-primary:#080D0D;
+  --accent-text:#CFFFE0;
+  --accent-soft:rgb(207 255 224 / .12);
+  --inverse:#F4F4F4;
+  --on-inverse:#080D0D;
+  --success:#CFFFE0;
+  --success-soft:rgb(207 255 224 / .12);
+  --warning:#F9DA93;
+  --warning-soft:rgb(249 218 147 / .12);
+  --focus:#B599F2;
+  --shadow:0 2px 4px rgb(0 0 0 / .25),0 16px 36px -24px rgb(0 0 0 / .7);
+  --shadow-lg:0 28px 70px -32px rgb(0 0 0 / .8);
+}
+:root[data-theme="dark"] body { background-image:radial-gradient(ellipse at 10% 0%,rgb(191 212 206 / .08),transparent 32rem); }
+body { background-color:var(--bg); }
+.glass { backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
+.card {
+  border-radius:1.15rem;
+  border-color:var(--line);
+  box-shadow:0 1px 1px rgb(8 13 13 / .025),0 12px 34px -28px rgb(8 13 13 / .22);
+}
+.t-brand { font-weight:1000; letter-spacing:-.075em; }
+.t-display,.t-h1,.t-h2 { letter-spacing:-.065em; font-weight:950; }
+.t-display { line-height:.94; }
+.btn-primary { background:#CFFFE0; color:#080D0D; border-color:#CFFFE0; font-weight:850; }
+.btn-primary:hover { background:#B5F9D0; border-color:#B5F9D0; }
+.btn-outline:hover,.btn-ghost:hover { background:var(--accent-soft); }
+:root[data-theme="dark"] .btn-primary { background:#CFFFE0; color:#080D0D; border-color:#CFFFE0; }
+.studio-command { border-radius:1.35rem; }
+.studio-command-kicker { color:#CFFFE0; letter-spacing:.16em; }
+.studio-command-mark { font-size:clamp(4rem,9vw,7.5rem); font-weight:1000; letter-spacing:-.11em; line-height:.8; }
+.studio-command-mark span { color:#B599F2; }
+.studio-command-shade { background:linear-gradient(90deg,rgb(8 13 13 / .96) 0%,rgb(8 13 13 / .82) 48%,rgb(8 13 13 / .3) 100%),linear-gradient(0deg,rgb(8 13 13 / .3),transparent 70%); }
+.studio-command-image { filter:saturate(.78) contrast(1.06); }
+.studio-command-content h2 { max-width:13ch; font-size:clamp(2rem,4vw,3.5rem); letter-spacing:-.07em; line-height:.95; font-weight:1000; }
+.studio-command-content p:not(.studio-command-kicker) { max-width:34rem; }
+.evo-student-campaign { position:relative; isolation:isolate; overflow:hidden; min-height:13rem; border-radius:1.35rem; padding:1.25rem; color:#F4F4F4; background:#080D0D; }
+.evo-student-campaign>img { position:absolute; z-index:-2; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 38%; }
+.evo-student-campaign::after { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(90deg,rgb(8 13 13 / .94),rgb(8 13 13 / .52) 58%,rgb(8 13 13 / .05)),linear-gradient(0deg,rgb(8 13 13 / .48),transparent 70%); }
+.evo-student-campaign .evo-student-kicker { color:#CFFFE0; font-size:.62rem; font-weight:900; letter-spacing:.15em; }
+.evo-student-campaign h2 { max-width:12ch; margin-top:.65rem; font-size:clamp(2rem,8vw,3rem); font-weight:1000; line-height:.9; letter-spacing:-.07em; }
+.evo-student-campaign p:last-child { max-width:19rem; margin-top:.75rem; color:rgb(244 244 244 / .8); font-size:.85rem; line-height:1.5; }
+.evo-student-campaign .evo-student-orbit { position:absolute; width:8rem; height:8rem; right:-2rem; bottom:-3rem; border:1px solid rgb(207 255 224 / .7); border-radius:50%; box-shadow:0 0 0 1rem rgb(181 153 242 / .18),0 0 0 2rem rgb(207 255 224 / .12); }
+.evo-exercise-row,.evo-phone-cta { transition:transform .18s ease,background .18s ease; }
+:focus-visible { outline:3px solid #B599F2; outline-offset:3px; }
+@media (prefers-reduced-motion:reduce) {
+  *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
+}
