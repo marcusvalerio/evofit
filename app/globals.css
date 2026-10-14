@@ -2116,3 +2116,130 @@ nav[aria-label="Aluno"] a[aria-current="page"] { color: var(--evo-deep-cove) !im
 .evo-experience-card .bg-accent-soft { background: #A8B1D7 !important; color: #051040 !important; }
 .evo-experience-card .text-accent { color: #051040 !important; }
 .studio-command-photo + section[aria-label="Indicadores"] .stat:first-child { background: #A8B1D7 !important; color: #051040 !important; border-color: #A8B1D7 !important; }
+
+
+/* Part 3 — composed page layouts: editorial landing and focused Studio workspace. */
+.evo-landing-editorial {
+  background: var(--evo-cultured);
+  border: 1px solid rgb(5 16 64 / .1);
+  border-radius: 1.5rem;
+  box-shadow: 0 24px 70px -48px rgb(5 16 64 / .32);
+}
+.evo-landing-editorial .evo-landing-grid {
+  opacity: .42;
+  background-image: radial-gradient(circle, rgb(168 177 215 / .72) 1.4px, transparent 1.8px);
+}
+.evo-landing-editorial .evo-landing-wordmark {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #051040;
+  font-family: "Outfit", "Inter", sans-serif;
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 900;
+  letter-spacing: -.06em;
+}
+.evo-landing-editorial .evo-landing-wordmark span {
+  color: #4D5573;
+  font-family: "Inter", sans-serif;
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.evo-landing-editorial .evo-campaign-panel {
+  border-radius: 1.15rem;
+  box-shadow: 0 20px 48px -32px rgb(5 16 64 / .5);
+}
+.evo-landing-editorial .evo-phone-stage { padding: 1.5rem; }
+.evo-landing-editorial .evo-phone-orbit {
+  background: radial-gradient(circle, rgb(168 177 215 / .42), rgb(236 188 178 / .2) 45%, transparent 72%);
+}
+.evo-landing-editorial .evo-phone {
+  border-color: rgb(5 16 64 / .22);
+  box-shadow: 0 30px 80px -40px rgb(5 16 64 / .55);
+}
+.studio-command-editorial {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(168 177 215 / .48);
+  background:
+    radial-gradient(ellipse at 90% 0%, rgb(168 177 215 / .34), transparent 45%),
+    linear-gradient(125deg, #F6F4F5 0%, #F6F4F5 55%, #ECBCB2 140%);
+  color: #051040;
+}
+.studio-command-editorial::after {
+  content: "";
+  position: absolute;
+  right: 7rem;
+  top: -5rem;
+  width: 15rem;
+  height: 15rem;
+  border: 1px solid rgb(5 16 64 / .1);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.studio-command-editorial .studio-command-kicker {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  color: #4D5573;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.studio-command-editorial h2 { color: #051040; letter-spacing: -.055em; }
+.studio-command-editorial p:not(.studio-command-kicker) { color: #4D5573; opacity: 1; }
+.studio-command-editorial .studio-command-mark {
+  color: #051040;
+  font-family: "Outfit", "Inter", sans-serif;
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  letter-spacing: -.1em;
+  line-height: .8;
+  text-shadow: none;
+}
+.studio-command-editorial .studio-command-mark i { color: #922724; font-style: normal; }
+.studio-command-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .65rem;
+  margin-top: 1.25rem;
+}
+.studio-command-editorial .btn-outline {
+  border-color: rgb(5 16 64 / .2);
+  color: #051040;
+  background: rgb(246 244 245 / .7);
+}
+.studio-metric-grid { align-items: stretch; }
+.studio-metric-grid > * { min-width: 0; }
+.evo-today {
+  border: 1px solid rgb(5 16 64 / .1);
+  border-radius: 1.2rem;
+  padding: clamp(1rem, 2.2vw, 1.5rem);
+  background: #F6F4F5;
+}
+.evo-today-heading { margin-bottom: .9rem; }
+.evo-today-heading h2 { font-size: clamp(1.2rem, 2.5vw, 1.6rem); letter-spacing: -.04em; }
+.evo-today-item {
+  display: flex;
+  gap: .85rem;
+  align-items: center;
+  padding: .85rem .7rem;
+  border: 1px solid transparent;
+  border-radius: .9rem;
+}
+.evo-today-item + .evo-today-item { margin-top: .2rem; }
+.evo-today-item:hover { background: #F6F4F5; border-color: rgb(168 177 215 / .48); }
+@media (max-width: 639px) {
+  .evo-landing-editorial { border-radius: 1rem; }
+  .evo-landing-editorial .evo-phone-stage { padding: .8rem 0 0; }
+  .evo-landing-editorial .evo-landing-wordmark span { font-size: .52rem; }
+  .studio-command-editorial { padding: 1.15rem !important; }
+  .studio-command-editorial .studio-command-mark { display: none; }
+  .studio-command-actions { display: grid; grid-template-columns: 1fr; }
+  .studio-command-actions .btn { width: 100%; }
+  .evo-today-item { gap: .55rem; padding: .75rem .45rem; }
+  .evo-today-copy { min-width: 0; }
+  .evo-today-copy strong, .evo-today-copy small { overflow-wrap: anywhere; }
+}
