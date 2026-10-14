@@ -1571,3 +1571,27 @@
   .evo-phone { border-width:5px; border-radius:2.2rem; padding:.75rem; }
   .evo-phone-feature,.evo-phone-feature>div { min-height:11rem; }
 }
+
+
+/* Product storytelling: the homepage uses campaign imagery as real section structure. */
+.evo-experience-card { border-radius:1.25rem; background:#F4F4F4; color:#080D0D; }
+.evo-experience-photo { position:relative; isolation:isolate; overflow:hidden; height:12.5rem; background:#353535; }
+.evo-experience-photo::after { content:""; position:absolute; inset:0; z-index:0; background:linear-gradient(0deg,rgb(8 13 13 / .78),transparent 72%); }
+.evo-experience-photo img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:saturate(.82); transition:transform .45s cubic-bezier(.2,.7,.2,1); }
+.evo-experience-card:hover .evo-experience-photo img { transform:scale(1.045); }
+.evo-experience-photo>span { position:absolute; z-index:1; left:1.25rem; bottom:1rem; color:white; font-size:.62rem; font-weight:900; letter-spacing:.12em; }
+.evo-experience-card .t-eyebrow { color:#656565; }
+.evo-experience-card h3 { letter-spacing:-.045em; }
+.evo-experience-card .bg-accent-soft { background:#CFFFE0; color:#080D0D; }
+.evo-experience-card .text-accent { color:#146C4D; }
+.evo-landing .evo-campaign-copy h1 { max-width:11ch; }
+.evo-landing .evo-campaign-description { max-width:25rem; }
+@media (min-width: 851px) {
+  .evo-campaign-panel { min-height:48rem; }
+  .evo-phone-stage { padding:1.2rem 0; }
+  .evo-phone { transform:translateY(.3rem); }
+}
+@media (max-width: 640px) {
+  .evo-experience-photo { height:10rem; }
+  .evo-phone-caption { font-size:.52rem; }
+}
