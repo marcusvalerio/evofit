@@ -1511,7 +1511,7 @@
 .evo-campaign-copy h1 span { color:var(--evo-acid); }
 .evo-campaign-description { max-width:23rem; margin-top:1.4rem; color:rgb(255 255 255 / .82); font-size:.9rem; line-height:1.55; }
 .evo-lime-button { display:inline-flex; align-items:center; justify-content:center; gap:.8rem; margin-top:1.4rem; min-height:3.35rem; padding:0 1.25rem; border-radius:999px; background:var(--evo-acid); color:var(--evo-black); font-size:.72rem; font-weight:950; letter-spacing:.04em; transition:transform .2s, background .2s; }
-.evo-lime-button:hover { transform:translateY(-2px); background:#B5F9D0; }
+.evo-lime-button:hover { transform:translateY(-2px); background:#D7D9EC; }
 .evo-campaign-bottom { padding-top:1rem; border-top:1px solid rgb(255 255 255 / .3); color:rgb(255 255 255 / .65); font-size:.55rem; }
 .evo-phone-stage { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1rem 0; }
 .evo-phone-orbit { position:absolute; z-index:-1; width:90%; aspect-ratio:1; border:1px solid rgb(255 255 255 / .6); border-radius:50%; box-shadow:0 0 0 1.8rem rgb(255 255 255 / .14), 0 0 0 3.6rem rgb(255 255 255 / .1); }
@@ -1630,7 +1630,7 @@
   --line:rgb(244 244 244 / .12);
   --line-strong:rgb(244 244 244 / .25);
   --primary:#D9E8DF;
-  --primary-hover:#B5F9D0;
+  --primary-hover:#D7D9EC;
   --on-primary:#051040;
   --accent-text:#D9E8DF;
   --accent-soft:rgb(207 255 224 / .12);
@@ -1656,7 +1656,7 @@ body { background-color:var(--bg); }
 .t-display,.t-h1,.t-h2 { letter-spacing:-.065em; font-weight:950; }
 .t-display { line-height:.94; }
 .btn-primary { background:#D9E8DF; color:#051040; border-color:#D9E8DF; font-weight:850; }
-.btn-primary:hover { background:#B5F9D0; border-color:#B5F9D0; }
+.btn-primary:hover { background:#D7D9EC; border-color:#D7D9EC; }
 .btn-outline:hover,.btn-ghost:hover { background:var(--accent-soft); }
 :root[data-theme="dark"] .btn-primary { background:#D9E8DF; color:#051040; border-color:#D9E8DF; }
 .studio-command { border-radius:1.35rem; }
@@ -2069,3 +2069,18 @@ h1, h2, h3, .t-h1, .t-h2, .evo-workout-title {
   html { scroll-behavior: auto; }
   .card, .btn, .evo-today-item { transition: none; }
 }
+
+
+/* Palette enforcement — remove residual mint/legacy green accents from all navigation and campaign surfaces. */
+:root { --accent-soft: rgb(168 177 215 / .32); }
+nav[aria-label="Studio"] a[aria-current="page"] span,
+nav[aria-label="Aluno"] a[aria-current="page"] span,
+nav[aria-label="Principal"] a[aria-current="page"] {
+  background: var(--evo-gradient-lavender) !important;
+  color: var(--evo-deep-cove) !important;
+}
+nav[aria-label="Studio"] a[aria-current="page"],
+nav[aria-label="Aluno"] a[aria-current="page"] { color: var(--evo-deep-cove) !important; }
+.evo-page-campaign-workouts,
+.evo-student-campaign { border-color: rgb(168 177 215 / .5) !important; }
+.evo-workout-card, .card { accent-color: var(--evo-high-style); }
