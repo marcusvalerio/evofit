@@ -1,100 +1,97 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
-/*
- * EVOFIT — palette experimental: Dark Eclipse, Blueberry Twist,
- * Grey Morning, Isabelline, Larb Gai e Maple Sugar.
- */
+/* EVOFIT — palette oficial MP254: Cultured, High Style, Peach Soufflé,
+   Summer Day, Deep Cove e Vivid Auburn. Sem paletas legadas. */
 :root {
-  --brand-ink: #112244;
-  --brand-blue: #24547d;
-  --brand-sage: #9eb0aa;
-  --brand-paper: #f4f0ec;
-  --brand-sand: #dfc6aa;
-  --brand-clay: #c1967c;
-
   color-scheme: light;
-  --bg: var(--brand-paper);
-  --surface: #ffffff;
-  --surface-2: #ebe6e0;
-  --glass: rgb(244 240 236 / 0.86);
-  --fg: var(--brand-ink);
-  --fg-muted: #536274;
-  --line: rgb(17 34 68 / 0.11);
-  --line-strong: rgb(17 34 68 / 0.24);
-  --primary: var(--brand-ink);
-  --primary-hover: #1c3764;
-  --on-primary: #ffffff;
-  --accent-text: var(--brand-blue);
-  --accent-soft: rgb(36 84 125 / 0.12);
-  --inverse: var(--brand-ink);
-  --on-inverse: var(--brand-paper);
-  --success: #356b59;
-  --success-soft: rgb(53 107 89 / 0.12);
-  --warning: #8a5b2d;
-  --warning-soft: rgb(193 150 124 / 0.22);
-  --danger: #a33c35;
-  --danger-soft: rgb(163 60 53 / 0.12);
-  --focus: var(--brand-blue);
-  --shadow: 0 1px 2px rgb(17 34 68 / 0.04), 0 10px 30px -18px rgb(17 34 68 / 0.2);
-  --shadow-lg: 0 24px 64px -24px rgb(17 34 68 / 0.32);
-}
+  --evo-cultured: #F6F4F5;
+  --evo-high-style: #A8B1D7;
+  --evo-peach: #ECBCB2;
+  --evo-summer: #EAAA62;
+  --evo-deep-cove: #051040;
+  --evo-auburn: #922724;
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #101a2e;
-    --surface: #172541;
-    --surface-2: #223451;
-    --glass: rgb(17 34 68 / 0.86);
-    --fg: #f4f0ec;
-    --fg-muted: #c1cbd3;
-    --line: rgb(244 240 236 / 0.12);
-    --line-strong: rgb(244 240 236 / 0.24);
-    --primary: #dfc6aa;
-    --primary-hover: #ead7c3;
-    --on-primary: #112244;
-    --accent-text: #b7c9c4;
-    --accent-soft: rgb(158 176 170 / 0.16);
-    --inverse: #f4f0ec;
-    --on-inverse: #112244;
-    --success: #9eb0aa;
-    --success-soft: rgb(158 176 170 / 0.14);
-    --warning: #dfc6aa;
-    --warning-soft: rgb(223 198 170 / 0.14);
-    --danger: #f09a8e;
-    --danger-soft: rgb(240 154 142 / 0.14);
-    --focus: #dfc6aa;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.6);
-    --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / 0.7);
-  }
+  --bg: var(--evo-cultured);
+  --surface: #FFFFFF;
+  --surface-2: #ECEAF0;
+  --glass: rgb(246 244 245 / .88);
+  --fg: var(--evo-deep-cove);
+  --fg-muted: #4D5573;
+  --line: rgb(5 16 64 / .12);
+  --line-strong: rgb(5 16 64 / .25);
+  --primary: var(--evo-auburn);
+  --primary-hover: #76201E;
+  --on-primary: #FFFFFF;
+  --accent-text: var(--evo-deep-cove);
+  --accent-soft: rgb(168 177 215 / .3);
+  --inverse: var(--evo-deep-cove);
+  --on-inverse: var(--evo-cultured);
+  --success: #24523C;
+  --success-soft: #D9E8DF;
+  --warning: #672A2A;
+  --warning-soft: var(--evo-peach);
+  --danger: #76201E;
+  --danger-soft: #F3D8D0;
+  --focus: var(--evo-deep-cove);
+  --shadow: 0 1px 2px rgb(5 16 64 / .05), 0 10px 30px -18px rgb(5 16 64 / .22);
+  --shadow-lg: 0 24px 64px -24px rgb(5 16 64 / .3);
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #101a2e;
-  --surface: #172541;
-  --surface-2: #223451;
-  --glass: rgb(17 34 68 / 0.86);
-  --fg: #f4f0ec;
-  --fg-muted: #c1cbd3;
-  --line: rgb(244 240 236 / 0.12);
-  --line-strong: rgb(244 240 236 / 0.24);
-  --primary: #dfc6aa;
-  --primary-hover: #ead7c3;
-  --on-primary: #112244;
-  --accent-text: #b7c9c4;
-  --accent-soft: rgb(158 176 170 / 0.16);
-  --inverse: #f4f0ec;
-  --on-inverse: #112244;
-  --success: #9eb0aa;
-  --success-soft: rgb(158 176 170 / 0.14);
-  --warning: #dfc6aa;
-  --warning-soft: rgb(223 198 170 / 0.14);
-  --danger: #f09a8e;
-  --danger-soft: rgb(240 154 142 / 0.14);
-  --focus: #dfc6aa;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.6);
-  --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / 0.7);
+  --bg: var(--evo-deep-cove);
+  --surface: #101B4A;
+  --surface-2: #1B285A;
+  --glass: rgb(5 16 64 / .9);
+  --fg: var(--evo-cultured);
+  --fg-muted: #C9CDE0;
+  --line: rgb(246 244 245 / .14);
+  --line-strong: rgb(246 244 245 / .26);
+  --primary: var(--evo-peach);
+  --primary-hover: #F3D8D0;
+  --on-primary: var(--evo-deep-cove);
+  --accent-text: var(--evo-high-style);
+  --accent-soft: rgb(168 177 215 / .2);
+  --inverse: var(--evo-cultured);
+  --on-inverse: var(--evo-deep-cove);
+  --success: #D9E8DF;
+  --success-soft: #24523C;
+  --warning: var(--evo-summer);
+  --warning-soft: rgb(234 170 98 / .18);
+  --danger: var(--evo-peach);
+  --danger-soft: rgb(146 39 36 / .28);
+  --focus: var(--evo-high-style);
+  --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 10px 30px -18px rgb(0 0 0 / .6);
+  --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / .72);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: var(--evo-deep-cove);
+    --surface: #101B4A;
+    --surface-2: #1B285A;
+    --glass: rgb(5 16 64 / .9);
+    --fg: var(--evo-cultured);
+    --fg-muted: #C9CDE0;
+    --line: rgb(246 244 245 / .14);
+    --line-strong: rgb(246 244 245 / .26);
+    --primary: var(--evo-peach);
+    --primary-hover: #F3D8D0;
+    --on-primary: var(--evo-deep-cove);
+    --accent-text: var(--evo-high-style);
+    --accent-soft: rgb(168 177 215 / .2);
+    --inverse: var(--evo-cultured);
+    --on-inverse: var(--evo-deep-cove);
+    --success: #D9E8DF;
+    --success-soft: #24523C;
+    --warning: var(--evo-summer);
+    --warning-soft: rgb(234 170 98 / .18);
+    --danger: var(--evo-peach);
+    --danger-soft: rgb(146 39 36 / .28);
+    --focus: var(--evo-high-style);
+    --shadow: 0 1px 2px rgb(0 0 0 / .3), 0 10px 30px -18px rgb(0 0 0 / .6);
+    --shadow-lg: 0 24px 64px -24px rgb(0 0 0 / .72);
+  }
 }
 
 @theme inline {
@@ -117,12 +114,6 @@
   --color-warning-soft: var(--warning-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
-  --color-brand-ink: var(--brand-ink);
-  --color-brand-blue: var(--brand-blue);
-  --color-brand-sage: var(--brand-sage);
-  --color-brand-paper: var(--brand-paper);
-  --color-brand-sand: var(--brand-sand);
-  --color-brand-clay: var(--brand-clay);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
