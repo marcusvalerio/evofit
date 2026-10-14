@@ -48,9 +48,9 @@ const FLOW = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in evo-landing relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
+      <section className="fade-in evo-landing evo-landing-editorial relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
         <div className="evo-landing-grid" aria-hidden="true" />
-        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT</div>
+        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT <span>TRAINING PLATFORM</span></div>
         <div className="evo-landing-layout">
           <article className="evo-campaign-panel">
             <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=85" alt="Academia preparada para um treino de força" className="evo-campaign-image" loading="eager" />
