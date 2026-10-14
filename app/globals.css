@@ -1831,3 +1831,26 @@ body { background-color:var(--bg); }
 .evo-bulk-prescription .input { min-width:0; }
 #assigned-student-search { font-size:.875rem; }
 @media(max-width:420px) { .evo-bulk-prescription { padding:.85rem; } .evo-bulk-prescription .grid { gap:.45rem; } .evo-bulk-prescription label { font-size:.75rem; } }
+
+
+/* P0 Phase 2 — student-facing preview of the workout draft. */
+.evo-workout-preview { overflow:hidden; border:1px solid var(--line); border-radius:1rem; background:var(--surface); }
+.evo-workout-preview-head { padding:1.25rem; background:#080D0D; color:#F4F4F4; }
+.evo-workout-preview-kicker { color:#CFFFE0; font-size:.6rem; font-weight:950; letter-spacing:.15em; }
+.evo-workout-preview-head h3 { margin-top:.55rem; font-size:clamp(1.5rem,4vw,2.2rem); font-weight:950; line-height:1.05; letter-spacing:-.06em; overflow-wrap:anywhere; }
+.evo-workout-preview-head>p:not(.evo-workout-preview-kicker) { margin-top:.55rem; max-width:42rem; color:rgb(244 244 244 / .72); font-size:.85rem; line-height:1.5; }
+.evo-workout-preview-summary { display:flex; flex-wrap:wrap; gap:.55rem; margin-top:1rem; }
+.evo-workout-preview-summary span { padding:.45rem .7rem; border-radius:999px; background:rgb(207 255 224 / .12); color:#CFFFE0; font-size:.75rem; }
+.evo-workout-preview-summary strong { margin-right:.25rem; font-weight:950; }
+.evo-workout-preview-list { display:flex; flex-direction:column; padding:0 1rem; }
+.evo-workout-preview-item { display:flex; align-items:flex-start; gap:.8rem; padding:1rem 0; border-bottom:1px solid var(--line); }
+.evo-workout-preview-item:last-child { border-bottom:0; }
+.evo-workout-preview-number { display:grid; width:2.2rem; height:2.2rem; flex-shrink:0; place-items:center; border-radius:.7rem; background:#CFFFE0; color:#080D0D; font-size:.75rem; font-weight:950; }
+.evo-workout-preview-item>div>strong { display:block; font-size:.95rem; font-weight:850; line-height:1.3; overflow-wrap:anywhere; }
+.evo-workout-preview-item>div>p { margin-top:.2rem; color:var(--fg-muted); font-size:.75rem; }
+.evo-workout-preview-notes { margin-top:.45rem !important; padding:.55rem .7rem; border-left:2px solid #B599F2; border-radius:0 .5rem .5rem 0; background:rgb(181 153 242 / .1); color:var(--fg) !important; }
+.evo-workout-preview-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.45rem; margin-top:.75rem; }
+.evo-workout-preview-metrics span { display:flex; min-width:0; flex-direction:column; gap:.2rem; padding:.55rem; border:1px solid var(--line); border-radius:.65rem; }
+.evo-workout-preview-metrics small { color:var(--fg-muted); font-size:.63rem; }
+.evo-workout-preview-metrics b { font-size:.85rem; font-weight:900; overflow-wrap:anywhere; }
+@media(max-width:420px) { .evo-workout-preview-head { padding:1rem; } .evo-workout-preview-list { padding:0 .75rem; } .evo-workout-preview-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .evo-workout-preview-item { gap:.6rem; } }
