@@ -1687,3 +1687,37 @@ body { background-color:var(--bg); }
 @media (prefers-reduced-motion:reduce) {
   *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
 }
+
+
+/* Round two: more editorial rhythm in the working screens. */
+.studio-command-photo { min-height:20rem; display:flex; align-items:flex-end; }
+.studio-command-photo .studio-command-content { width:100%; }
+.studio-command-mark { display:flex; align-items:baseline; }
+.studio-command-mark span { margin-left:.05em; }
+.studio-command-photo::before { content:""; position:absolute; z-index:1; inset:1rem; border:1px solid rgb(244 244 244 / .28); border-radius:1rem; pointer-events:none; }
+.studio-command-photo { position:relative; }
+.studio-command-content { position:relative; z-index:2; }
+.studio-command-kicker { display:inline-flex; align-items:center; gap:.55rem; }
+.studio-command-kicker::before { content:""; display:inline-block; width:1.5rem; height:2px; background:#CFFFE0; }
+.stagger>div:has(> .stat), .stagger>section:has(> .stat) { min-width:0; }
+.card.lift { transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease; }
+.card.lift:hover { transform:translateY(-2px); border-color:var(--line-strong); box-shadow:var(--shadow); }
+.evo-student-campaign { margin-bottom:1.25rem; }
+.evo-student-campaign .evo-student-orbit { pointer-events:none; }
+.evo-student-campaign + section[aria-label="Meta da semana"] { border:1px solid var(--line); box-shadow:var(--shadow); }
+.evo-student-campaign ~ h2 { letter-spacing:-.055em; font-weight:950; }
+.evo-student-campaign ~ ul a.card { border-radius:1.15rem; border:1px solid var(--line); box-shadow:0 6px 20px -18px rgb(8 13 13 / .3); }
+.evo-student-campaign ~ ul a.card:hover { border-color:rgb(181 153 242 / .8); box-shadow:var(--shadow); }
+.evo-student-campaign ~ ul a.card .thumb { border-radius:.7rem; }
+.evo-student-campaign ~ ul a.card .text-lg { letter-spacing:-.04em; font-weight:900; }
+@media (min-width: 768px) {
+  .studio-command-photo { min-height:23rem; padding:2rem; }
+  .studio-command-content h2 { font-size:clamp(3rem,4.2vw,4.75rem); }
+  .evo-student-campaign { min-height:16rem; padding:1.6rem; }
+}
+@media (max-width: 640px) {
+  .studio-command-photo { min-height:17rem; padding:1rem; }
+  .studio-command-photo::before { inset:.55rem; }
+  .studio-command-mark { display:none; }
+  .evo-student-campaign { min-height:12rem; }
+}
