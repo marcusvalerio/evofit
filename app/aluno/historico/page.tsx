@@ -25,6 +25,20 @@ export default function HistoricoPage() {
   const chosen = tracked.some((t) => t.id === exerciseId) ? exerciseId : tracked[0]?.id
   const wk = weekCount(d, student.id)
   const active = series.filter((w) => w.count >= student.weeklyTarget).length
+  const progression = chosen ? loadProgression(d, student.id, chosen) : []
+  const lastLoads = progression.slice(-2)
+  const loadInsight = lastLoads.length < 2
+    ? "Registre este exercício em mais sessões para identificar uma tendência de carga."
+    : lastLoads[1].value > lastLoads[0].value
+      ? `A carga registrada subiu de ${lastLoads[0].value} kg para ${lastLoads[1].value} kg na última sessão.`
+      : lastLoads[1].value < lastLoads[0].value
+        ? `A última carga registrada foi de ${lastLoads[1].value} kg, abaixo dos ${lastLoads[0].value} kg anteriores. Considere o contexto do treino antes de ajustar o plano.`
+        : `A carga registrada se manteve em ${lastLoads[1].value} kg nas duas últimas sessões.`
+  const weekInsight = wk >= student.weeklyTarget
+    ? "Meta semanal alcançada. Mantenha a consistência."
+    : wk === 0
+      ? "Nenhuma sessão concluída nesta semana. Escolha um treino e retome no seu ritmo."
+      : `Você concluiu ${wk} de ${student.weeklyTarget} treinos previstos nesta semana.`
 
   return (
     <div className="fade-in">
@@ -43,6 +57,17 @@ export default function HistoricoPage() {
           </div>
         ))}
       </dl>
+
+      <section className="card mt-4 p-4" aria-labelledby="evo-insight">
+        <div className="flex items-start gap-3">
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent"><History size={19} aria-hidden /></div>
+          <div className="min-w-0 flex-1">
+            <h2 id="evo-insight" className="t-h2">Leitura da sua evolução</h2>
+            <p className="mt-1 text-sm text-muted">{weekInsight}</p>
+            {tracked.length > 0 && <p className="mt-2 text-sm leading-relaxed">{loadInsight}</p>}
+          </div>
+        </div>
+      </section>
 
       {history.length === 0 ? (
         <div className="mt-6">
@@ -79,7 +104,7 @@ export default function HistoricoPage() {
                   </select>
                 )}
               </Field>
-              {chosen && <LineChart title="Maior carga por sessão" unit="kg" points={loadProgression(d, student.id, chosen)} />}
+              {chosen && <LineChart title="Maior carga por sessão" unit="kg" points={progression} />}
             </section>
           )}
 
