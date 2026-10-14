@@ -2188,7 +2188,7 @@ nav[aria-label="Aluno"] a[aria-current="page"] { color: var(--evo-deep-cove) !im
   font-weight: 800;
   letter-spacing: .12em;
 }
-.studio-command-editorial h2 { color: #051040; letter-spacing: -.055em; }
+.studio-command-editorial h2 { color: #051040; font-weight: 600; letter-spacing: -.035em; }
 .studio-command-editorial p:not(.studio-command-kicker) { color: #4D5573; opacity: 1; }
 .studio-command-editorial .studio-command-mark {
   color: #051040;
