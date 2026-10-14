@@ -68,7 +68,7 @@ export default function StudioDashboard() {
             <h2 id="evo-today-title">O que merece sua atenção</h2>
             <p>Prioridades calculadas a partir da atividade registrada no EVOFIT.</p>
           </div>
-          <span className="evo-today-count">{attention.length + noWorkout.length + inbox.length + live.length}</span>
+          <span className="evo-today-count">{new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length}</span>
         </div>
         <div className="evo-today-list">
           <Link href="/studio/alunos" className="evo-today-item">
