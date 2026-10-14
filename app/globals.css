@@ -2243,3 +2243,50 @@ nav[aria-label="Aluno"] a[aria-current="page"] { color: var(--evo-deep-cove) !im
   .evo-today-copy { min-width: 0; }
   .evo-today-copy strong, .evo-today-copy small { overflow-wrap: anywhere; }
 }
+
+
+/* Landing redesign — replace the oversized campaign/photo composition with a calmer product-first hero. */
+.evo-landing-clean { padding: clamp(1rem, 2.6vw, 2rem); }
+.evo-landing-clean .evo-landing-wordmark { position: relative; z-index: 1; padding: .25rem .2rem 1.3rem; border-bottom: 1px solid rgb(5 16 64 / .12); }
+.evo-landing-clean .evo-landing-brand { font-size: 1.65rem; line-height: 1; }
+.evo-landing-clean .evo-landing-brand > span { color: #922724; }
+.evo-landing-clean .evo-landing-wordmark-caption { margin-left: auto; }
+.evo-clean-hero { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .88fr); align-items: center; gap: clamp(2rem, 6vw, 5.5rem); padding: clamp(2.4rem, 6vw, 5.5rem) clamp(.25rem, 2vw, 1.5rem); }
+.evo-clean-copy { max-width: 39rem; }
+.evo-clean-copy > .t-eyebrow { color: #922724; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+.evo-clean-copy h1 { margin-top: 1.2rem; color: #051040; font-family: "Outfit", "Inter", sans-serif; font-size: clamp(3rem, 6.5vw, 5.8rem); font-weight: 600; line-height: .98; letter-spacing: -.055em; }
+.evo-clean-copy h1 span { color: #4D5573; }
+.evo-clean-description { max-width: 32rem; margin-top: 1.35rem; color: #4D5573; font-size: clamp(1rem, 1.3vw, 1.15rem); line-height: 1.75; }
+.evo-clean-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.8rem; }
+.evo-clean-secondary { display: inline-flex; align-items: center; gap: .4rem; color: #051040; font-size: .9rem; font-weight: 600; }
+.evo-clean-proof { display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 2rem; color: #4D5573; font-size: .78rem; }
+.evo-clean-proof span { display: inline-flex; align-items: center; gap: .35rem; }
+.evo-clean-proof svg { color: #922724; }
+.evo-product-preview { overflow: hidden; border: 1px solid rgb(5 16 64 / .12); border-radius: 1.2rem; padding: 1.1rem; background: rgb(255 255 255 / .68); box-shadow: 0 30px 70px -45px rgb(5 16 64 / .38); }
+.evo-preview-top { display: flex; align-items: center; gap: .5rem; padding-bottom: 1rem; border-bottom: 1px solid rgb(5 16 64 / .1); color: #4D5573; font-size: .62rem; font-weight: 800; letter-spacing: .1em; }
+.evo-preview-dot { width: .45rem; height: .45rem; border-radius: 50%; background: #922724; }
+.evo-preview-live { margin-left: auto; border-radius: 999px; padding: .25rem .5rem; background: rgb(168 177 215 / .28); color: #051040; font-size: .58rem; }
+.evo-preview-greeting { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.5rem .2rem; }
+.evo-preview-greeting > div:first-child > span { color: #4D5573; font-size: .62rem; font-weight: 700; letter-spacing: .1em; }
+.evo-preview-greeting h2 { margin-top: .45rem; color: #051040; font-family: "Outfit", "Inter", sans-serif; font-size: clamp(1.6rem, 2.7vw, 2.2rem); font-weight: 600; line-height: 1.08; letter-spacing: -.04em; }
+.evo-preview-avatar { display: grid; width: 2.6rem; height: 2.6rem; flex: 0 0 auto; place-items: center; border-radius: .9rem; background: #051040; color: #F6F4F5; font-size: .75rem; font-weight: 800; }
+.evo-preview-stats { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
+.evo-preview-stats > div { min-width: 0; border: 1px solid rgb(5 16 64 / .09); border-radius: .85rem; padding: .9rem; background: #F6F4F5; }
+.evo-preview-stats span, .evo-preview-stats small { display: block; color: #4D5573; font-size: .58rem; line-height: 1.5; }
+.evo-preview-stats span { font-weight: 800; letter-spacing: .04em; }
+.evo-preview-stats strong { display: block; margin: .35rem 0 .15rem; color: #051040; font-family: "Outfit", "Inter", sans-serif; font-size: 2rem; font-weight: 600; line-height: 1; }
+.evo-preview-activity { margin-top: .7rem; border: 1px solid rgb(5 16 64 / .09); border-radius: .85rem; padding: 1rem; }
+.evo-preview-activity-head { display: flex; justify-content: space-between; gap: .5rem; color: #051040; font-size: .72rem; }
+.evo-preview-activity-head span { color: #4D5573; font-size: .62rem; }
+.evo-preview-bars { display: flex; height: 4.5rem; align-items: end; gap: .55rem; margin-top: .8rem; padding: 0 .2rem; }
+.evo-preview-bars i { flex: 1; border-radius: .35rem .35rem .12rem .12rem; background: linear-gradient(180deg, #A8B1D7, #ECBCB2); }
+.evo-preview-bars i:nth-child(1) { height: 42%; }.evo-preview-bars i:nth-child(2) { height: 67%; }.evo-preview-bars i:nth-child(3) { height: 54%; }.evo-preview-bars i:nth-child(4) { height: 86%; }.evo-preview-bars i:nth-child(5) { height: 72%; }.evo-preview-bars i:nth-child(6) { height: 100%; }.evo-preview-bars i:nth-child(7) { height: 62%; }
+.evo-preview-days { display: flex; justify-content: space-between; margin-top: .5rem; color: #4D5573; font-size: .5rem; font-weight: 700; }
+.evo-preview-next { display: flex; align-items: center; gap: .7rem; margin-top: .7rem; border-radius: .85rem; padding: .8rem; background: #051040; color: #F6F4F5; }
+.evo-preview-next-icon { display: grid; width: 2.3rem; height: 2.3rem; flex: 0 0 auto; place-items: center; border-radius: .7rem; background: rgb(168 177 215 / .25); }
+.evo-preview-next > div { min-width: 0; flex: 1; }
+.evo-preview-next strong, .evo-preview-next small { display: block; }
+.evo-preview-next strong { font-size: .75rem; }.evo-preview-next small { margin-top: .15rem; color: #D4D8EB; font-size: .62rem; }
+.evo-clean-footer { position: relative; z-index: 1; display: flex; justify-content: space-between; gap: 1rem; padding: 1rem .2rem .1rem; border-top: 1px solid rgb(5 16 64 / .12); color: #4D5573; font-size: .58rem; font-weight: 800; letter-spacing: .1em; }
+@media (max-width: 760px) { .evo-clean-hero { grid-template-columns: 1fr; gap: 2rem; padding: 2.2rem .1rem; } .evo-clean-copy h1 { font-size: clamp(2.8rem, 13vw, 4.2rem); } .evo-product-preview { max-width: 34rem; width: 100%; margin-inline: auto; } }
+@media (max-width: 480px) { .evo-landing-clean { padding: .9rem; } .evo-landing-clean .evo-landing-wordmark-caption { font-size: .48rem; letter-spacing: .07em; } .evo-clean-actions { align-items: stretch; flex-direction: column; } .evo-clean-actions .btn { justify-content: center; width: 100%; } .evo-clean-footer { font-size: .48rem; letter-spacing: .05em; } }
