@@ -85,15 +85,21 @@ function Treinos() {
         </EmptyState>
       ) : (
         <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {d.workouts.map((w) => {
+          {d.workouts.map((w, index) => {
             const assigned = w.studentIds.map((id) => studentById.get(id)).filter((s) => s && s.status === "ativo")
             return (
-              <li key={w.id} className="card lift flex flex-col p-4">
-                <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
-                  <p className="font-semibold">{w.name}</p>
-                  <p className="mt-0.5 line-clamp-2 text-sm text-muted">{w.description || "Sem descrição"}</p>
+              <li key={w.id} className={`evo-workout-card card lift flex flex-col`}>
+                <Link href={`/studio/treinos/${w.id}`} className={`evo-workout-cover evo-workout-cover-${index % 3} block`} aria-label={`Abrir ficha ${w.name}`}>
+                  <span className="evo-workout-cover-index">PROGRAMA / {String(index + 1).padStart(2, "0")}</span>
+                  <span className="evo-workout-cover-mark" aria-hidden="true">{index % 3 === 0 ? "01" : index % 3 === 1 ? "02" : "03"}</span>
+                  <span className="evo-workout-cover-bottom">EVOFIT <span>↗</span></span>
                 </Link>
-                <div className="mt-4 flex items-center gap-2 text-sm text-muted">
+                <div className="evo-workout-card-body">
+                  <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
+                    <p className="evo-workout-title">{w.name}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{w.description || "Plano de treino personalizado."}</p>
+                  </Link>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
                   <span className="badge">{w.items.length} exercícios</span>
                   <span className="badge">{w.items.reduce((a, i) => a + i.sets, 0)} séries</span>
                 </div>
@@ -130,7 +136,8 @@ function Treinos() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-muted">Atualizada em {fmtDate(w.updatedAt)}</p>
+                <p className="mt-3 text-xs text-muted">Atualizada em {fmtDate(w.updatedAt)}</p>
+                </div>
               </li>
             )
           })}
