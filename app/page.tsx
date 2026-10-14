@@ -48,55 +48,42 @@ const FLOW = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in editorial-hero relative overflow-hidden rounded-[1.5rem] sm:rounded-[2rem]">
-        <div className="editorial-hero-top">
-          <span>PERSONAL TRAINING / MANAGEMENT PLATFORM</span>
-          <span className="editorial-index">01 — 03</span>
-        </div>
-        <div className="relative grid items-center gap-8 px-5 pb-6 pt-7 sm:px-9 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.78fr)] lg:gap-5 lg:px-12 lg:py-12">
-          <div className="relative z-10 max-w-3xl">
-            <div className="editorial-label"><span /> Feito para personal trainers autônomos</div>
-            <h1 className="editorial-title mt-6">
-              Menos tempo<br />organizando<span className="editorial-period">.</span><br /><span className="editorial-title-accent">Mais evolução.</span>
-            </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-              Alunos, fichas e progresso conectados em uma ferramenta feita para o trabalho real de quem prescreve e acompanha treinos.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link href="/studio" className="btn btn-primary btn-lg w-full sm:w-auto">
-                Explorar o Studio <ArrowRight size={18} aria-hidden />
-              </Link>
-              <Link href="/aluno" className="editorial-text-link">
-                Conhecer o app do aluno <span aria-hidden>↗</span>
-              </Link>
+      <section className="fade-in evo-landing relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
+        <div className="evo-landing-grid" aria-hidden="true" />
+        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT</div>
+        <div className="evo-landing-layout">
+          <article className="evo-campaign-panel">
+            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=85" alt="Academia preparada para um treino de força" className="evo-campaign-image" loading="eager" />
+            <div className="evo-campaign-overlay" aria-hidden="true" />
+            <div className="evo-campaign-top"><span>EVOFIT / TRAINING SYSTEM</span><span>01—04</span></div>
+            <div className="evo-campaign-copy">
+              <p>SEU TREINO. SUA EVOLUÇÃO.</p>
+              <h1>SMARTER<br/>WORKOUTS.<br/><span>REAL RESULTS.</span></h1>
+              <p className="evo-campaign-description">Planeje com intenção. Treine com consistência. Acompanhe cada evolução.</p>
+              <Link href="/studio" className="evo-lime-button">EXPLORAR EVOFIT <ArrowRight size={17} aria-hidden /></Link>
             </div>
-            <div className="editorial-proof mt-8">
-              <span><strong>01</strong> Sem cadastro para explorar</span>
-              <span><strong>{CATALOG_SIZE}</strong> exercícios no catálogo</span>
-            </div>
-          </div>
-          <div className="editorial-showcase relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="editorial-showcase-label"><span>FORÇA EM MOVIMENTO</span><span>EVOFIT / 001</span></div>
-            <div className="editorial-photo-panel">
-              <img
-                src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1100&q=85"
-                alt="Atleta treinando força em uma academia"
-                className="editorial-photo"
-                loading="eager"
-              />
-              <div className="editorial-photo-shade" aria-hidden="true" />
-              <div className="editorial-photo-top"><span>STRENGTH / CONDITIONING</span><span>01—04</span></div>
-              <div className="editorial-photo-caption">
-                <span className="editorial-photo-kicker">TREINO COM INTENÇÃO</span>
-                <strong>Consistência<br/>constrói evolução.</strong>
-                <span className="editorial-photo-meta"><i /> PLANEJADO NO EVOFIT STUDIO</span>
+            <div className="evo-campaign-bottom"><span>FORÇA / FOCO / PROGRESSO</span><span>RIO DE JANEIRO · BR</span></div>
+          </article>
+
+          <div className="evo-phone-stage">
+            <div className="evo-phone-orbit" aria-hidden="true" />
+            <div className="evo-phone" aria-label="Prévia da experiência de treino do aluno">
+              <div className="evo-phone-status"><span>9:41</span><span>● ● ▰</span></div>
+              <div className="evo-phone-header"><div><span>QUARTA-FEIRA, 13</span><h2>LET'S MOVE.</h2></div><div className="evo-avatar">E.</div></div>
+              <div className="evo-phone-feature">
+                <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=85" alt="" loading="eager" />
+                <div><span>PLANO DE HOJE</span><strong>UPPER BODY<br/>STRENGTH</strong><small>45 MIN · 06 EXERCÍCIOS</small></div>
               </div>
-              <div className="editorial-photo-chip"><span>04</span><small>SÉRIES<br/>PLANEJADAS</small></div>
+              <div className="evo-phone-progress"><div><span>PROGRESSO SEMANAL</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
+              <div className="evo-phone-section"><h3>SEU TREINO <span>VER TODOS ↗</span></h3>
+                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>BENCH PRESS</strong><small>Peito · 4 séries × 10</small></div><span>↗</span></div>
+                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>STRENGTH SET</strong><small>Costas · 3 séries × 12</small></div><span>↗</span></div>
+              </div>
+              <Link href="/aluno" className="evo-phone-cta">ABRIR EXPERIÊNCIA DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
             </div>
-            <div className="editorial-stamp" aria-hidden="true">E<span>F</span><i>.</i></div>
+            <p className="evo-phone-caption"><span>02 / 04</span> PRESCRIÇÃO, EXECUÇÃO E PROGRESSO EM UM SÓ LUGAR</p>
           </div>
         </div>
-        <div className="editorial-hero-bottom"><span>EVOFIT STUDIO</span><span>PLANEJAR / PRESCREVER / ACOMPANHAR</span></div>
       </section>
 
       <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
