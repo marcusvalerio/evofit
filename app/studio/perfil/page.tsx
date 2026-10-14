@@ -2,13 +2,14 @@
 import { useState } from "react"
 import Link from "next/link"
 import { Check, ExternalLink, Eye, EyeOff, Inbox, Trash2 } from "lucide-react"
-import { update, useData } from "@/lib/store"
+import { update, useData, useIsDemo } from "@/lib/store"
 import type { AccentChoice, Modality, TrainerProfile } from "@/lib/types"
 import { MODALITY_LABEL, SPECIALTIES } from "@/lib/types"
 import { removeContactRequest, saveProfile, validateProfile } from "@/lib/actions"
 import { fmtDate, fmtTime } from "@/lib/date"
 import { Avatar, ConfirmDialog, Field, PageHeader, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { AccountSection } from "@/components/account-section"
 
 const ACCENTS: { id: AccentChoice; label: string }[] = [
   { id: "otan", label: "Ōtan Red" },
@@ -28,6 +29,7 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
   const [v, setV] = useState<TrainerProfile>(profile)
   const [tried, setTried] = useState(false)
   const [removing, setRemoving] = useState<string | null>(null)
+  const demo = useIsDemo()
   const errors = validateProfile(v)
   const show = tried ? errors : {}
   const dirty = JSON.stringify(v) !== JSON.stringify(profile)
@@ -176,7 +178,7 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
         <h2 id="sol-title" className="t-h2 flex items-center gap-2">
           <Inbox size={20} aria-hidden /> Solicitações de contato
         </h2>
-        <p className="mt-1 text-sm text-muted">Enviadas pelo seu perfil no diretório. Na demonstração, ficam salvas apenas neste navegador.</p>
+        <p className="mt-1 text-sm text-muted">Enviadas pelo seu perfil no diretório.{demo ? " Na demonstração, ficam salvas apenas neste navegador." : " Responda pelo contato informado pela pessoa."}</p>
         {inbox.length === 0 ? (
           <p className="mt-4 rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
             Nenhuma solicitação. Teste o fluxo em{" "}
@@ -207,11 +209,13 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
         )}
       </section>
 
+      <AccountSection />
+
       <ConfirmDialog
         open={removing !== null}
         onClose={() => setRemoving(null)}
         title="Excluir solicitação?"
-        message="A solicitação será removida deste navegador."
+        message={demo ? "A solicitação será removida deste navegador." : "A solicitação será removida da sua conta."}
         confirmLabel="Excluir"
         danger
         onConfirm={() => {

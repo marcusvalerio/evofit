@@ -3,7 +3,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ClipboardList, Dumbbell, LayoutDashboard, Search, Smartphone, UserRound, Users } from "lucide-react"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
-import { Avatar, cx, LoadingScreen } from "./ui"
+import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
 
 const NAV = [
@@ -20,7 +20,8 @@ function isActive(path: string, href: string, exact?: boolean) {
 
 export function StudioShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
-  const { data } = useDemoState()
+  const { data, mode, account } = useDemoState()
+  const isStudent = mode === "account" && account?.role === "student"
 
   return (
     <div className="min-h-dvh">
@@ -66,7 +67,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             {data && <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" />}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{data?.profile.name ?? "…"}</p>
-              <p className="text-xs text-muted">Conta demonstrativa</p>
+              <p className="text-xs text-muted">{mode === "account" ? "Conta EVOFIT" : "Conta demonstrativa"}</p>
             </div>
             <ThemeToggle />
           </div>
@@ -86,7 +87,15 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           </header>
 
           <main id="conteudo" className="flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
-            {data ? children : <LoadingScreen />}
+            {!data ? (
+              <LoadingScreen />
+            ) : isStudent ? (
+              <NotFoundState title="Esta é a área do personal" href="/aluno" cta="Ir para meus treinos">
+                Você entrou com uma conta de aluno. Seus treinos estão no app do aluno.
+              </NotFoundState>
+            ) : (
+              children
+            )}
           </main>
         </div>
       </div>
@@ -101,9 +110,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href={href}
                   aria-current={on ? "page" : undefined}
-                  className={cx("flex h-16 flex-col items-center justify-center gap-1 text-[0.6875rem] font-semibold", on ? "text-accent" : "text-muted")}
+                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}
                 >
-                  <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
+                  <span className={cx("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
+                    <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
+                  </span>
                   {label}
                 </Link>
               </li>

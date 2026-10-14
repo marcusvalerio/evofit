@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { MapPin, Search, SearchX } from "lucide-react"
 import { useDemoState } from "@/lib/store"
+import { useRealProfiles } from "@/lib/use-directory"
 import { directoryList, filterProfiles, type DirectoryFilters } from "@/lib/directory"
 import { MODALITY_LABEL, SPECIALTIES, type Modality } from "@/lib/types"
 import { Avatar, EmptyState } from "@/components/ui"
@@ -17,7 +18,8 @@ export default function PersonaisPage() {
 }
 
 function Directory() {
-  const { data } = useDemoState()
+  const { data, mode } = useDemoState()
+  const real = useRealProfiles()
   const params = useSearchParams()
   const router = useRouter()
   const pathname = usePathname()
@@ -37,7 +39,9 @@ function Directory() {
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
   }
 
-  const all = useMemo(() => directoryList(data?.profile ?? null), [data?.profile])
+  // no modo conta o perfil real já vem do banco (se tiver opt-in)
+  const own = mode === "demo" ? (data?.profile ?? null) : null
+  const all = useMemo(() => directoryList(own, real ?? []), [own, real])
   const results = filterProfiles(all, f)
   const states = [...new Set(all.map((p) => p.state))].sort()
   const anyFilter = f.q || f.state || f.modality || f.specialty
@@ -111,10 +115,10 @@ function Directory() {
           Tente outra região ou remova alguma especialidade.
         </EmptyState>
       ) : (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="stagger grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((p) => (
             <li key={p.slug}>
-              <Link href={`/personais/${p.slug}`} className="card flex h-full flex-col p-5 transition-colors hover:border-line-strong">
+              <Link href={`/personais/${p.slug}`} className="card lift flex h-full flex-col p-5">
                 <div className="flex items-center gap-3">
                   <Avatar name={p.name} accent={p.accent} size="lg" />
                   <div className="min-w-0">
@@ -134,7 +138,7 @@ function Directory() {
                     </span>
                   ))}
                 </div>
-                <p className="mt-3 text-xs text-muted">{data && p.slug === data.profile.slug ? "Seu perfil (demonstração)" : "Perfil fictício de demonstração"}</p>
+                <p className="mt-3 text-xs text-muted">{!p.fictional ? "Profissional cadastrado no EVOFIT" : own && p.slug === own.slug ? "Seu perfil (demonstração)" : "Perfil fictício de demonstração"}</p>
               </Link>
             </li>
           ))}

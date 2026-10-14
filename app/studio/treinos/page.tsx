@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ClipboardList, Copy, Plus, Trash2 } from "lucide-react"
+import { ClipboardList, Copy, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import { createWorkout, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
 import { fmtDate } from "@/lib/date"
@@ -25,6 +25,7 @@ function Treinos() {
   const toast = useToast()
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState("")
+  const [search, setSearch] = useState("")
   const [err, setErr] = useState("")
   const [removing, setRemoving] = useState<Workout | null>(null)
 
@@ -37,6 +38,7 @@ function Treinos() {
   }
 
   const studentById = new Map(d.students.map((s) => [s.id, s]))
+  const visibleWorkouts = d.workouts.filter((w) => `${w.name} ${w.description ?? ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")))
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -60,6 +62,29 @@ function Treinos() {
         }
       />
 
+      <section className="evo-page-campaign evo-page-campaign-workouts mb-5" aria-label="Visão geral das fichas">
+        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1400&q=85" alt="" aria-hidden="true" loading="eager" />
+        <div className="evo-page-campaign-overlay" aria-hidden="true" />
+        <div className="evo-page-campaign-content">
+          <p className="evo-page-kicker">EVOFIT / PRESCRIÇÃO</p>
+          <h2>TREINO COM<br/><span>INTENÇÃO.</span></h2>
+          <p>Monte fichas, organize exercícios e acompanhe a evolução de cada plano.</p>
+        </div>
+        <div className="evo-page-campaign-stat"><strong>{d.workouts.length.toString().padStart(2, "0")}</strong><span>FICHAS CRIADAS</span></div>
+      </section>
+
+      {d.workouts.length > 0 && (
+        <div className="evo-workout-toolbar mb-4">
+          <label className="evo-workout-search">
+            <Search size={18} aria-hidden />
+            <span className="sr-only">Buscar fichas</span>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou descrição da ficha" />
+            {search && <button type="button" onClick={() => setSearch("")} aria-label="Limpar busca">Limpar</button>}
+          </label>
+          <span className="evo-workout-result-count">{visibleWorkouts.length} de {d.workouts.length} fichas</span>
+        </div>
+      )}
+
       {d.workouts.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
@@ -73,16 +98,22 @@ function Treinos() {
           Fichas atribuídas aparecem automaticamente no app do aluno.
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {d.workouts.map((w) => {
+        <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {visibleWorkouts.map((w, index) => {
             const assigned = w.studentIds.map((id) => studentById.get(id)).filter((s) => s && s.status === "ativo")
             return (
-              <li key={w.id} className="card flex flex-col p-4">
-                <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
-                  <p className="font-semibold">{w.name}</p>
-                  <p className="mt-0.5 line-clamp-2 text-sm text-muted">{w.description || "Sem descrição"}</p>
+              <li key={w.id} className={`evo-workout-card card lift flex flex-col`}>
+                <Link href={`/studio/treinos/${w.id}`} className={`evo-workout-cover evo-workout-cover-${index % 3} block`} aria-label={`Abrir ficha ${w.name}`}>
+                  <span className="evo-workout-cover-index">PROGRAMA / {String(index + 1).padStart(2, "0")}</span>
+                  <span className="evo-workout-cover-mark" aria-hidden="true">{index % 3 === 0 ? "01" : index % 3 === 1 ? "02" : "03"}</span>
+                  <span className="evo-workout-cover-bottom">EVOFIT <span>↗</span></span>
                 </Link>
-                <div className="mt-4 flex items-center gap-2 text-sm text-muted">
+                <div className="evo-workout-card-body">
+                  <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
+                    <p className="evo-workout-title">{w.name}</p>
+                    <p className="mt-1 line-clamp-2 text-sm text-muted">{w.description || "Plano de treino personalizado."}</p>
+                  </Link>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-muted">
                   <span className="badge">{w.items.length} exercícios</span>
                   <span className="badge">{w.items.reduce((a, i) => a + i.sets, 0)} séries</span>
                 </div>
@@ -119,7 +150,8 @@ function Treinos() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-2 text-xs text-muted">Atualizada em {fmtDate(w.updatedAt)}</p>
+                <p className="mt-3 text-xs text-muted">Atualizada em {fmtDate(w.updatedAt)}</p>
+                </div>
               </li>
             )
           })}

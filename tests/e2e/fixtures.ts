@@ -6,7 +6,8 @@ export const test = base.extend<{ consoleErrors: string[] }>({
     async ({ page }, use) => {
       const errors: string[] = []
       page.on("console", (m) => {
-        if (m.type() === "error" && !m.text().includes("status of 404")) errors.push(m.text())
+        // respostas 4xx esperadas (404, senha errada, sem login) aparecem como "Failed to load resource"
+        if (m.type() === "error" && !/status of 4\d\d/.test(m.text())) errors.push(m.text())
       })
       page.on("pageerror", (e) => errors.push(e.message))
       await use(errors)

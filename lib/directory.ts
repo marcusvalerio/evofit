@@ -52,9 +52,13 @@ export function filterProfiles(list: DirectoryProfile[], f: DirectoryFilters) {
   })
 }
 
-/** Junta o perfil do Studio (somente se tiver opt-in) aos perfis fictícios. */
-export function directoryList(own: TrainerProfile | null): DirectoryProfile[] {
-  const base = DIRECTORY_PROFILES
-  if (!own || !own.directoryVisible) return base
-  return [{ ...own, fictional: true }, ...base.filter((p) => p.slug !== own.slug)]
+/**
+ * Junta os perfis reais (do banco, com opt-in), o perfil da demonstração (somente com opt-in, no modo
+ * demonstração) e os perfis fictícios.
+ */
+export function directoryList(own: TrainerProfile | null, real: TrainerProfile[] = []): DirectoryProfile[] {
+  const list: DirectoryProfile[] = real.map((p) => ({ ...p, fictional: false }))
+  if (own && own.directoryVisible) list.push({ ...own, fictional: true })
+  const taken = new Set(list.map((p) => p.slug))
+  return [...list, ...DIRECTORY_PROFILES.filter((p) => !taken.has(p.slug))]
 }

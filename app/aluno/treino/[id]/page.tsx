@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, ChevronDown, Flag, Info, Play, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Lightbulb, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { DemoData, Session, Workout } from "@/lib/types"
@@ -11,6 +11,25 @@ import { inProgressSession, sessionProgress, sessionVolume } from "@/lib/metrics
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { getExercise } from "@/lib/catalog"
+import { parseVideoUrl } from "@/lib/video"
+import { ExerciseGuide, ExerciseThumb } from "@/components/exercise"
+import { Confetti, CountUp, Ring, haptic } from "@/components/motion"
+
+/** Folha "Como fazer": demonstração, vídeo do personal, dica e passo a passo. */
+function HowTo({ d, exerciseId, onClose }: { d: DemoData; exerciseId: string | null; onClose: () => void }) {
+  const ex = exerciseId ? getExercise(d, exerciseId) : undefined
+  return (
+    <Modal open={!!ex} onClose={onClose} title={ex ? ex.name : ""} description={ex ? `${ex.group} · ${ex.equipment}` : undefined} wide>
+      {ex && <ExerciseGuide d={d} id={ex.id} />}
+    </Modal>
+  )
+}
+
+function hasOwnVideo(d: DemoData, id: string) {
+  const m = d.exerciseMedia[id]
+  return !!(m?.videoUrl && parseVideoUrl(m.videoUrl))
+}
 
 export default function TreinoPage() {
   const { id } = useParams<{ id: string }>()
@@ -46,8 +65,8 @@ export default function TreinoPage() {
 /* ---------- Não iniciado ---------- */
 
 function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Workout; studentId: string; other?: Session }) {
-  const exById = new Map(d.exercises.map((e) => [e.id, e]))
   const toast = useToast()
+  const [howTo, setHowTo] = useState<string | null>(null)
   return (
     <div className="fade-in">
       <Link href="/aluno" className="btn btn-ghost btn-sm -ml-3 mb-3">
@@ -62,25 +81,39 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
       {workout.items.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-dashed border-line-strong p-6 text-center text-muted">Esta ficha ainda não tem exercícios.</p>
       ) : (
-        <ol className="mt-5 space-y-2">
-          {workout.items.map((it, i) => {
-            const ex = exById.get(it.exerciseId)
-            return (
-              <li key={it.id} className="card flex items-center gap-3 p-3.5">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-surface-2 text-sm font-bold tabular">{i + 1}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold leading-snug">{ex?.name ?? "Exercício"}</p>
-                  <p className="text-sm text-muted tabular">
-                    {it.sets} × {it.reps}
-                    {it.load !== null && ` · ${it.load} kg`}
-                    {it.restSec > 0 && ` · ${it.restSec}s descanso`}
-                  </p>
-                </div>
-              </li>
-            )
-          })}
-        </ol>
+        <>
+          <p className="mt-5 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
+            <PlayCircle size={18} aria-hidden className="shrink-0 text-accent" />
+            Treinando sem o personal hoje? Toque em um exercício para ver como fazer.
+          </p>
+          <ol className="stagger mt-3 space-y-2">
+            {workout.items.map((it, i) => {
+              const ex = getExercise(d, it.exerciseId)
+              return (
+                <li key={it.id}>
+                  <button type="button" className="card lift group flex w-full items-center gap-3 p-2.5 pr-3.5 text-left" onClick={() => setHowTo(it.exerciseId)} aria-label={`Como fazer: ${ex?.name ?? "exercício"}`}>
+                    <span className="relative shrink-0">
+                      {ex ? <ExerciseThumb ex={ex} className="w-20" /> : <span className="thumb w-20" />}
+                      <span className="absolute -left-1 -top-1 grid size-6 place-items-center rounded-full bg-inverse text-xs font-bold text-on-inverse tabular">{i + 1}</span>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold leading-snug">{ex?.name ?? "Exercício"}</span>
+                      <span className="block text-sm text-muted tabular">
+                        {it.sets} × {it.reps}
+                        {it.load !== null && ` · ${it.load} kg`}
+                        {it.restSec > 0 && ` · ${it.restSec}s descanso`}
+                      </span>
+                      {hasOwnVideo(d, it.exerciseId) && <span className="badge badge-success mt-1">Vídeo do personal</span>}
+                    </span>
+                    <PlayCircle size={22} aria-hidden className="shrink-0 text-muted transition-all group-hover:scale-110 group-hover:text-accent" />
+                  </button>
+                </li>
+              )
+            })}
+          </ol>
+        </>
       )}
+      <HowTo d={d} exerciseId={howTo} onClose={() => setHowTo(null)} />
 
       <div className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
         <div className="mx-auto max-w-xl px-4 py-3">
@@ -94,7 +127,7 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
           ) : (
             <button
               type="button"
-              className="btn btn-primary btn-lg w-full"
+              className="btn btn-primary btn-lg shine w-full"
               disabled={workout.items.length === 0}
               onClick={() => {
                 update((x) => startSession(x, studentId, workout.id, uid("se")))
@@ -132,10 +165,9 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   const [finishing, setFinishing] = useState(false)
   const [discarding, setDiscarding] = useState(false)
   const [note, setNote] = useState("")
-  const [openInfo, setOpenInfo] = useState<string | null>(null)
+  const [howTo, setHowTo] = useState<string | null>(null)
   const now = useNow(true)
   const alerted = useRef(false)
-  const exById = new Map(d.exercises.map((e) => [e.id, e]))
   const progress = sessionProgress(session)
   const elapsed = Math.floor((now - new Date(session.startedAt).getTime()) / 1000)
   const restLeft = restUntil ? Math.ceil((restUntil - now) / 1000) : null
@@ -143,9 +175,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   useEffect(() => {
     if (restLeft !== null && restLeft <= 0 && !alerted.current) {
       alerted.current = true
-      try {
-        navigator.vibrate?.(200)
-      } catch {}
+      haptic(200)
     }
   }, [restLeft])
 
@@ -156,13 +186,24 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   const toggleSet = useCallback(
     (itemId: string, setIndex: number, done: boolean, restSec: number) => {
       update((x) => updateSet(x, session.id, itemId, setIndex, { done }))
-      if (done && restSec > 0) {
+      if (!done) return
+      haptic()
+      if (restSec > 0) {
         alerted.current = false
         setRestTotal(restSec)
         setRestUntil(Date.now() + restSec * 1000)
       }
+      // Fechou o exercício: rola suavemente até o próximo pendente.
+      const remaining = session.sets.filter((s) => s.itemId === itemId && !s.done && s.setIndex !== setIndex)
+      if (remaining.length === 0) {
+        const next = session.sets.find((s) => s.itemId !== itemId && !s.done)
+        if (next) {
+          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          setTimeout(() => document.getElementById(`item-${next.itemId}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }), 450)
+        }
+      }
     },
-    [session.id],
+    [session.id, session.sets],
   )
 
   return (
@@ -183,43 +224,59 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
         <div className="mt-2">
           <Progress value={progress.pct} label={`${progress.done} de ${progress.total} séries concluídas`} />
         </div>
+        <nav className="evo-session-nav mt-3" aria-label="Ir para exercício">
+          {order.map((itemId, idx) => {
+            const sets = session.sets.filter((s) => s.itemId === itemId)
+            const complete = sets.every((s) => s.done)
+            const name = sets[0]?.exerciseName ?? `Exercício ${idx + 1}`
+            return (
+              <button key={itemId} type="button" className={cx("evo-session-nav-item", complete && "is-complete")} onClick={() => document.getElementById(`item-${itemId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={`Ir para exercício ${idx + 1}: ${name}`}>
+                <span>{complete ? <Check size={12} aria-hidden /> : idx + 1}</span>
+                <small>{name}</small>
+              </button>
+            )
+          })}
+        </nav>
       </div>
 
       <ol className="space-y-4">
         {order.map((itemId, idx) => {
           const sets = session.sets.filter((s) => s.itemId === itemId)
           const item = itemById.get(itemId)
-          const ex = exById.get(sets[0].exerciseId)
+          const ex = getExercise(d, sets[0].exerciseId)
+          const tip = d.exerciseMedia[sets[0].exerciseId]?.tip
           const allDone = sets.every((s) => s.done)
           const restSec = item?.restSec ?? 60
           return (
-            <li key={itemId} className={cx("card overflow-hidden", allDone && "opacity-75")}>
-              <div className="flex items-start gap-3 p-4 pb-3">
-                <span className={cx("grid size-8 shrink-0 place-items-center rounded-lg text-sm font-bold tabular", allDone ? "bg-success text-bg" : "bg-inverse text-on-inverse")}>
-                  {allDone ? <Check size={16} aria-label="concluído" /> : idx + 1}
-                </span>
+            <li key={itemId} id={`item-${itemId}`} className={cx("card scroll-mt-36 overflow-hidden transition-[opacity,border-color] duration-500", allDone && "border-success/40 opacity-80")}>
+              <div className="evo-session-exercise-heading flex items-start gap-3 p-4 pb-3">
+                <button type="button" className="group relative shrink-0" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Como fazer: ${sets[0].exerciseName}`}>
+                  {ex ? <ExerciseThumb ex={ex} className="w-20" /> : <span className="thumb w-20" />}
+                  <span key={String(allDone)} className={cx("pop absolute -left-1.5 -top-1.5 grid size-7 place-items-center rounded-full text-xs font-bold tabular", allDone ? "bg-success text-bg" : "bg-inverse text-on-inverse")}>
+                    {allDone ? <Check size={15} strokeWidth={3} aria-label="concluído" /> : idx + 1}
+                  </span>
+                </button>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-bold leading-tight">{sets[0].exerciseName}</h2>
-                  <p className="mt-0.5 text-sm text-muted tabular">
+                  <div className="evo-exercise-status mt-1"><span>{sets.filter((s) => s.done).length} de {sets.length} séries concluídas</span>{allDone && <span className="evo-exercise-complete"><Check size={12} aria-hidden /> Concluído</span>}</div>
+                  <p className="mt-1 text-sm text-muted tabular">
                     {item ? `${item.sets} × ${item.reps}` : `${sets.length} séries`}
                     {item?.load !== null && item?.load !== undefined && ` · ${item.load} kg prescrito`}
                     {restSec > 0 && ` · ${restSec}s`}
                   </p>
-                </div>
-                {(ex?.instructions || item?.notes) && (
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-icon btn-sm"
-                    aria-expanded={openInfo === itemId}
-                    aria-label={`Orientações de ${sets[0].exerciseName}`}
-                    onClick={() => setOpenInfo(openInfo === itemId ? null : itemId)}
-                  >
-                    {openInfo === itemId ? <ChevronDown size={18} className="rotate-180" /> : <Info size={18} />}
+                  <button type="button" className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent transition-transform active:scale-95" onClick={() => setHowTo(sets[0].exerciseId)}>
+                    <PlayCircle size={16} aria-hidden /> Como fazer
+                    {hasOwnVideo(d, sets[0].exerciseId) && <span className="text-xs font-medium opacity-80">· vídeo</span>}
                   </button>
-                )}
+                </div>
               </div>
               {item?.notes && <p className="mx-4 mb-3 rounded-lg bg-accent-soft px-3 py-2 text-sm font-medium">{item.notes}</p>}
-              {openInfo === itemId && ex?.instructions && <p className="mx-4 mb-3 text-sm leading-relaxed text-muted">{ex.instructions}</p>}
+              {tip && (
+                <p className="mx-4 mb-3 flex gap-2 text-sm leading-relaxed text-muted">
+                  <Lightbulb size={15} aria-hidden className="mt-0.5 shrink-0 text-accent" />
+                  {tip}
+                </p>
+              )}
 
               <div className="border-t border-line">
                 <div className="grid grid-cols-[2rem_1fr_1fr_3.25rem] items-center gap-2 px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-muted" aria-hidden>
@@ -229,7 +286,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                   <span className="text-center">Feito</span>
                 </div>
                 {sets.map((s) => (
-                  <div key={s.setIndex} className={cx("grid grid-cols-[2rem_1fr_1fr_3.25rem] items-center gap-2 px-4 py-1.5", s.done && "bg-success-soft")}>
+                  <div key={s.setIndex} className={cx("grid grid-cols-[2rem_1fr_1fr_3.25rem] items-center gap-2 px-4 py-1.5 transition-colors duration-300", s.done && "bg-success-soft")}>
                     <span className="text-center font-bold tabular">{s.setIndex + 1}</span>
                     <label className="sr-only" htmlFor={`r-${itemId}-${s.setIndex}`}>
                       Repetições da série {s.setIndex + 1} de {s.exerciseName}
@@ -264,11 +321,11 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                       aria-label={`${s.done ? "Desmarcar" : "Marcar"} série ${s.setIndex + 1} de ${s.exerciseName}`}
                       onClick={() => toggleSet(itemId, s.setIndex, !s.done, restSec)}
                       className={cx(
-                        "grid size-12 place-items-center rounded-xl border-2 transition-colors",
+                        "grid size-12 place-items-center rounded-xl border-2 transition-[background-color,border-color,color,transform] duration-200 active:scale-90",
                         s.done ? "border-success bg-success text-bg" : "border-line-strong text-muted hover:border-fg",
                       )}
                     >
-                      <Check size={22} strokeWidth={3} aria-hidden />
+                      <Check key={String(s.done)} size={22} strokeWidth={3} aria-hidden className={s.done ? "pop" : undefined} />
                     </button>
                   </div>
                 ))}
@@ -283,13 +340,13 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
       <div className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
         <div className="mx-auto max-w-xl px-4 py-3">
           {restLeft !== null && restLeft > -5 ? (
-            <div className="flex items-center gap-3" role="timer" aria-live="off">
+            <div className="fade-in flex items-center gap-3" role="timer" aria-live="off">
+              <Ring value={restTotal ? (Math.max(0, restLeft) / restTotal) * 100 : 0} size={60} stroke={6} className={cx(restLeft <= 0 && "pulse-soft")} label="Tempo de descanso restante">
+                <Timer size={20} aria-hidden className={restLeft <= 0 ? "text-accent" : "text-muted"} />
+              </Ring>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-muted">{restLeft > 0 ? "Descanso" : "Descanso concluído"}</p>
+                <p className="text-sm font-semibold text-muted">{restLeft > 0 ? "Descanso" : "Bora, próxima série!"}</p>
                 <p className={cx("text-3xl font-bold tabular", restLeft <= 0 && "text-accent")}>{mmss(Math.max(0, restLeft))}</p>
-                <div className="mt-1">
-                  <Progress value={restTotal ? ((restTotal - Math.max(0, restLeft)) / restTotal) * 100 : 100} label="Tempo de descanso" />
-                </div>
               </div>
               <button type="button" className="btn btn-outline btn-lg px-4" onClick={() => setRestUntil((r) => (r ?? Date.now()) + 15_000)} aria-label="Adicionar 15 segundos">
                 +15s
@@ -299,7 +356,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
               </button>
             </div>
           ) : (
-            <button type="button" className="btn btn-primary btn-lg w-full" onClick={() => setFinishing(true)}>
+            <button type="button" className={cx("btn btn-primary btn-lg w-full", progress.done === progress.total && "shine glow")} onClick={() => setFinishing(true)}>
               <Flag size={20} aria-hidden /> Concluir treino
             </button>
           )}
@@ -346,6 +403,8 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
         )}
       </Modal>
 
+      <HowTo d={d} exerciseId={howTo} onClose={() => setHowTo(null)} />
+
       <ConfirmDialog
         open={discarding}
         onClose={() => setDiscarding(false)}
@@ -370,12 +429,15 @@ function Summary({ session }: { session: Session }) {
   const vol = sessionVolume(session)
   return (
     <div className="fade-in py-6 text-center">
-      <div className="mx-auto grid size-20 place-items-center rounded-full bg-primary text-on-primary">
-        <Trophy size={36} aria-hidden />
+      <div className="relative mx-auto size-20">
+        <Confetti />
+        <div className="pop glow grid size-20 place-items-center rounded-full bg-primary text-on-primary">
+          <Trophy size={36} aria-hidden />
+        </div>
       </div>
       <p className="t-eyebrow mt-6">Treino concluído</p>
       <h1 className="t-h1 mt-1">{session.workoutName}</h1>
-      <dl className="mx-auto mt-6 grid max-w-sm grid-cols-3 gap-2">
+      <dl className="stagger mx-auto mt-6 grid max-w-sm grid-cols-3 gap-2">
         {[
           { l: "Duração", v: `${durationMin(session.startedAt, session.finishedAt)} min` },
           { l: "Séries", v: `${p.done}/${p.total}` },
@@ -383,7 +445,9 @@ function Summary({ session }: { session: Session }) {
         ].map((x) => (
           <div key={x.l} className="card px-2 py-3">
             <dt className="text-xs text-muted">{x.l}</dt>
-            <dd className="mt-1 font-bold tabular">{x.v}</dd>
+            <dd className="mt-1 font-bold tabular">
+              <CountUp text={x.v} />
+            </dd>
           </div>
         ))}
       </dl>

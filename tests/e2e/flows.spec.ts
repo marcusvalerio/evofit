@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures"
+import { LEGACY_EXERCISE_IDS } from "../../lib/seed"
 
 test.describe("acesso público sem login", () => {
   test("início abre sem login e identifica o modo demonstração", async ({ page }) => {
@@ -14,9 +15,12 @@ test.describe("acesso público sem login", () => {
     ["/studio/alunos", /Alunos/],
     ["/studio/treinos", /Fichas de treino/],
     ["/studio/exercicios", /Exercícios/],
+    ["/studio/exercicios/Barbell_Squat", /Agachamento com barra/],
     ["/studio/perfil", /Perfil profissional/],
     ["/aluno", /Bora treinar/],
     ["/aluno/historico", /Histórico/],
+    ["/biblioteca", /Veja como se faz/],
+    ["/biblioteca/Barbell_Squat", /Agachamento com barra/],
     ["/personais", /Encontre um personal/],
     ["/personais/lucas-andrade-demo", /Lucas Andrade/],
   ]
@@ -89,14 +93,15 @@ test.describe("Studio", () => {
     await page.getByRole("button", { name: "Adicionar", exact: true }).click()
     const picker = page.getByRole("dialog", { name: "Adicionar exercícios" })
     await picker.getByLabel("Buscar exercício").fill("rosca martelo")
-    await picker.getByRole("button", { name: /Rosca martelo/ }).click()
+    await picker.getByRole("button", { name: /^Rosca martelo Bíceps/ }).click()
+    await expect(picker.getByRole("button", { name: /^Rosca martelo Bíceps/ })).toContainText("na ficha")
     await picker.getByRole("button", { name: /Concluir/ }).click()
     await expect(page.getByText("Alterações não salvas")).toBeVisible()
     await page.getByLabel("Elisa Prado").check()
     await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
     await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
     await page.reload()
-    await expect(page.getByText("Rosca martelo")).toBeVisible()
+    await expect(page.getByText("Rosca martelo", { exact: true })).toBeVisible()
     await expect(page.getByLabel("Elisa Prado")).toBeChecked()
 
     // validação: séries inválidas bloqueiam o salvamento
@@ -114,16 +119,73 @@ test.describe("Studio", () => {
     await expect(page.getByLabel("Nome da ficha")).toHaveValue("Treino C — Teste")
   })
 
-  test("cria exercício personalizado na biblioteca", async ({ page }) => {
+  test("cria exercício próprio na biblioteca", async ({ page }) => {
     await page.goto("/studio/exercicios")
-    await page.getByRole("button", { name: "Novo exercício" }).click()
+    await page.getByRole("button", { name: "Exercício próprio" }).click()
     const dialog = page.getByRole("dialog")
-    await dialog.getByLabel("Nome").fill("Remada cavalinho")
+    await dialog.getByLabel("Nome").fill("Cadeira extensora")
     await dialog.getByLabel("Grupo muscular").selectOption("Costas")
     await dialog.getByRole("button", { name: "Salvar" }).click()
-    await page.getByLabel("Buscar exercício").fill("cavalinho")
-    await expect(page.getByText("Remada cavalinho")).toBeVisible()
-    await expect(page.getByText("Seu", { exact: true })).toBeVisible()
+    await expect(dialog.getByText(/já existe no catálogo/)).toBeVisible()
+    await dialog.getByLabel("Nome").fill("Remada cavalinho")
+    await dialog.getByLabel(/Instruções/).fill("Pegue a barra T.\nPuxe até o abdômen.")
+    await dialog.getByRole("button", { name: "Salvar" }).click()
+    await expect(page.getByRole("heading", { level: 1, name: "Remada cavalinho" })).toBeVisible()
+    await expect(page.getByRole("listitem").filter({ hasText: "Puxe até o abdômen." })).toBeVisible()
+    await page.goto("/studio/exercicios")
+    await page.getByRole("tab", { name: /Meus/ }).click()
+    await expect(page.getByRole("link", { name: /Remada cavalinho/ })).toContainText("Próprio")
+  })
+
+  test("biblioteca: busca, demonstração, passo a passo e vídeo do personal", async ({ page }) => {
+    await page.goto("/studio/exercicios")
+    await expect(page.getByText(/^\d{3} exercícios$/)).toBeVisible()
+    await page.getByLabel("Buscar exercício").fill("agachamento com barra")
+    await page.getByRole("link", { name: /^Agachamento com barra Quadríceps/ }).click()
+    await expect(page.getByRole("heading", { level: 1, name: "Agachamento com barra" })).toBeVisible()
+
+    // demonstração com os dois quadros carregados
+    const frames = page.locator("figure.demo img")
+    await expect(frames).toHaveCount(2)
+    for (const img of await frames.all()) await expect.poll(() => img.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true)
+    // passo a passo em português carregado sob demanda
+    await expect(page.getByRole("heading", { name: "Passo a passo" })).toBeVisible()
+    expect(await page.locator("ol.steps > li").count()).toBeGreaterThan(2)
+    // dica de demonstração do seed
+    await expect(page.getByText("Dica do seu personal")).toBeVisible()
+
+    // link inválido é rejeitado; válido é salvo
+    const video = page.getByLabel("Link do vídeo")
+    await video.fill("https://site-qualquer.com/video")
+    await expect(page.getByText(/Link não reconhecido/)).toBeVisible()
+    await video.fill("https://youtu.be/dQw4w9WgXcQ")
+    await expect(page.getByText("Link reconhecido: YouTube")).toBeVisible()
+    await page.getByRole("button", { name: "Salvar material" }).click()
+    await expect(page.getByRole("button", { name: "Assistir vídeo do personal" })).toBeVisible()
+
+    // o aluno vê o material durante o treino
+    await page.goto("/aluno/treino/tr-b-inferiores")
+    await page.getByRole("button", { name: "Como fazer: Agachamento com barra" }).click()
+    const sheet = page.getByRole("dialog", { name: "Agachamento com barra" })
+    await expect(sheet.getByRole("button", { name: "Assistir vídeo do personal" })).toBeVisible()
+    await expect(sheet.getByText("Dica do seu personal")).toBeVisible()
+    await expect(sheet.locator("ol.steps > li").first()).toBeVisible()
+    await page.keyboard.press("Escape")
+    await page.getByRole("button", { name: "Iniciar treino" }).click()
+    await page.getByRole("button", { name: "Como fazer" }).first().click()
+    await expect(page.getByRole("dialog", { name: "Agachamento com barra" })).toBeVisible()
+  })
+
+  test("com movimento reduzido a demonstração mostra os quadros lado a lado", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" })
+    await page.goto("/studio/exercicios/Leg_Press")
+    const [a, b] = await page.locator("figure.demo img").all()
+    await expect(a).toBeVisible()
+    await expect(b).toBeVisible()
+    const ba = (await a.boundingBox())!
+    const bb = (await b.boundingBox())!
+    expect(bb.x).toBeGreaterThanOrEqual(ba.x + ba.width - 1)
+    await expect(page.getByRole("button", { name: "Pausar animação" })).toBeHidden()
   })
 })
 
@@ -191,6 +253,25 @@ test.describe("persistência", () => {
     await expect(page.getByText("Temporário")).toHaveCount(0)
   })
 
+  test("dados da versão anterior são migrados sem perder fichas", async ({ page }) => {
+    await page.goto("/studio/treinos")
+    const reverse = Object.fromEntries(Object.entries(LEGACY_EXERCISE_IDS).map(([a, b]) => [b, a]))
+    await page.evaluate((rev) => {
+      const d = JSON.parse(localStorage.getItem("evofit:demo:v1")!)
+      d.version = 1
+      delete d.exerciseMedia
+      d.exercises = [{ id: "ex-supino-reto", name: "Supino reto com barra", muscleGroup: "Peito", equipment: "Barra", instructions: "", custom: false }]
+      d.workouts[0].name = "Ficha antiga"
+      for (const w of d.workouts) for (const i of w.items) i.exerciseId = rev[i.exerciseId] ?? i.exerciseId
+      for (const s of d.sessions) for (const x of s.sets) x.exerciseId = rev[x.exerciseId] ?? x.exerciseId
+      localStorage.setItem("evofit:demo:v1", JSON.stringify(d))
+    }, reverse)
+    await page.goto("/aluno/treino/tr-a-superiores")
+    await expect(page.getByRole("heading", { level: 1, name: "Ficha antiga" })).toBeVisible()
+    await expect(page.getByRole("button", { name: /Como fazer: Supino reto com barra/ })).toBeVisible()
+    await expect(page.getByRole("alert").filter({ hasText: "dados salvos" })).toHaveCount(0)
+  })
+
   test("dados corrompidos são substituídos com aviso", async ({ page }) => {
     await page.goto("/")
     await page.evaluate(() => localStorage.setItem("evofit:demo:v1", '{"version":0,"lixo":true}'))
@@ -200,10 +281,42 @@ test.describe("persistência", () => {
   })
 })
 
+test.describe("Biblioteca EVOFIT", () => {
+  test("busca, abre o exercício e o GIF com a marca carrega", async ({ page }) => {
+    await page.goto("/")
+    await page.getByRole("link", { name: /Biblioteca EVOFIT: \d+ exercícios em GIF/ }).click()
+    await expect(page).toHaveURL("/biblioteca")
+    await page.getByLabel("Buscar exercício").fill("prancha")
+    await page.getByRole("link", { name: /^Prancha Abdômen/ }).click()
+    await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()
+    const gif = page.getByRole("img", { name: /Animação EVOFIT: Prancha/ })
+    await expect.poll(() => gif.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBe(480)
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?download")
+    await expect(page.locator("ol.steps > li").first()).toBeVisible()
+  })
+
+  test("rota de GIF responde só para exercícios do catálogo", async ({ request }) => {
+    const ok = await request.get("/api/gif/Plank")
+    expect(ok.status()).toBe(200)
+    expect(ok.headers()["content-type"]).toBe("image/gif")
+    expect(ok.headers()["cache-control"]).toContain("immutable")
+    expect((await ok.body()).subarray(0, 6).toString()).toBe("GIF89a")
+    const dl = await request.get("/api/gif/Plank?download")
+    expect(dl.headers()["content-disposition"]).toBe('attachment; filename="evofit-prancha.gif"')
+    for (const bad of ["nao-existe", "Kettlebell_Halo", "..%2F..%2Fpackage.json"]) expect((await request.get(`/api/gif/${bad}`)).status()).toBe(404)
+  })
+
+  test("Studio oferece baixar e compartilhar o GIF", async ({ page }) => {
+    await page.goto("/studio/exercicios/Leg_Press")
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Compartilhar" })).toBeVisible()
+  })
+})
+
 test.describe("diretório", () => {
   test("busca, filtros e URL compartilhável", async ({ page }) => {
     await page.goto("/personais")
-    await expect(page.getByText(/9 profissionais encontrados/)).toBeVisible()
+    await expect(page.getByText(/\d+ profissionais encontrados/)).toBeVisible()
     await page.getByLabel(/Buscar por nome/).fill("curitiba")
     await expect(page.getByText("1 profissional encontrado")).toBeVisible()
     await expect(page.getByRole("link", { name: /Júlia Martins/ })).toBeVisible()
@@ -225,6 +338,8 @@ test.describe("diretório", () => {
   })
 
   test("solicitação de contato chega ao Studio e opt-out oculta o perfil", async ({ page }) => {
+    await page.goto("/personais?q=camila%20rocha")
+    await expect(page.getByText("1 profissional encontrado")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await page.getByLabel("Seu nome").fill("Visitante")
     await page.getByLabel("Como prefere ser contatado").fill("visitante@exemplo.com")
@@ -239,8 +354,8 @@ test.describe("diretório", () => {
     await page.getByLabel(/Aparecer em “Encontrar personal”/).uncheck()
     await page.getByRole("button", { name: "Salvar perfil" }).click()
     await expect(page.getByText("Oculto do diretório")).toBeVisible()
-    await page.goto("/personais")
-    await expect(page.getByText(/8 profissionais encontrados/)).toBeVisible()
+    await page.goto("/personais?q=camila%20rocha")
+    await expect(page.getByText("Nenhum profissional com esses filtros")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await expect(page.getByRole("heading", { name: "Perfil indisponível" })).toBeVisible()
   })
@@ -259,7 +374,7 @@ test.describe("interface", () => {
 
   test("Esc fecha modal e tema escuro persiste após recarregar", async ({ page }) => {
     await page.goto("/studio/exercicios")
-    await page.getByRole("button", { name: "Novo exercício" }).click()
+    await page.getByRole("button", { name: "Exercício próprio" }).click()
     await expect(page.getByRole("dialog")).toBeVisible()
     await page.keyboard.press("Escape")
     await expect(page.getByRole("dialog")).toHaveCount(0)

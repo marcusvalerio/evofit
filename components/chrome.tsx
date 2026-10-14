@@ -1,17 +1,16 @@
 "use client"
 import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { FlaskConical, Monitor, Moon, RotateCcw, Sun, TriangleAlert, X } from "lucide-react"
-import { dismissNotice, resetDemo, useDemoState } from "@/lib/store"
+import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
+import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
+import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useToast } from "./providers"
 
 export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
   return (
     <Link href="/" className={cx("inline-flex items-baseline gap-1.5 rounded-md", className)} aria-label="EVOFIT — início">
-      <span className="t-brand text-xl leading-none">
-        EVO<span className="text-accent">FIT</span>
-      </span>
+      <span className="t-brand text-xl leading-none text-fg">EVOFIT</span>
       {suffix && <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{suffix}</span>}
     </Link>
   )
@@ -61,8 +60,77 @@ export function ThemeToggle({ className }: { className?: string }) {
   )
 }
 
-/** Faixa fixa que identifica o modo demonstração e permite restaurar os dados. */
+/** Faixa superior: identifica o modo demonstração ou a conta logada (com o estado de salvamento). */
 export function DemoBanner() {
+  const st = useDemoState()
+  if (st.mode === "account") return <AccountBar />
+  if (st.mode === "offline")
+    return (
+      <div role="alert" className="border-b border-line bg-warning-soft">
+        <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2 text-sm">
+          <CloudOff size={16} aria-hidden className="shrink-0 text-warning" />
+          <p className="flex-1">Não foi possível carregar sua conta. Verifique a conexão.</p>
+          <button type="button" className="btn btn-outline btn-sm" onClick={retryLoad}>
+            Tentar de novo
+          </button>
+        </div>
+      </div>
+    )
+  return <DemoStrip />
+}
+
+function AccountBar() {
+  const { account, sync, syncError } = useDemoState()
+  const [busy, setBusy] = useState(false)
+  return (
+    <>
+      <div className="border-b border-line bg-inverse text-on-inverse">
+        <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-2 px-3 py-1 text-xs sm:gap-3 sm:px-4 sm:py-1.5 sm:text-[0.8125rem]">
+          <UserRound size={15} aria-hidden className="shrink-0" />
+          <p className="min-w-0 flex-1 truncate">
+            <strong className="font-semibold">{account?.role === "student" ? "Conta de aluno" : "Conta de personal"}</strong>
+            <span className="opacity-80"> · {account?.email}</span>
+          </p>
+          <span className="hidden items-center gap-1 opacity-80 sm:inline-flex" aria-live="polite">
+            {sync === "saving" ? (
+              <>
+                <span className="spinner" aria-hidden /> Salvando…
+              </>
+            ) : sync === "idle" ? (
+              <>
+                <Check size={14} aria-hidden /> Salvo
+              </>
+            ) : null}
+          </span>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true)
+              await logout()
+            }}
+            className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-2 font-semibold hover:bg-white/10 sm:gap-1.5 sm:px-2.5"
+          >
+            <LogOut size={14} aria-hidden /> Sair
+          </button>
+        </div>
+      </div>
+      {syncError && (
+        <div role="alert" className="border-b border-line bg-danger-soft">
+          <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 py-2 text-sm text-fg">
+            <TriangleAlert size={16} className="mt-0.5 shrink-0 text-danger" aria-hidden />
+            <p className="flex-1">{syncError}</p>
+            <button type="button" onClick={dismissNotice} className="btn btn-ghost btn-icon btn-sm -my-1" aria-label="Dispensar aviso">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function DemoStrip() {
   const { notice, persistError } = useDemoState()
   const [confirm, setConfirm] = useState(false)
   const toast = useToast()
@@ -73,8 +141,11 @@ export function DemoBanner() {
           <FlaskConical size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
             <strong className="font-semibold">Modo demonstração</strong>
-            <span className="opacity-80"> · dados fictícios salvos apenas neste navegador</span>
+            <span className="hidden opacity-80 sm:inline"> · dados fictícios salvos apenas neste navegador</span>
           </p>
+          <Link href="/entrar" className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-2 font-semibold hover:bg-white/10 sm:gap-1.5 sm:px-2.5">
+            <LogIn size={14} aria-hidden /> Entrar
+          </Link>
           <button type="button" onClick={() => setConfirm(true)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-2.5 font-semibold hover:bg-white/10">
             <RotateCcw size={14} aria-hidden />
             <span>Restaurar</span>

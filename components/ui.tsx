@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef } from "react"
 import Link from "next/link"
 import { X } from "lucide-react"
+import { CountUp } from "./motion"
 
 export function cx(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ")
@@ -181,7 +182,7 @@ export function NotFoundState({ title, children, href, cta }: { title: string; c
 
 export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?: string; title: string; description?: React.ReactNode; actions?: React.ReactNode }) {
   return (
-    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="fade-in mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         {eyebrow && <p className="t-eyebrow mb-1">{eyebrow}</p>}
         <h1 className="t-h1">{title}</h1>
@@ -194,10 +195,10 @@ export function PageHeader({ eyebrow, title, description, actions }: { eyebrow?:
 
 export function Stat({ label, value, unit, hint, tone }: { label: string; value: string; unit?: string; hint?: React.ReactNode; tone?: "accent" | "warning" }) {
   return (
-    <div className="card p-4">
+    <div className="card lift p-4">
       <p className="t-eyebrow">{label}</p>
       <p className={cx("t-metric mt-3", tone === "accent" && "text-accent", tone === "warning" && "text-warning")}>
-        {value}
+        <CountUp text={value} />
         {unit && <span className="ml-1 text-base font-semibold tracking-normal text-muted">{unit}</span>}
       </p>
       {hint && <p className="mt-2 text-sm text-muted">{hint}</p>}

@@ -2,13 +2,14 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Plus, Search, Trash2 } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import type { Workout, WorkoutItem } from "@/lib/types"
-import { MUSCLE_GROUPS } from "@/lib/types"
+import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
 import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
 import { ConfirmDialog, Field, Modal, NotFoundState, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { ExerciseThumb } from "@/components/exercise"
 
 export default function EditorPage() {
   const { id } = useParams<{ id: string }>()
@@ -34,11 +35,26 @@ function Editor({ workout }: { workout: Workout }) {
   const [picking, setPicking] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [tried, setTried] = useState(false)
-  const exById = useMemo(() => new Map(d.exercises.map((e) => [e.id, e])), [d.exercises])
+  const [bulkSets, setBulkSets] = useState("3")
+  const [bulkReps, setBulkReps] = useState("8-12")
+  const [bulkRest, setBulkRest] = useState("60")
+  const [studentQuery, setStudentQuery] = useState("")
+  const [previewOpen, setPreviewOpen] = useState(false)
   const errors = validateWorkout(draft)
   const valid = isWorkoutValid(errors)
   const dirty = JSON.stringify(draft) !== JSON.stringify(workout)
   const activeStudents = d.students.filter((s) => s.status === "ativo")
+  const visibleStudents = activeStudents.filter((s) => s.name.toLocaleLowerCase("pt-BR").includes(studentQuery.trim().toLocaleLowerCase("pt-BR")))
+  const applyBulk = () => {
+    const sets = Number.parseInt(bulkSets, 10)
+    const restSec = Number.parseInt(bulkRest, 10)
+    if (!Number.isInteger(sets) || sets < 1 || sets > 20 || !Number.isInteger(restSec) || restSec < 0 || restSec > 600 || !bulkReps.trim()) {
+      toast("Confira séries, repetições e descanso antes de aplicar.", "error")
+      return
+    }
+    setDraft((w) => ({ ...w, items: w.items.map((item) => ({ ...item, sets, reps: bulkReps.trim(), restSec })) }))
+    toast("Configuração aplicada a todos os exercícios.")
+  }
 
   useEffect(() => {
     if (!dirty) return
@@ -91,14 +107,42 @@ function Editor({ workout }: { workout: Workout }) {
             </Field>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="t-h2">
               Exercícios <span className="text-muted tabular">({draft.items.length})</span>
             </h2>
-            <button type="button" className="btn btn-outline btn-sm" onClick={() => setPicking(true)}>
-              <Plus size={16} aria-hidden /> Adicionar
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn btn-outline btn-sm" onClick={() => setPreviewOpen(true)}>
+                <Eye size={16} aria-hidden /> Prévia do aluno
+              </button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setPicking(true)}>
+                <Plus size={16} aria-hidden /> Adicionar
+              </button>
+            </div>
           </div>
+          {draft.items.length > 1 && (
+            <section className="evo-bulk-prescription card p-4" aria-label="Aplicar configuração em lote">
+              <div className="flex items-start gap-3">
+                <span className="evo-bulk-icon"><Copy size={18} aria-hidden /></span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold tracking-tight">Ajuste em lote</h3>
+                  <p className="mt-1 text-sm text-muted">Aplique séries, repetições e descanso a todos os exercícios desta ficha. As cargas e instruções individuais serão preservadas.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                <Field label="Séries">
+                  {(p) => <input {...p} className="input tabular" type="number" min={1} max={20} value={bulkSets} onChange={(e) => setBulkSets(e.target.value)} />}
+                </Field>
+                <Field label="Repetições">
+                  {(p) => <input {...p} className="input" value={bulkReps} maxLength={20} onChange={(e) => setBulkReps(e.target.value)} />}
+                </Field>
+                <Field label="Descanso (s)">
+                  {(p) => <input {...p} className="input tabular" type="number" min={0} max={600} step={15} value={bulkRest} onChange={(e) => setBulkRest(e.target.value)} />}
+                </Field>
+              </div>
+              <button type="button" className="btn btn-outline btn-sm mt-3 w-full sm:w-auto" onClick={applyBulk}><Copy size={15} aria-hidden /> Aplicar aos {draft.items.length} exercícios</button>
+            </section>
+          )}
           {show.items && <p className="field-error">{show.items}</p>}
 
           {draft.items.length === 0 ? (
@@ -110,15 +154,28 @@ function Editor({ workout }: { workout: Workout }) {
           ) : (
             <ol className="space-y-3">
               {draft.items.map((it, idx) => {
-                const ex = exById.get(it.exerciseId)
+                const ex = getExercise(d, it.exerciseId)
                 const err = show.itemErrors[it.id]
                 return (
                   <li key={it.id} className={cx("card p-4", err && "border-danger")}>
                     <div className="mb-3 flex items-start gap-3">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-inverse text-sm font-bold text-on-inverse tabular">{idx + 1}</span>
+                      <span className="relative shrink-0">
+                        {ex ? <ExerciseThumb ex={ex} className="w-16 sm:w-20" /> : <span className="thumb w-16 sm:w-20" />}
+                        <span className="absolute -left-1.5 -top-1.5 grid size-6 place-items-center rounded-full bg-inverse text-xs font-bold text-on-inverse tabular">{idx + 1}</span>
+                      </span>
                       <div className="min-w-0 flex-1">
                         <p className="font-semibold">{ex?.name ?? "Exercício removido"}</p>
-                        <p className="text-sm text-muted">{ex?.muscleGroup}</p>
+                        <p className="text-sm text-muted">
+                          {ex ? `${ex.group} · ${ex.equipment}` : ""}
+                          {ex && (
+                            <>
+                              {" · "}
+                              <Link href={`/studio/exercicios/${encodeURIComponent(ex.id)}`} className="font-medium text-accent hover:underline">
+                                ver execução
+                              </Link>
+                            </>
+                          )}
+                        </p>
                       </div>
                       <div className="flex shrink-0">
                         <button type="button" className="btn btn-ghost btn-icon btn-sm" disabled={idx === 0} onClick={() => move(idx, -1)} aria-label={`Mover ${ex?.name} para cima`}>
@@ -176,8 +233,11 @@ function Editor({ workout }: { workout: Workout }) {
             {activeStudents.length === 0 ? (
               <p className="mt-3 text-sm text-muted">Nenhum aluno ativo.</p>
             ) : (
-              <ul className="mt-3 space-y-1">
-                {activeStudents.map((s) => {
+              <>
+                <div className="mt-3"><label className="sr-only" htmlFor="assigned-student-search">Buscar aluno para atribuir ficha</label><input id="assigned-student-search" className="input" value={studentQuery} onChange={(e) => setStudentQuery(e.target.value)} placeholder="Buscar aluno..." /></div>
+                {visibleStudents.length === 0 && <p className="mt-3 text-sm text-muted">Nenhum aluno encontrado.</p>}
+                <ul className="mt-3 space-y-1">
+                {visibleStudents.map((s) => {
                   const on = draft.studentIds.includes(s.id)
                   return (
                     <li key={s.id}>
@@ -193,7 +253,8 @@ function Editor({ workout }: { workout: Workout }) {
                     </li>
                   )
                 })}
-              </ul>
+                </ul>
+              </>
             )}
           </div>
           <div className="card hidden space-y-2 p-5 lg:block">
@@ -223,6 +284,52 @@ function Editor({ workout }: { workout: Workout }) {
         </button>
       </div>
 
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title="Prévia do aluno"
+        description="Visualização da ficha com as alterações atuais, antes de salvar."
+        wide
+        footer={<button type="button" className="btn btn-primary" onClick={() => setPreviewOpen(false)}>Voltar ao editor</button>}
+      >
+        <div className="evo-workout-preview">
+          <div className="evo-workout-preview-head">
+            <p className="evo-workout-preview-kicker">EVOFIT · PLANO DE TREINO</p>
+            <h3>{draft.name.trim() || "Sua ficha de treino"}</h3>
+            <p>{draft.description.trim() || "Siga a sequência proposta e registre seu desempenho a cada exercício."}</p>
+            <div className="evo-workout-preview-summary">
+              <span><strong>{draft.items.length}</strong> exercícios</span>
+              <span><strong>{draft.items.reduce((sum, item) => sum + (Number.isFinite(item.sets) ? item.sets : 0), 0)}</strong> séries no total</span>
+            </div>
+          </div>
+          {draft.items.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted">Adicione exercícios para montar a prévia do aluno.</p>
+          ) : (
+            <ol className="evo-workout-preview-list">
+              {draft.items.map((item, index) => {
+                const exercise = getExercise(d, item.exerciseId)
+                return (
+                  <li key={item.id} className="evo-workout-preview-item">
+                    <span className="evo-workout-preview-number">{String(index + 1).padStart(2, "0")}</span>
+                    <div className="min-w-0 flex-1">
+                      <strong>{exercise?.name ?? "Exercício indisponível"}</strong>
+                      <p>{exercise ? exercise.group + " · " + exercise.equipment : "Confira este exercício no editor."}</p>
+                      {item.notes.trim() && <p className="evo-workout-preview-notes">{item.notes}</p>}
+                      <div className="evo-workout-preview-metrics">
+                        <span><small>Séries</small><b>{Number.isFinite(item.sets) ? item.sets : "—"}</b></span>
+                        <span><small>Repetições</small><b>{item.reps || "—"}</b></span>
+                        <span><small>Carga</small><b>{item.load == null ? "Livre" : String(item.load) + " kg"}</b></span>
+                        <span><small>Descanso</small><b>{Number.isFinite(item.restSec) ? String(item.restSec) + "s" : "—"}</b></span>
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
+      </Modal>
+
       {picking && (
         <ExercisePicker
           onClose={() => setPicking(false)}
@@ -248,18 +355,24 @@ function Editor({ workout }: { workout: Workout }) {
   )
 }
 
+const PAGE = 40
+
 function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; onPick: (id: string) => void; selected: string[] }) {
   const d = useData()
   const [q, setQ] = useState("")
   const [group, setGroup] = useState("")
+  const [equipment, setEquipment] = useState("")
+  const [limit, setLimit] = useState(PAGE)
   const [added, setAdded] = useState<string[]>([])
-  const list = d.exercises.filter((e) => (!group || e.muscleGroup === group) && (!q.trim() || e.name.toLowerCase().includes(q.trim().toLowerCase())))
+  const all = useMemo(() => allExercises(d), [d])
+  const list = useMemo(() => filterExercises(all, { q, group, equipment }), [all, q, group, equipment])
+  const reset = () => setLimit(PAGE)
   return (
     <Modal
       open
       onClose={onClose}
       title="Adicionar exercícios"
-      description="Toque para adicionar. Você pode adicionar vários antes de fechar."
+      description={`${all.length} exercícios com demonstração. Toque para adicionar — dá para escolher vários antes de fechar.`}
       wide
       footer={
         <button type="button" className="btn btn-primary" onClick={onClose}>
@@ -268,58 +381,81 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
       }
     >
       <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 space-y-2 bg-surface px-5 pb-3 pt-4">
-        <div className="relative">
-          <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <label htmlFor="pick-q" className="sr-only">
-            Buscar exercício
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+            <label htmlFor="pick-q" className="sr-only">
+              Buscar exercício
+            </label>
+            <input id="pick-q" type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus />
+          </div>
+          <label htmlFor="pick-eq" className="sr-only">
+            Equipamento
           </label>
-          <input id="pick-q" type="search" className="input pl-10" placeholder="Buscar exercício" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
+          <select id="pick-eq" className="input !w-36 sm:!w-48" value={equipment} onChange={(e) => (setEquipment(e.target.value), reset())}>
+            <option value="">Equipamento</option>
+            {CATALOG_EQUIPMENT.map((g) => (
+              <option key={g}>{g}</option>
+            ))}
+          </select>
         </div>
-        <div className="-mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Grupo muscular">
-          <button type="button" className="chip shrink-0" aria-pressed={!group} onClick={() => setGroup("")}>
+        <div className="scroll-x -mx-5 px-5 pb-1" role="group" aria-label="Grupo muscular">
+          <button type="button" className="chip shrink-0" aria-pressed={!group} onClick={() => (setGroup(""), reset())}>
             Todos
           </button>
-          {MUSCLE_GROUPS.map((g) => (
-            <button key={g} type="button" className="chip shrink-0" aria-pressed={group === g} onClick={() => setGroup(group === g ? "" : g)}>
+          {CATALOG_GROUPS.map((g) => (
+            <button key={g} type="button" className="chip shrink-0" aria-pressed={group === g} onClick={() => (setGroup(group === g ? "" : g), reset())}>
               {g}
             </button>
           ))}
         </div>
+        <p className="text-xs text-muted" aria-live="polite">
+          {list.length} resultado{list.length === 1 ? "" : "s"}
+        </p>
       </div>
       {list.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted">Nenhum exercício encontrado. Crie novos em Exercícios.</p>
+        <p className="py-8 text-center text-sm text-muted">Nenhum exercício encontrado. Tente outro termo ou crie um exercício próprio em Exercícios.</p>
       ) : (
-        <ul className="divide-y divide-line">
-          {list.map((e) => {
-            const count = selected.filter((s) => s === e.id).length
-            return (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  className="flex w-full items-center gap-3 rounded-lg py-3 text-left hover:bg-line/40"
-                  onClick={() => {
-                    onPick(e.id)
-                    setAdded((a) => [...a, e.id])
-                  }}
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium">{e.name}</p>
-                    <p className="text-sm text-muted">
-                      {e.muscleGroup} · {e.equipment}
-                    </p>
-                  </div>
-                  {count > 0 ? (
-                    <span className="badge badge-success">
-                      <Check size={12} aria-hidden /> {count > 1 ? `${count}×` : "na ficha"}
-                    </span>
-                  ) : (
-                    <Plus size={18} aria-hidden className="text-muted" />
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+        <>
+          <ul className="divide-y divide-line">
+            {list.slice(0, limit).map((e) => {
+              const count = selected.filter((s) => s === e.id).length
+              return (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    className="group flex w-full items-center gap-3 rounded-lg py-2.5 text-left transition-colors hover:bg-line/40"
+                    onClick={() => {
+                      onPick(e.id)
+                      setAdded((a) => [...a, e.id])
+                    }}
+                  >
+                    <ExerciseThumb ex={e} className="w-16" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium">{e.name}</p>
+                      <p className="truncate text-sm text-muted">
+                        {e.group} · {e.equipment}
+                        {e.custom && " · próprio"}
+                      </p>
+                    </div>
+                    {count > 0 ? (
+                      <span key={count} className="badge badge-success pop">
+                        <Check size={12} aria-hidden /> {count > 1 ? `${count}×` : "na ficha"}
+                      </span>
+                    ) : (
+                      <Plus size={18} aria-hidden className="text-muted transition-transform group-hover:scale-125" />
+                    )}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {list.length > limit && (
+            <button type="button" className="btn btn-outline mt-3 w-full" onClick={() => setLimit((l) => l + PAGE)}>
+              Mostrar mais ({list.length - limit})
+            </button>
+          )}
+        </>
       )}
       <span className="sr-only" aria-live="polite">
         {added.length ? `${added.length} exercício(s) adicionado(s)` : ""}

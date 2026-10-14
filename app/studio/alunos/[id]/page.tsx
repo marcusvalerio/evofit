@@ -2,8 +2,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, Pencil, Smartphone } from "lucide-react"
-import { update, useData } from "@/lib/store"
+import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, Pencil, Send, Smartphone } from "lucide-react"
+import { update, useData, useIsDemo } from "@/lib/store"
 import { LEVEL_LABEL } from "@/lib/types"
 import { setStudentStatus, toggleAssignment } from "@/lib/actions"
 import { daysSinceLast, loadProgression, sessionsOf, trackedExercises, weekCount, weeklySeries } from "@/lib/metrics"
@@ -13,6 +13,7 @@ import { SessionList } from "@/components/session-list"
 import { StudentFormModal } from "@/components/student-form"
 import { Avatar, ConfirmDialog, EmptyState, Field, NotFoundState, Stat } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { InviteDialog } from "@/components/invite"
 
 export default function AlunoDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -21,6 +22,8 @@ export default function AlunoDetalhe() {
   const toast = useToast()
   const [editing, setEditing] = useState(false)
   const [archiving, setArchiving] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const demo = useIsDemo()
   const student = d.students.find((s) => s.id === id)
   const tracked = student ? trackedExercises(d, student.id) : []
   const [exerciseId, setExerciseId] = useState<string>("")
@@ -28,7 +31,7 @@ export default function AlunoDetalhe() {
   if (!student) {
     return (
       <NotFoundState title="Aluno não encontrado" href="/studio/alunos" cta="Voltar para alunos">
-        Este aluno não existe ou a demonstração foi restaurada.
+        {demo ? "Este aluno não existe ou a demonstração foi restaurada." : "Este aluno não existe ou o link está incorreto."}
       </NotFoundState>
     )
   }
@@ -66,9 +69,14 @@ export default function AlunoDetalhe() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          {!archived && (
+          {!archived && demo && (
             <button type="button" className="btn btn-outline" onClick={openAsStudent}>
               <Smartphone size={18} aria-hidden /> Ver como aluno
+            </button>
+          )}
+          {!archived && !demo && (
+            <button type="button" className="btn btn-primary" onClick={() => setInviting(true)}>
+              <Send size={18} aria-hidden /> Convidar para o app
             </button>
           )}
           <button type="button" className="btn btn-outline" onClick={() => setEditing(true)}>
@@ -191,7 +199,7 @@ export default function AlunoDetalhe() {
         </h2>
         {history.length === 0 ? (
           <EmptyState icon={CalendarCheck} title="Nenhuma sessão concluída">
-            Use “Ver como aluno” para registrar um treino de demonstração.
+            {demo ? "Use “Ver como aluno” para registrar um treino de demonstração." : "Quando o aluno concluir um treino pelo app, ele aparece aqui."}
           </EmptyState>
         ) : (
           <SessionList sessions={history} />
@@ -199,6 +207,7 @@ export default function AlunoDetalhe() {
       </section>
 
       <StudentFormModal open={editing} onClose={() => setEditing(false)} student={student} />
+      {inviting && <InviteDialog studentId={student.id} studentName={student.name} onClose={() => setInviting(false)} />}
       <ConfirmDialog
         open={archiving}
         onClose={() => setArchiving(false)}
