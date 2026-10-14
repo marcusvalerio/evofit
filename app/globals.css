@@ -1854,3 +1854,21 @@ body { background-color:var(--bg); }
 .evo-workout-preview-metrics small { color:var(--fg-muted); font-size:.63rem; }
 .evo-workout-preview-metrics b { font-size:.85rem; font-weight:900; overflow-wrap:anywhere; }
 @media(max-width:420px) { .evo-workout-preview-head { padding:1rem; } .evo-workout-preview-list { padding:0 .75rem; } .evo-workout-preview-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } .evo-workout-preview-item { gap:.6rem; } }
+
+
+/* P0 Phase 3 — mobile workout execution and quick navigation. */
+.evo-session-nav { display:flex; gap:.5rem; overflow-x:auto; padding:.1rem 0 .35rem; scrollbar-width:thin; overscroll-behavior-x:contain; }
+.evo-session-nav-item { display:flex; max-width:10rem; min-width:3.2rem; flex-shrink:0; align-items:center; gap:.45rem; padding:.4rem .6rem .4rem .4rem; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--fg); }
+.evo-session-nav-item>span { display:grid; width:1.55rem; height:1.55rem; flex-shrink:0; place-items:center; border-radius:50%; background:var(--surface-2); font-size:.68rem; font-weight:950; }
+.evo-session-nav-item>small { overflow:hidden; max-width:7rem; font-size:.68rem; font-weight:750; text-overflow:ellipsis; white-space:nowrap; }
+.evo-session-nav-item.is-complete { border-color:#CFFFE0; background:#CFFFE0; color:#080D0D; }
+.evo-session-nav-item.is-complete>span { background:#080D0D; color:#CFFFE0; }
+.evo-exercise-status { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem .6rem; color:var(--fg-muted); font-size:.68rem; font-weight:750; }
+.evo-exercise-complete { display:inline-flex; align-items:center; gap:.2rem; padding:.2rem .4rem; border-radius:999px; background:#CFFFE0; color:#080D0D; font-size:.62rem; font-weight:900; }
+@media(max-width:480px) {
+  .evo-session-exercise-heading { gap:.65rem; padding:.85rem .8rem .7rem; }
+  .evo-session-exercise-heading .thumb { border-radius:.7rem; }
+  .evo-session-exercise-heading h2 { font-size:1rem; overflow-wrap:anywhere; }
+  .evo-session-exercise-heading .btn { min-height:2.25rem; }
+  .evo-session-nav-item { padding:.35rem .5rem .35rem .35rem; }
+}
