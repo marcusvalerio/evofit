@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ClipboardList, Copy, Plus, Trash2 } from "lucide-react"
+import { ClipboardList, Copy, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import { createWorkout, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
 import { fmtDate } from "@/lib/date"
@@ -25,6 +25,7 @@ function Treinos() {
   const toast = useToast()
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState("")
+  const [search, setSearch] = useState("")
   const [err, setErr] = useState("")
   const [removing, setRemoving] = useState<Workout | null>(null)
 
@@ -37,6 +38,7 @@ function Treinos() {
   }
 
   const studentById = new Map(d.students.map((s) => [s.id, s]))
+  const visibleWorkouts = d.workouts.filter((w) => `${w.name} ${w.description ?? ""}`.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")))
 
   const create = (e: React.FormEvent) => {
     e.preventDefault()
@@ -71,6 +73,18 @@ function Treinos() {
         <div className="evo-page-campaign-stat"><strong>{d.workouts.length.toString().padStart(2, "0")}</strong><span>FICHAS CRIADAS</span></div>
       </section>
 
+      {d.workouts.length > 0 && (
+        <div className="evo-workout-toolbar mb-4">
+          <label className="evo-workout-search">
+            <Search size={18} aria-hidden />
+            <span className="sr-only">Buscar fichas</span>
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar por nome ou descrição da ficha" />
+            {search && <button type="button" onClick={() => setSearch("")} aria-label="Limpar busca">Limpar</button>}
+          </label>
+          <span className="evo-workout-result-count">{visibleWorkouts.length} de {d.workouts.length} fichas</span>
+        </div>
+      )}
+
       {d.workouts.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
@@ -85,7 +99,7 @@ function Treinos() {
         </EmptyState>
       ) : (
         <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {d.workouts.map((w, index) => {
+          {visibleWorkouts.map((w, index) => {
             const assigned = w.studentIds.map((id) => studentById.get(id)).filter((s) => s && s.status === "ativo")
             return (
               <li key={w.id} className={`evo-workout-card card lift flex flex-col`}>
