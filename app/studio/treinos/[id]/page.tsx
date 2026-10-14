@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Plus, Search, Trash2 } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import type { Workout, WorkoutItem } from "@/lib/types"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
@@ -39,6 +39,7 @@ function Editor({ workout }: { workout: Workout }) {
   const [bulkReps, setBulkReps] = useState("8-12")
   const [bulkRest, setBulkRest] = useState("60")
   const [studentQuery, setStudentQuery] = useState("")
+  const [previewOpen, setPreviewOpen] = useState(false)
   const errors = validateWorkout(draft)
   const valid = isWorkoutValid(errors)
   const dirty = JSON.stringify(draft) !== JSON.stringify(workout)
@@ -106,13 +107,18 @@ function Editor({ workout }: { workout: Workout }) {
             </Field>
           </div>
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="t-h2">
               Exercícios <span className="text-muted tabular">({draft.items.length})</span>
             </h2>
-            <button type="button" className="btn btn-outline btn-sm" onClick={() => setPicking(true)}>
-              <Plus size={16} aria-hidden /> Adicionar
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" className="btn btn-outline btn-sm" onClick={() => setPreviewOpen(true)}>
+                <Eye size={16} aria-hidden /> Prévia do aluno
+              </button>
+              <button type="button" className="btn btn-primary btn-sm" onClick={() => setPicking(true)}>
+                <Plus size={16} aria-hidden /> Adicionar
+              </button>
+            </div>
           </div>
           {draft.items.length > 1 && (
             <section className="evo-bulk-prescription card p-4" aria-label="Aplicar configuração em lote">
@@ -277,6 +283,52 @@ function Editor({ workout }: { workout: Workout }) {
           <Check size={18} aria-hidden /> Salvar ficha
         </button>
       </div>
+
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title="Prévia do aluno"
+        description="Visualização da ficha com as alterações atuais, antes de salvar."
+        wide
+        footer={<button type="button" className="btn btn-primary" onClick={() => setPreviewOpen(false)}>Voltar ao editor</button>}
+      >
+        <div className="evo-workout-preview">
+          <div className="evo-workout-preview-head">
+            <p className="evo-workout-preview-kicker">EVOFIT · PLANO DE TREINO</p>
+            <h3>{draft.name.trim() || "Sua ficha de treino"}</h3>
+            <p>{draft.description.trim() || "Siga a sequência proposta e registre seu desempenho a cada exercício."}</p>
+            <div className="evo-workout-preview-summary">
+              <span><strong>{draft.items.length}</strong> exercícios</span>
+              <span><strong>{draft.items.reduce((sum, item) => sum + (Number.isFinite(item.sets) ? item.sets : 0), 0)}</strong> séries no total</span>
+            </div>
+          </div>
+          {draft.items.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted">Adicione exercícios para montar a prévia do aluno.</p>
+          ) : (
+            <ol className="evo-workout-preview-list">
+              {draft.items.map((item, index) => {
+                const exercise = getExercise(d, item.exerciseId)
+                return (
+                  <li key={item.id} className="evo-workout-preview-item">
+                    <span className="evo-workout-preview-number">{String(index + 1).padStart(2, "0")}</span>
+                    <div className="min-w-0 flex-1">
+                      <strong>{exercise?.name ?? "Exercício indisponível"}</strong>
+                      <p>{exercise ? exercise.group + " · " + exercise.equipment : "Confira este exercício no editor."}</p>
+                      {item.notes.trim() && <p className="evo-workout-preview-notes">{item.notes}</p>}
+                      <div className="evo-workout-preview-metrics">
+                        <span><small>Séries</small><b>{Number.isFinite(item.sets) ? item.sets : "—"}</b></span>
+                        <span><small>Repetições</small><b>{item.reps || "—"}</b></span>
+                        <span><small>Carga</small><b>{item.load == null ? "Livre" : String(item.load) + " kg"}</b></span>
+                        <span><small>Descanso</small><b>{Number.isFinite(item.restSec) ? String(item.restSec) + "s" : "—"}</b></span>
+                      </div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
+      </Modal>
 
       {picking && (
         <ExercisePicker
