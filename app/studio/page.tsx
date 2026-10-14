@@ -45,20 +45,22 @@ export default function StudioDashboard() {
         }
       />
 
-      <section className="studio-command studio-command-photo mt-6 mb-5 overflow-hidden rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
-        <img className="studio-command-image" src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=85" alt="" aria-hidden="true" loading="eager" />
-        <div className="studio-command-shade" aria-hidden="true" />
+      <section className="studio-command studio-command-editorial mt-5 mb-5 rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
         <div className="studio-command-content flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-xl">
-            <p className="studio-command-kicker">EVOFIT / PAINEL DO PERSONAL</p>
-            <h2 className="mt-3 text-2xl font-black tracking-[-0.055em] leading-tight sm:text-4xl">Treino planejado.<br className="hidden sm:block" /> Evolução acompanhada.</h2>
-            <p className="mt-3 max-w-lg text-sm leading-relaxed opacity-75">Uma visão clara da rotina dos seus alunos, das sessões concluídas e de quem precisa de atenção.</p>
+          <div className="max-w-2xl">
+            <p className="studio-command-kicker">EVOFIT STUDIO <span aria-hidden="true">/</span> PAINEL DE CONTROLE</p>
+            <h2 className="mt-3 text-2xl font-bold leading-tight sm:text-4xl">Mais clareza para<br className="hidden sm:block" /> cada evolução.</h2>
+            <p className="mt-3 max-w-lg text-sm leading-relaxed">Acompanhe a rotina, identifique prioridades e mantenha seus alunos em movimento.</p>
+            <div className="studio-command-actions">
+              <Link href="/studio/alunos" className="btn btn-primary"><UserPlus size={17} aria-hidden /> Gerenciar alunos</Link>
+              <Link href="/studio/treinos" className="btn btn-outline"><ClipboardList size={17} aria-hidden /> Biblioteca de treinos</Link>
+            </div>
           </div>
-          <div className="studio-command-mark" aria-hidden="true">EF<span>.</span></div>
+          <div className="studio-command-mark" aria-hidden="true"><span>EF</span><i>.</i></div>
         </div>
       </section>
 
-      <section aria-label="Indicadores" className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section aria-label="Indicadores principais" className="stagger studio-metric-grid grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Alunos ativos" value={String(active.length)} hint={`${d.students.length - active.length} arquivado(s)`} />
         <Stat label="Treinos · 7 dias" value={String(last7)} hint="sessões concluídas" />
         <Stat label="Aderência da semana" value={adherence === null ? "—" : String(adherence)} unit={adherence === null ? undefined : "%"} hint="sessões feitas ÷ metas semanais" tone="accent" />
