@@ -224,6 +224,19 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
         <div className="mt-2">
           <Progress value={progress.pct} label={`${progress.done} de ${progress.total} séries concluídas`} />
         </div>
+        <nav className="evo-session-nav mt-3" aria-label="Ir para exercício">
+          {order.map((itemId, idx) => {
+            const sets = session.sets.filter((s) => s.itemId === itemId)
+            const complete = sets.every((s) => s.done)
+            const name = sets[0]?.exerciseName ?? `Exercício ${idx + 1}`
+            return (
+              <button key={itemId} type="button" className={cx("evo-session-nav-item", complete && "is-complete")} onClick={() => document.getElementById(`item-${itemId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={`Ir para exercício ${idx + 1}: ${name}`}>
+                <span>{complete ? <Check size={12} aria-hidden /> : idx + 1}</span>
+                <small>{name}</small>
+              </button>
+            )
+          })}
+        </nav>
       </div>
 
       <ol className="space-y-4">
@@ -236,7 +249,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
           const restSec = item?.restSec ?? 60
           return (
             <li key={itemId} id={`item-${itemId}`} className={cx("card scroll-mt-36 overflow-hidden transition-[opacity,border-color] duration-500", allDone && "border-success/40 opacity-80")}>
-              <div className="flex items-start gap-3 p-4 pb-3">
+              <div className="evo-session-exercise-heading flex items-start gap-3 p-4 pb-3">
                 <button type="button" className="group relative shrink-0" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Como fazer: ${sets[0].exerciseName}`}>
                   {ex ? <ExerciseThumb ex={ex} className="w-20" /> : <span className="thumb w-20" />}
                   <span key={String(allDone)} className={cx("pop absolute -left-1.5 -top-1.5 grid size-7 place-items-center rounded-full text-xs font-bold tabular", allDone ? "bg-success text-bg" : "bg-inverse text-on-inverse")}>
@@ -245,7 +258,8 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                 </button>
                 <div className="min-w-0 flex-1">
                   <h2 className="text-lg font-bold leading-tight">{sets[0].exerciseName}</h2>
-                  <p className="mt-0.5 text-sm text-muted tabular">
+                  <div className="evo-exercise-status mt-1"><span>{sets.filter((s) => s.done).length} de {sets.length} séries concluídas</span>{allDone && <span className="evo-exercise-complete"><Check size={12} aria-hidden /> Concluído</span>}</div>
+                  <p className="mt-1 text-sm text-muted tabular">
                     {item ? `${item.sets} × ${item.reps}` : `${sets.length} séries`}
                     {item?.load !== null && item?.load !== undefined && ` · ${item.load} kg prescrito`}
                     {restSec > 0 && ` · ${restSec}s`}
