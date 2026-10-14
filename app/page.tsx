@@ -41,7 +41,7 @@ const EXPERIENCES = [
 
 const FLOW = [
   { n: "01", icon: Users, title: "Organize", text: "Cadastre seus alunos e entenda quem precisa de atenção." },
-  { n: "02", icon: ClipboardList, title: "Prescreva", text: "Monte fichas com exercícios, séries, repetições, carga e descanso." },
+  { n: "02", icon: ClipboardList, title: "Monte os treinos", text: "Monte fichas com exercícios, séries, repetições, carga e descanso." },
   { n: "03", icon: Dumbbell, title: "Acompanhe", text: "Veja o que foi concluído e acompanhe a evolução registrada." },
 ]
 
@@ -57,10 +57,10 @@ export default function Home() {
             <div className="evo-campaign-overlay" aria-hidden="true" />
             <div className="evo-campaign-top"><span>EVOFIT / TRAINING SYSTEM</span><span>01—04</span></div>
             <div className="evo-campaign-copy">
-              <p>SEU TREINO. SUA EVOLUÇÃO.</p>
-              <h1>SMARTER<br/>WORKOUTS.<br/><span>REAL RESULTS.</span></h1>
-              <p className="evo-campaign-description">Planeje com intenção. Treine com consistência. Acompanhe cada evolução.</p>
-              <Link href="/studio" className="evo-lime-button">EXPLORAR EVOFIT <ArrowRight size={17} aria-hidden /></Link>
+              <p>TREINO COM INTENÇÃO</p>
+              <h1>TREINO<br/>INTELIGENTE.<br/><span>RESULTADO REAL.</span></h1>
+              <p className="evo-campaign-description">Planeje os treinos, acompanhe seus alunos e transforme cada sessão em progresso visível.</p>
+              <Link href="/studio" className="evo-lime-button">CONHECER O EVOFIT <ArrowRight size={17} aria-hidden /></Link>
             </div>
             <div className="evo-campaign-bottom"><span>FORÇA / FOCO / PROGRESSO</span><span>RIO DE JANEIRO · BR</span></div>
           </article>
@@ -69,19 +69,19 @@ export default function Home() {
             <div className="evo-phone-orbit" aria-hidden="true" />
             <div className="evo-phone" aria-label="Prévia da experiência de treino do aluno">
               <div className="evo-phone-status"><span>9:41</span><span>● ● ▰</span></div>
-              <div className="evo-phone-header"><div><span>QUARTA-FEIRA, 13</span><h2>LET'S MOVE.</h2></div><div className="evo-avatar">E.</div></div>
+              <div className="evo-phone-header"><div><span>SEU PLANO DE TREINO</span><h2>BORA TREINAR.</h2></div><div className="evo-avatar">E.</div></div>
               <div className="evo-phone-feature">
                 <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=85" alt="" loading="eager" />
-                <div><span>PLANO DE HOJE</span><strong>UPPER BODY<br/>STRENGTH</strong><small>45 MIN · 06 EXERCÍCIOS</small></div>
+                <div><span>TREINO DE HOJE</span><strong>TREINO DE<br/>MEMBROS SUPERIORES</strong><small>45 MIN · 6 EXERCÍCIOS</small></div>
               </div>
-              <div className="evo-phone-progress"><div><span>PROGRESSO SEMANAL</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
-              <div className="evo-phone-section"><h3>SEU TREINO <span>VER TODOS ↗</span></h3>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>BENCH PRESS</strong><small>Peito · 4 séries × 10</small></div><span>↗</span></div>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>STRENGTH SET</strong><small>Costas · 3 séries × 12</small></div><span>↗</span></div>
+              <div className="evo-phone-progress"><div><span>META DA SEMANA</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
+              <div className="evo-phone-section"><h3>EXERCÍCIOS <span>VER FICHA ↗</span></h3>
+                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>SUPINO RETO</strong><small>Peito · 4 × 10 repetições</small></div><span>↗</span></div>
+                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>PUXADA ALTA</strong><small>Costas · 3 × 12 repetições</small></div><span>↗</span></div>
               </div>
-              <Link href="/aluno" className="evo-phone-cta">ABRIR EXPERIÊNCIA DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
+              <Link href="/aluno" className="evo-phone-cta">EXPERIMENTAR O APP DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
             </div>
-            <p className="evo-phone-caption"><span>02 / 04</span> PRESCRIÇÃO, EXECUÇÃO E PROGRESSO EM UM SÓ LUGAR</p>
+            <p className="evo-phone-caption"><span>02 / 04</span> TREINOS E EVOLUÇÃO CONECTADOS</p>
           </div>
         </div>
       </section>
@@ -89,8 +89,8 @@ export default function Home() {
       <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="t-eyebrow">Um fluxo conectado</p>
-            <h2 id="flow-title" className="t-h1 mt-2">Do planejamento ao progresso.</h2>
+            <p className="t-eyebrow">Tudo conectado</p>
+            <h2 id="flow-title" className="t-h1 mt-2">Do planejamento à evolução.</h2>
           </div>
           <p className="max-w-md text-sm leading-relaxed text-muted">O que você prescreve no Studio aparece para o aluno executar e registrar.</p>
         </div>
@@ -112,8 +112,8 @@ export default function Home() {
 
       <section className="mt-12 sm:mt-16" aria-labelledby="experiences-title">
         <div className="max-w-2xl">
-          <p className="t-eyebrow">Explore por objetivo</p>
-          <h2 id="experiences-title" className="t-h1 mt-2">Entre direto na experiência que importa para você.</h2>
+          <p className="t-eyebrow">Entre no EVOFIT</p>
+          <h2 id="experiences-title" className="t-h1 mt-2">Um sistema para quem prescreve. Uma experiência para quem treina.</h2>
         </div>
         <ul className="mt-6 grid gap-4 md:grid-cols-3">
           {EXPERIENCES.map(({ href, icon: Icon, eyebrow, title, text, cta }) => (
