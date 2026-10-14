@@ -1790,3 +1790,25 @@ body { background-color:var(--bg); }
 .studio-command-photo + section[aria-label="Indicadores"] .stat .stat-value { font-size:clamp(2rem,3vw,3rem); letter-spacing:-.08em; font-weight:1000; }
 .studio-command-photo + section[aria-label="Indicadores"] .stat .stat-label { font-size:.68rem; font-weight:850; letter-spacing:.02em; }
 @media(max-width:640px) { .studio-command-photo + section[aria-label="Indicadores"] .stat { min-height:7.5rem; padding:.9rem; } }
+
+
+/* P0 — actionable trainer dashboard. Priorities are links to the relevant workflow. */
+.evo-today { overflow:hidden; border:1px solid var(--line); border-radius:1.25rem; background:var(--surface); box-shadow:var(--shadow); }
+.evo-today-heading { display:flex; align-items:flex-end; justify-content:space-between; gap:1rem; padding:1.25rem 1.35rem; background:var(--surface-2); }
+.evo-today-kicker { color:var(--accent-text); font-size:.58rem; font-weight:950; letter-spacing:.16em; }
+.evo-today-heading h2 { margin-top:.4rem; font-size:clamp(1.25rem,2.3vw,1.75rem); font-weight:950; letter-spacing:-.055em; line-height:1.05; }
+.evo-today-heading p:last-child { margin-top:.45rem; color:var(--fg-muted); font-size:.8rem; }
+.evo-today-count { display:grid; width:2.7rem; height:2.7rem; flex-shrink:0; place-items:center; border-radius:50%; background:#080D0D; color:#CFFFE0; font-size:1rem; font-weight:950; }
+.evo-today-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 1.25rem; padding:0 1.35rem; }
+.evo-today-item { display:flex; min-width:0; align-items:center; gap:.75rem; padding:1rem 0; border-bottom:1px solid var(--line); transition:opacity .15s ease; }
+.evo-today-item:hover { opacity:.72; }
+.evo-today-icon { display:grid; width:2.65rem; height:2.65rem; flex-shrink:0; place-items:center; border-radius:.85rem; }
+.evo-today-icon-mint { background:#CFFFE0; color:#080D0D; }
+.evo-today-icon-lilac { background:#B599F2; color:#080D0D; }
+.evo-today-icon-neutral { background:var(--surface-2); color:var(--fg); }
+.evo-today-copy { display:flex; min-width:0; flex:1; flex-direction:column; gap:.25rem; }
+.evo-today-copy strong { font-size:.82rem; font-weight:850; letter-spacing:-.02em; }
+.evo-today-copy small { color:var(--fg-muted); font-size:.7rem; line-height:1.4; }
+.evo-today-value { min-width:1.4rem; text-align:right; font-size:1.25rem; font-weight:950; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
+.evo-today-item>svg:last-child { flex-shrink:0; color:var(--fg-muted); }
+@media(max-width:760px) { .evo-today-list { grid-template-columns:minmax(0,1fr); padding:0 1rem; } .evo-today-heading { padding:1rem; } .evo-today-item { gap:.65rem; } .evo-today-copy small { font-size:.72rem; } }
