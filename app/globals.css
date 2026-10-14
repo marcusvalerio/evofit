@@ -1872,3 +1872,85 @@ body { background-color:var(--bg); }
   .evo-session-exercise-heading .btn { min-height:2.25rem; }
   .evo-session-nav-item { padding:.35rem .5rem .35rem .35rem; }
 }
+
+
+/* UX refinement — reduce visual noise and make the next action obvious on mobile. */
+.evo-page-campaign-workouts {
+  min-height: 13rem;
+  margin-bottom: 1.25rem !important;
+  border-radius: 1.15rem;
+}
+.evo-page-campaign-workouts .evo-page-campaign-content { max-width: 34rem; padding: 1.4rem; }
+.evo-page-campaign-workouts .evo-page-campaign-content h2 { font-size: clamp(1.8rem, 4vw, 2.7rem); line-height: .98; }
+.evo-page-campaign-workouts .evo-page-campaign-stat { right: 1rem; bottom: 1rem; }
+.evo-workout-card { min-width: 0; overflow: hidden; border-radius: 1rem; }
+.evo-workout-cover { min-height: 9.5rem; max-height: 10rem; }
+.evo-workout-card-body { padding: 1rem; }
+.evo-workout-title { font-size: 1.2rem; font-weight: 850; line-height: 1.2; letter-spacing: -.035em; overflow-wrap: anywhere; }
+.evo-workout-card-body .mt-4 { margin-top: .8rem; }
+.evo-workout-card-body .mt-3 { margin-top: .65rem; }
+.evo-workout-card-body .border-t { padding-top: .75rem; }
+.evo-workout-card-body .badge { font-size: .72rem; }
+.evo-student-campaign {
+  min-height: 0 !important;
+  padding: 1.35rem !important;
+  border-radius: 1.15rem !important;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .55rem;
+}
+.evo-student-campaign > img { object-position: center 38%; }
+.evo-student-campaign .evo-student-kicker { margin: 0; }
+.evo-student-campaign h2 { max-width: 12ch; font-size: clamp(1.85rem, 7vw, 2.65rem) !important; line-height: .98 !important; letter-spacing: -.05em; }
+.evo-student-campaign > p:not(.evo-student-kicker) { max-width: 29rem; font-size: .9rem; line-height: 1.45; }
+.evo-student-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 2.65rem;
+  margin-top: .35rem;
+  padding: .65rem .9rem;
+  border-radius: .75rem;
+  background: #CFFFE0;
+  color: #080D0D;
+  font-size: .82rem;
+  font-weight: 850;
+  transition: transform .18s ease, background-color .18s ease;
+}
+.evo-student-primary-action:active { transform: translateY(1px); }
+.evo-section-count {
+  display: inline-grid;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  margin-left: .35rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--fg-muted);
+  font-size: .7rem;
+  font-weight: 850;
+  vertical-align: .15em;
+}
+@media (max-width: 639px) {
+  .evo-page-campaign-workouts { min-height: 10.5rem; }
+  .evo-page-campaign-workouts .evo-page-campaign-content { padding: 1rem; }
+  .evo-page-campaign-workouts .evo-page-campaign-content h2 { font-size: 1.75rem; }
+  .evo-page-campaign-workouts .evo-page-campaign-content > p:last-child { max-width: 16rem; font-size: .78rem; line-height: 1.4; }
+  .evo-page-campaign-workouts .evo-page-campaign-stat { top: .9rem; right: .9rem; bottom: auto; }
+  .evo-page-campaign-workouts .evo-page-campaign-stat strong { font-size: 1.6rem; }
+  .evo-workout-cover { min-height: 7.5rem; max-height: 7.5rem; }
+  .evo-workout-cover-index { font-size: .55rem; }
+  .evo-workout-cover-mark { font-size: 4rem; }
+  .evo-workout-card-body { padding: .9rem; }
+  .evo-workout-title { font-size: 1.08rem; }
+  .evo-workout-card-body .mt-4 { margin-top: .65rem; }
+  .evo-student-campaign { padding: 1.1rem !important; margin-top: 1rem !important; }
+  .evo-student-campaign h2 { font-size: clamp(1.8rem, 8vw, 2.35rem) !important; }
+  .evo-student-campaign > p:not(.evo-student-kicker) { max-width: 22rem; font-size: .82rem; }
+  .evo-student-primary-action { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .evo-student-primary-action { transition: none; }
+}
