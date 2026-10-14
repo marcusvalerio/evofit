@@ -118,7 +118,20 @@ export default function Home() {
         <ul className="mt-6 grid gap-4 md:grid-cols-3">
           {EXPERIENCES.map(({ href, icon: Icon, eyebrow, title, text, cta }) => (
             <li key={href}>
-              <Link href={href} className="card group flex h-full flex-col p-5 transition-colors hover:border-line-strong sm:p-6">
+              <Link href={href} className="card evo-experience-card group flex h-full flex-col overflow-hidden p-0 transition-colors hover:border-line-strong">
+                <div className="evo-experience-photo">
+                  <img
+                    src={href === "/studio"
+                      ? "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=82"
+                      : href === "/aluno"
+                        ? "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=900&q=82"
+                        : "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=82"}
+                    alt=""
+                    loading="lazy"
+                  />
+                  <span>{href === "/studio" ? "GESTÃO E ACOMPANHAMENTO" : href === "/aluno" ? "TREINE NO SEU RITMO" : "ENCONTRE SEU PERSONAL"}</span>
+                </div>
+                <div className="flex flex-1 flex-col p-5 sm:p-6">
                 <span className="grid size-11 place-items-center rounded-2xl bg-accent-soft text-accent">
                   <Icon size={20} aria-hidden />
                 </span>
@@ -128,6 +141,7 @@ export default function Home() {
                 <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-accent">
                   {cta} <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
                 </span>
+                </div>
               </Link>
             </li>
           ))}
