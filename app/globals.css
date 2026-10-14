@@ -1738,3 +1738,24 @@ body { background-color:var(--bg); }
 .evo-page-campaign-students>img { object-position:center 38%; }
 .evo-page-campaign-workouts>img { object-position:center 38%; }
 @media(max-width:640px) { .evo-page-campaign { min-height:16rem; align-items:flex-end; padding:1.1rem; gap:.8rem; } .evo-page-campaign h2 { font-size:clamp(2.25rem,10vw,3.3rem); } .evo-page-campaign-stat { padding-left:.75rem; } .evo-page-campaign-stat strong { font-size:2.6rem; } .evo-page-campaign-stat span { max-width:5rem; font-size:.48rem; } .evo-page-campaign-content>p:last-child { max-width:17rem; font-size:.78rem; } }
+
+/* Workout library redesign: every plan is a visual program card, not a plain list item. */
+.evo-workout-card { overflow:hidden; padding:0; border-radius:1.2rem; background:var(--surface); }
+.evo-workout-cover { position:relative; isolation:isolate; display:flex; min-height:11.5rem; flex-direction:column; justify-content:space-between; overflow:hidden; padding:1rem 1.1rem; color:#F4F4F4; background:#151C1A; }
+.evo-workout-cover::before { position:absolute; z-index:-2; inset:0; content:""; background-size:cover; background-position:center; filter:saturate(.7); transition:transform .5s cubic-bezier(.2,.7,.2,1); }
+.evo-workout-cover:hover::before { transform:scale(1.06); }
+.evo-workout-cover::after { position:absolute; z-index:-1; inset:0; content:""; background:linear-gradient(90deg,rgb(8 13 13 / .78),rgb(8 13 13 / .12)),linear-gradient(0deg,rgb(8 13 13 / .65),transparent 65%); }
+.evo-workout-cover-0::before { background-image:url("https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=900&q=80"); }
+.evo-workout-cover-1::before { background-image:url("https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=80"); }
+.evo-workout-cover-2::before { background-image:url("https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80"); }
+.evo-workout-cover-index,.evo-workout-cover-bottom { display:flex; align-items:center; justify-content:space-between; gap:.5rem; font-size:.58rem; font-weight:950; letter-spacing:.15em; }
+.evo-workout-cover-index { color:#CFFFE0; }
+.evo-workout-cover-mark { position:absolute; right:.8rem; bottom:1.15rem; font-size:clamp(4.5rem,9vw,7rem); font-weight:1000; line-height:.75; letter-spacing:-.12em; color:rgb(244 244 244 / .88); }
+.evo-workout-cover-bottom { position:relative; z-index:1; color:rgb(244 244 244 / .85); }
+.evo-workout-cover-bottom span { display:grid; width:2rem; height:2rem; place-items:center; border:1px solid rgb(244 244 244 / .5); border-radius:50%; font-size:1rem; }
+.evo-workout-card-body { display:flex; flex:1; flex-direction:column; padding:1.1rem; }
+.evo-workout-title { font-size:1.15rem; font-weight:950; line-height:1.12; letter-spacing:-.045em; }
+.evo-workout-card-body > div:last-of-type { margin-top:auto; }
+.evo-workout-card .badge { border-radius:999px; font-size:.68rem; }
+@media(min-width:768px) { .evo-workout-cover { min-height:13rem; padding:1.2rem; } .evo-workout-card-body { padding:1.25rem; } }
+@media(max-width:640px) { .evo-workout-cover { min-height:10rem; } .evo-workout-cover-mark { font-size:4.5rem; } }
