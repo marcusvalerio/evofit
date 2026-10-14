@@ -1644,7 +1644,7 @@
   --shadow:0 2px 4px rgb(0 0 0 / .25),0 16px 36px -24px rgb(0 0 0 / .7);
   --shadow-lg:0 28px 70px -32px rgb(0 0 0 / .8);
 }
-:root[data-theme="dark"] body { background-image:radial-gradient(ellipse at 10% 0%,rgb(191 212 206 / .08),transparent 32rem); }
+:root[data-theme="dark"] body { background-image:radial-gradient(ellipse at 10% 0%,rgb(168 177 215 / .08),transparent 32rem); }
 body { background-color:var(--bg); }
 .glass { backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); }
 .card {
