@@ -1721,3 +1721,20 @@ body { background-color:var(--bg); }
   .studio-command-mark { display:none; }
   .evo-student-campaign { min-height:12rem; }
 }
+
+/* Editorial headers for real trainer workflows: student roster and workout programming. */
+.evo-page-campaign { position:relative; isolation:isolate; overflow:hidden; display:flex; align-items:flex-end; justify-content:space-between; gap:1.5rem; min-height:17rem; padding:clamp(1.25rem,3vw,2.25rem); border-radius:1.3rem; background:#080D0D; color:#F4F4F4; }
+.evo-page-campaign>img { position:absolute; inset:0; z-index:-2; width:100%; height:100%; object-fit:cover; object-position:center 42%; filter:saturate(.7) contrast(1.08); }
+.evo-page-campaign-overlay { position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg,rgb(8 13 13 / .96) 0%,rgb(8 13 13 / .78) 45%,rgb(8 13 13 / .15) 100%),linear-gradient(0deg,rgb(8 13 13 / .42),transparent 70%); }
+.evo-page-campaign-content { max-width:42rem; }
+.evo-page-kicker { display:flex; align-items:center; gap:.55rem; color:#CFFFE0; font-size:.62rem; font-weight:950; letter-spacing:.16em; }
+.evo-page-kicker::before { content:""; width:1.35rem; height:2px; background:#CFFFE0; }
+.evo-page-campaign h2 { margin-top:.9rem; font-size:clamp(2.4rem,5.5vw,4.5rem); font-weight:1000; line-height:.86; letter-spacing:-.075em; }
+.evo-page-campaign h2 span { color:#CFFFE0; }
+.evo-page-campaign-content>p:last-child { max-width:26rem; margin-top:.9rem; color:rgb(244 244 244 / .8); font-size:.9rem; line-height:1.5; }
+.evo-page-campaign-stat { display:flex; flex-direction:column; align-items:flex-end; flex-shrink:0; padding:1rem 0 0 1.5rem; border-left:1px solid rgb(244 244 244 / .35); }
+.evo-page-campaign-stat strong { font-size:clamp(2.8rem,5vw,5rem); line-height:.85; font-weight:1000; letter-spacing:-.08em; }
+.evo-page-campaign-stat span { margin-top:.65rem; color:#CFFFE0; font-size:.58rem; font-weight:900; letter-spacing:.13em; text-align:right; }
+.evo-page-campaign-students>img { object-position:center 38%; }
+.evo-page-campaign-workouts>img { object-position:center 38%; }
+@media(max-width:640px) { .evo-page-campaign { min-height:16rem; align-items:flex-end; padding:1.1rem; gap:.8rem; } .evo-page-campaign h2 { font-size:clamp(2.25rem,10vw,3.3rem); } .evo-page-campaign-stat { padding-left:.75rem; } .evo-page-campaign-stat strong { font-size:2.6rem; } .evo-page-campaign-stat span { max-width:5rem; font-size:.48rem; } .evo-page-campaign-content>p:last-child { max-width:17rem; font-size:.78rem; } }
