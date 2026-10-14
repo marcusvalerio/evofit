@@ -46,7 +46,7 @@ export default function StudioDashboard() {
         <div className="studio-command-shade" aria-hidden="true" />
         <div className="studio-command-content flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-xl">
-            <p className="studio-command-kicker">EVOFIT / STUDIO OVERVIEW</p>
+            <p className="studio-command-kicker">EVOFIT / PAINEL DO PERSONAL</p>
             <h2 className="mt-3 text-2xl font-black tracking-[-0.055em] leading-tight sm:text-4xl">Treino planejado.<br className="hidden sm:block" /> Evolução acompanhada.</h2>
             <p className="mt-3 max-w-lg text-sm leading-relaxed opacity-75">Uma visão clara da rotina dos seus alunos, das sessões concluídas e de quem precisa de atenção.</p>
           </div>
