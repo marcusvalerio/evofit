@@ -48,42 +48,35 @@ const FLOW = [
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in evo-landing evo-landing-editorial relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
+      <section className="fade-in evo-landing evo-landing-editorial evo-landing-clean relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
         <div className="evo-landing-grid" aria-hidden="true" />
-        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT <span>TRAINING PLATFORM</span></div>
-        <div className="evo-landing-layout">
-          <article className="evo-campaign-panel">
-            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=85" alt="Academia preparada para um treino de força" className="evo-campaign-image" loading="eager" />
-            <div className="evo-campaign-overlay" aria-hidden="true" />
-            <div className="evo-campaign-top"><span>EVOFIT / TRAINING SYSTEM</span><span>01—04</span></div>
-            <div className="evo-campaign-copy">
-              <p>TREINO COM INTENÇÃO</p>
-              <h1>TREINO<br/>INTELIGENTE.<br/><span>RESULTADO REAL.</span></h1>
-              <p className="evo-campaign-description">Planeje os treinos, acompanhe seus alunos e transforme cada sessão em progresso visível.</p>
-              <Link href="/studio" className="evo-lime-button">CONHECER O EVOFIT <ArrowRight size={17} aria-hidden /></Link>
+        <header className="evo-landing-wordmark" aria-label="EVOFIT">
+          <span className="evo-landing-brand">EVOFIT<span>.</span></span>
+          <span className="evo-landing-wordmark-caption">TREINO · GESTÃO · EVOLUÇÃO</span>
+        </header>
+        <div className="evo-clean-hero">
+          <div className="evo-clean-copy">
+            <p className="t-eyebrow">SUA ROTINA DE TREINO, EM EVOLUÇÃO</p>
+            <h1>Treine com<br/><span>mais intenção.</span></h1>
+            <p className="evo-clean-description">Um só lugar para planejar treinos, acompanhar alunos e transformar consistência em progresso.</p>
+            <div className="evo-clean-actions">
+              <Link href="/studio" className="btn btn-primary">Conhecer o Studio <ArrowRight size={17} aria-hidden /></Link>
+              <Link href="/aluno" className="evo-clean-secondary">Explorar app do aluno <ArrowRight size={16} aria-hidden /></Link>
             </div>
-            <div className="evo-campaign-bottom"><span>FORÇA / FOCO / PROGRESSO</span><span>RIO DE JANEIRO · BR</span></div>
-          </article>
-
-          <div className="evo-phone-stage">
-            <div className="evo-phone-orbit" aria-hidden="true" />
-            <div className="evo-phone" aria-label="Prévia da experiência de treino do aluno">
-              <div className="evo-phone-status"><span>9:41</span><span>● ● ▰</span></div>
-              <div className="evo-phone-header"><div><span>SEU PLANO DE TREINO</span><h2>BORA TREINAR.</h2></div><div className="evo-avatar">E.</div></div>
-              <div className="evo-phone-feature">
-                <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=85" alt="" loading="eager" />
-                <div><span>TREINO DE HOJE</span><strong>TREINO DE<br/>MEMBROS SUPERIORES</strong><small>45 MIN · 6 EXERCÍCIOS</small></div>
-              </div>
-              <div className="evo-phone-progress"><div><span>META DA SEMANA</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
-              <div className="evo-phone-section"><h3>EXERCÍCIOS <span>VER FICHA ↗</span></h3>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>SUPINO RETO</strong><small>Peito · 4 × 10 repetições</small></div><span>↗</span></div>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>PUXADA ALTA</strong><small>Costas · 3 × 12 repetições</small></div><span>↗</span></div>
-              </div>
-              <Link href="/aluno" className="evo-phone-cta">EXPERIMENTAR O APP DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
+            <div className="evo-clean-proof"><span><Check size={15} aria-hidden /> Fichas de treino</span><span><Check size={15} aria-hidden /> Evolução acompanhada</span></div>
+          </div>
+          <div className="evo-product-preview" aria-label="Prévia do painel EVOFIT">
+            <div className="evo-preview-top"><span className="evo-preview-dot" /> <span>STUDIO / VISÃO GERAL</span><span className="evo-preview-live">DEMO</span></div>
+            <div className="evo-preview-greeting"><div><span>QUARTA-FEIRA</span><h2>Seu trabalho,<br/>em perspectiva.</h2></div><div className="evo-preview-avatar">EF</div></div>
+            <div className="evo-preview-stats">
+              <div><span>ALUNOS ATIVOS</span><strong>24</strong><small>acompanhamento próximo</small></div>
+              <div><span>SESSÕES NA SEMANA</span><strong>86</strong><small>consistência em foco</small></div>
             </div>
-            <p className="evo-phone-caption"><span>02 / 04</span> TREINOS E EVOLUÇÃO CONECTADOS</p>
+            <div className="evo-preview-activity"><div className="evo-preview-activity-head"><strong>Atividade semanal</strong><span>Últimos 7 dias</span></div><div className="evo-preview-bars" aria-hidden="true"><i/><i/><i/><i/><i/><i/><i/></div><div className="evo-preview-days"><span>SEG</span><span>TER</span><span>QUA</span><span>QUI</span><span>SEX</span><span>SÁB</span><span>DOM</span></div></div>
+            <div className="evo-preview-next"><span className="evo-preview-next-icon"><Dumbbell size={17} aria-hidden /></span><div><strong>Treinos conectados</strong><small>Do planejamento à execução</small></div><ArrowRight size={17} aria-hidden /></div>
           </div>
         </div>
+        <footer className="evo-clean-footer"><span>FEITO PARA QUEM TREINA E QUEM ORIENTA</span><span>01 / 03 — EVOFIT PLATFORM</span></footer>
       </section>
 
       <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
