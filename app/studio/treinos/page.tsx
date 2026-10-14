@@ -60,6 +60,17 @@ function Treinos() {
         }
       />
 
+      <section className="evo-page-campaign evo-page-campaign-workouts mb-5" aria-label="Visão geral das fichas">
+        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1400&q=85" alt="" aria-hidden="true" loading="eager" />
+        <div className="evo-page-campaign-overlay" aria-hidden="true" />
+        <div className="evo-page-campaign-content">
+          <p className="evo-page-kicker">EVOFIT / PRESCRIÇÃO</p>
+          <h2>TREINO COM<br/><span>INTENÇÃO.</span></h2>
+          <p>Monte fichas, organize exercícios e acompanhe a evolução de cada plano.</p>
+        </div>
+        <div className="evo-page-campaign-stat"><strong>{d.workouts.length.toString().padStart(2, "0")}</strong><span>FICHAS CRIADAS</span></div>
+      </section>
+
       {d.workouts.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
