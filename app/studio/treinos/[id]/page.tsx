@@ -227,9 +227,10 @@ function Editor({ workout }: { workout: Workout }) {
             {activeStudents.length === 0 ? (
               <p className="mt-3 text-sm text-muted">Nenhum aluno ativo.</p>
             ) : (
-              <div className="mt-3"><label className="sr-only" htmlFor="assigned-student-search">Buscar aluno para atribuir ficha</label><input id="assigned-student-search" className="input" value={studentQuery} onChange={(e) => setStudentQuery(e.target.value)} placeholder="Buscar aluno..." /></div>
-              {visibleStudents.length === 0 && <p className="mt-3 text-sm text-muted">Nenhum aluno encontrado.</p>}
-              <ul className="mt-3 space-y-1">
+              <>
+                <div className="mt-3"><label className="sr-only" htmlFor="assigned-student-search">Buscar aluno para atribuir ficha</label><input id="assigned-student-search" className="input" value={studentQuery} onChange={(e) => setStudentQuery(e.target.value)} placeholder="Buscar aluno..." /></div>
+                {visibleStudents.length === 0 && <p className="mt-3 text-sm text-muted">Nenhum aluno encontrado.</p>}
+                <ul className="mt-3 space-y-1">
                 {visibleStudents.map((s) => {
                   const on = draft.studentIds.includes(s.id)
                   return (
@@ -246,7 +247,8 @@ function Editor({ workout }: { workout: Workout }) {
                     </li>
                   )
                 })}
-              </ul>
+                </ul>
+              </>
             )}
           </div>
           <div className="card hidden space-y-2 p-5 lg:block">
