@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Plus, Search, Trash2 } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import type { Workout, WorkoutItem } from "@/lib/types"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
@@ -35,10 +35,25 @@ function Editor({ workout }: { workout: Workout }) {
   const [picking, setPicking] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [tried, setTried] = useState(false)
+  const [bulkSets, setBulkSets] = useState("3")
+  const [bulkReps, setBulkReps] = useState("8-12")
+  const [bulkRest, setBulkRest] = useState("60")
+  const [studentQuery, setStudentQuery] = useState("")
   const errors = validateWorkout(draft)
   const valid = isWorkoutValid(errors)
   const dirty = JSON.stringify(draft) !== JSON.stringify(workout)
   const activeStudents = d.students.filter((s) => s.status === "ativo")
+  const visibleStudents = activeStudents.filter((s) => s.name.toLocaleLowerCase("pt-BR").includes(studentQuery.trim().toLocaleLowerCase("pt-BR")))
+  const applyBulk = () => {
+    const sets = Number.parseInt(bulkSets, 10)
+    const restSec = Number.parseInt(bulkRest, 10)
+    if (!Number.isInteger(sets) || sets < 1 || sets > 20 || !Number.isInteger(restSec) || restSec < 0 || restSec > 600 || !bulkReps.trim()) {
+      toast("Confira séries, repetições e descanso antes de aplicar.", "error")
+      return
+    }
+    setDraft((w) => ({ ...w, items: w.items.map((item) => ({ ...item, sets, reps: bulkReps.trim(), restSec })) }))
+    toast("Configuração aplicada a todos os exercícios.")
+  }
 
   useEffect(() => {
     if (!dirty) return
@@ -99,6 +114,29 @@ function Editor({ workout }: { workout: Workout }) {
               <Plus size={16} aria-hidden /> Adicionar
             </button>
           </div>
+          {draft.items.length > 1 && (
+            <section className="evo-bulk-prescription card p-4" aria-label="Aplicar configuração em lote">
+              <div className="flex items-start gap-3">
+                <span className="evo-bulk-icon"><Copy size={18} aria-hidden /></span>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold tracking-tight">Ajuste em lote</h3>
+                  <p className="mt-1 text-sm text-muted">Aplique séries, repetições e descanso a todos os exercícios desta ficha. As cargas e instruções individuais serão preservadas.</p>
+                </div>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                <Field label="Séries">
+                  {(p) => <input {...p} className="input tabular" type="number" min={1} max={20} value={bulkSets} onChange={(e) => setBulkSets(e.target.value)} />}
+                </Field>
+                <Field label="Repetições">
+                  {(p) => <input {...p} className="input" value={bulkReps} maxLength={20} onChange={(e) => setBulkReps(e.target.value)} />}
+                </Field>
+                <Field label="Descanso (s)">
+                  {(p) => <input {...p} className="input tabular" type="number" min={0} max={600} step={15} value={bulkRest} onChange={(e) => setBulkRest(e.target.value)} />}
+                </Field>
+              </div>
+              <button type="button" className="btn btn-outline btn-sm mt-3 w-full sm:w-auto" onClick={applyBulk}><Copy size={15} aria-hidden /> Aplicar aos {draft.items.length} exercícios</button>
+            </section>
+          )}
           {show.items && <p className="field-error">{show.items}</p>}
 
           {draft.items.length === 0 ? (
@@ -189,8 +227,10 @@ function Editor({ workout }: { workout: Workout }) {
             {activeStudents.length === 0 ? (
               <p className="mt-3 text-sm text-muted">Nenhum aluno ativo.</p>
             ) : (
+              <div className="mt-3"><label className="sr-only" htmlFor="assigned-student-search">Buscar aluno para atribuir ficha</label><input id="assigned-student-search" className="input" value={studentQuery} onChange={(e) => setStudentQuery(e.target.value)} placeholder="Buscar aluno..." /></div>
+              {visibleStudents.length === 0 && <p className="mt-3 text-sm text-muted">Nenhum aluno encontrado.</p>}
               <ul className="mt-3 space-y-1">
-                {activeStudents.map((s) => {
+                {visibleStudents.map((s) => {
                   const on = draft.studentIds.includes(s.id)
                   return (
                     <li key={s.id}>
