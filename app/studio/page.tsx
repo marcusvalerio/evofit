@@ -22,6 +22,10 @@ export default function StudioDashboard() {
   const studentName = new Map(d.students.map((s) => [s.id, s.name]))
   const inbox = d.contactRequests.filter((c) => c.trainerSlug === d.profile.slug)
   const live = d.sessions.filter((s) => s.status === "em_andamento")
+  const elapsedWeekDays = (now.getDay() + 6) % 7 + 1
+  const goalRisk = active
+    .map((student) => ({ student, done: weekCount(d, student.id, now), expected: Math.ceil((student.weeklyTarget * elapsedWeekDays) / 7) }))
+    .filter(({ student, done, expected }) => done < expected && done < student.weeklyTarget)
 
   return (
     <div className="fade-in">
@@ -68,7 +72,7 @@ export default function StudioDashboard() {
             <h2 id="evo-today-title">O que merece sua atenção</h2>
             <p>Prioridades calculadas a partir da atividade registrada no EVOFIT.</p>
           </div>
-          <span className="evo-today-count">{new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length}</span>
+          <span className="evo-today-count">{new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length + goalRisk.length}</span>
         </div>
         <div className="evo-today-list">
           <Link href="/studio/alunos" className="evo-today-item">
@@ -90,6 +94,11 @@ export default function StudioDashboard() {
             <span className="evo-today-icon evo-today-icon-mint"><ClipboardList size={19} aria-hidden /></span>
             <span className="evo-today-copy"><strong>Sessões em andamento</strong><small>{live.length ? "Acompanhe os alunos que estão treinando agora." : "Nenhuma sessão em andamento neste momento."}</small></span>
             <span className="evo-today-value">{live.length}</span><ArrowRight size={17} aria-hidden />
+          </Link>
+          <Link href="/studio/alunos" className="evo-today-item">
+            <span className="evo-today-icon evo-today-icon-lilac"><CalendarCheck size={19} aria-hidden /></span>
+            <span className="evo-today-copy"><strong>Metas semanais em risco</strong><small>{goalRisk.length ? goalRisk.slice(0, 3).map(({ student }) => student.name.split(" ")[0]).join(", ") + (goalRisk.length > 3 ? " e outros" : "") + " precisam de acompanhamento para alcançar a meta." : "As metas estão no ritmo esperado até agora."}</small></span>
+            <span className="evo-today-value">{goalRisk.length}</span><ArrowRight size={17} aria-hidden />
           </Link>
         </div>
       </section>
