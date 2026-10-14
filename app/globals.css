@@ -1823,3 +1823,11 @@ body { background-color:var(--bg); }
 .evo-workout-search button { flex-shrink:0; color:var(--accent-text); font-size:.75rem; font-weight:800; }
 .evo-workout-result-count { flex-shrink:0; color:var(--fg-muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
 @media(max-width:560px) { .evo-workout-toolbar { align-items:stretch; flex-direction:column; gap:.55rem; } .evo-workout-search { width:100%; } .evo-workout-result-count { align-self:flex-end; } }
+
+
+/* P0 Phase 2 — fast prescription editing and searchable assignment list. */
+.evo-bulk-prescription { border-color:rgb(181 153 242 / .55); background:linear-gradient(135deg,var(--surface),rgb(181 153 242 / .08)); }
+.evo-bulk-icon { display:grid; width:2.4rem; height:2.4rem; flex-shrink:0; place-items:center; border-radius:.75rem; background:#B599F2; color:#080D0D; }
+.evo-bulk-prescription .input { min-width:0; }
+#assigned-student-search { font-size:.875rem; }
+@media(max-width:420px) { .evo-bulk-prescription { padding:.85rem; } .evo-bulk-prescription .grid { gap:.45rem; } .evo-bulk-prescription label { font-size:.75rem; } }
