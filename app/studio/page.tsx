@@ -49,7 +49,7 @@ export default function StudioDashboard() {
         <div className="studio-command-content flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
             <p className="studio-command-kicker">EVOFIT STUDIO <span aria-hidden="true">/</span> PAINEL DE CONTROLE</p>
-            <h2 className="mt-3 text-2xl font-bold leading-tight sm:text-4xl">Mais clareza para<br className="hidden sm:block" /> cada evolução.</h2>
+            <h2 className="mt-3 text-2xl font-semibold leading-tight sm:text-4xl">Mais clareza para<br className="hidden sm:block" /> cada evolução.</h2>
             <p className="mt-3 max-w-lg text-sm leading-relaxed">Acompanhe a rotina, identifique prioridades e mantenha seus alunos em movimento.</p>
             <div className="studio-command-actions">
               <Link href="/studio/alunos" className="btn btn-primary"><UserPlus size={17} aria-hidden /> Gerenciar alunos</Link>
