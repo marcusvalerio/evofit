@@ -50,6 +50,10 @@ export default function AlunoHome() {
         <p className="evo-student-kicker">EVOFIT / SEU MOMENTO</p>
         <h2>UM TREINO<br/>DE CADA VEZ.</h2>
         <p>Seu plano, seu ritmo e cada conquista registrada no caminho.</p>
+        <Link href={live ? `/aluno/treino/${live.workoutId}` : "#student-workouts"} className="evo-student-primary-action">
+          {live ? "Continuar treino" : workouts.length ? "Escolher meu treino" : "Ver meus treinos"}
+          <ChevronRight size={17} aria-hidden />
+        </Link>
       </section>
 
       <section className="card mt-5 flex items-center gap-4 p-4" aria-label="Meta da semana">
@@ -85,7 +89,7 @@ export default function AlunoHome() {
         </Link>
       )}
 
-      <h2 className="t-h2 mb-3 mt-7">Seus treinos</h2>
+      <h2 id="student-workouts" className="t-h2 mb-3 mt-7">Seus treinos <span className="evo-section-count">{workouts.length}</span></h2>
       {workouts.length === 0 ? (
         <EmptyState icon={Dumbbell} title="Nenhum treino liberado">
           Seu personal ainda não atribuiu uma ficha. No Studio, abra uma ficha e marque este aluno.
