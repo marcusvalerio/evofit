@@ -1447,3 +1447,127 @@
     mask-image: linear-gradient(135deg, #000 0%, transparent 85%);
   }
 }
+
+
+/* EVOFIT art direction v2 — campaign photography + product-in-device composition */
+:root {
+  --evo-acid: #CFFFE0;
+  --evo-lilac: #B599F2;
+  --evo-black: #080D0D;
+  --evo-midnight: #383838;
+  --evo-cloud: #E2E2E2;
+  --evo-sand: #D6D1C5;
+}
+.evo-landing {
+  isolation: isolate;
+  padding: clamp(1rem, 3vw, 2.5rem);
+  border-radius: 1.8rem;
+  background: #BFD4CE;
+  color: var(--evo-black);
+}
+.evo-landing-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .65;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #F4F4F4 1.8px, transparent 2px);
+  background-size: 19px 19px;
+  mask-image: linear-gradient(180deg, #000 0%, transparent 95%);
+}
+.evo-landing-wordmark {
+  position: absolute;
+  z-index: -1;
+  right: -1rem;
+  top: 1rem;
+  color: rgb(244 244 244 / .35);
+  font-size: clamp(7rem, 21vw, 19rem);
+  line-height: .8;
+  font-weight: 1000;
+  letter-spacing: -.095em;
+  pointer-events: none;
+}
+.evo-landing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(20rem, .88fr);
+  align-items: stretch;
+  gap: clamp(1rem, 3vw, 2.5rem);
+  max-width: 88rem;
+  margin: 0 auto;
+}
+.evo-campaign-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 44rem;
+  border-radius: 1.75rem;
+  padding: clamp(1.1rem, 2.3vw, 2rem);
+  background: #111;
+  color: white;
+}
+.evo-campaign-image,.evo-campaign-overlay { position:absolute; inset:0; width:100%; height:100%; }
+.evo-campaign-image { z-index:-2; object-fit:cover; object-position:center; filter:grayscale(.42) contrast(1.08); }
+.evo-campaign-overlay { z-index:-1; background:linear-gradient(180deg, rgb(0 0 0 / .06) 0%, rgb(0 0 0 / .04) 28%, rgb(0 0 0 / .82) 67%, #080D0D 100%); }
+.evo-campaign-top,.evo-campaign-bottom { display:flex; align-items:center; justify-content:space-between; gap:1rem; font-size:.63rem; font-weight:800; letter-spacing:.13em; }
+.evo-campaign-top { color:rgb(255 255 255 / .78); }
+.evo-campaign-copy { margin-top:auto; padding:5rem 0 1.3rem; }
+.evo-campaign-copy>p:first-child { margin-bottom:1rem; color:var(--evo-acid); font-size:.7rem; font-weight:900; letter-spacing:.17em; }
+.evo-campaign-copy h1 { font-size:clamp(3.2rem,5.5vw,6.2rem); line-height:.84; font-weight:1000; letter-spacing:-.075em; }
+.evo-campaign-copy h1 span { color:var(--evo-acid); }
+.evo-campaign-description { max-width:23rem; margin-top:1.4rem; color:rgb(255 255 255 / .82); font-size:.9rem; line-height:1.55; }
+.evo-lime-button { display:inline-flex; align-items:center; justify-content:center; gap:.8rem; margin-top:1.4rem; min-height:3.35rem; padding:0 1.25rem; border-radius:999px; background:var(--evo-acid); color:var(--evo-black); font-size:.72rem; font-weight:950; letter-spacing:.04em; transition:transform .2s, background .2s; }
+.evo-lime-button:hover { transform:translateY(-2px); background:#B5F9D0; }
+.evo-campaign-bottom { padding-top:1rem; border-top:1px solid rgb(255 255 255 / .3); color:rgb(255 255 255 / .65); font-size:.55rem; }
+.evo-phone-stage { position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:1rem 0; }
+.evo-phone-orbit { position:absolute; z-index:-1; width:90%; aspect-ratio:1; border:1px solid rgb(255 255 255 / .6); border-radius:50%; box-shadow:0 0 0 1.8rem rgb(255 255 255 / .14), 0 0 0 3.6rem rgb(255 255 255 / .1); }
+.evo-phone { width:min(100%, 25rem); border:7px solid #080D0D; border-radius:2.8rem; padding:1rem; background:#080D0D; color:#F4F4F4; box-shadow:0 28px 60px rgb(8 13 13 / .24); }
+.evo-phone-status { display:flex; justify-content:space-between; padding:.25rem .6rem 1.2rem; font-size:.7rem; font-weight:800; }
+.evo-phone-status span:last-child { letter-spacing:.15em; font-size:.6rem; }
+.evo-phone-header { display:flex; align-items:center; justify-content:space-between; padding:.3rem .2rem 1rem; }
+.evo-phone-header>div:first-child>span { color:#A8B4B1; font-size:.55rem; font-weight:800; letter-spacing:.1em; }
+.evo-phone-header h2 { margin-top:.2rem; font-size:1.9rem; line-height:1; font-weight:1000; letter-spacing:-.07em; }
+.evo-avatar { display:grid; place-items:center; width:2.5rem; height:2.5rem; border:1px solid rgb(207 255 224 / .45); border-radius:50%; color:var(--evo-acid); font-size:1.1rem; font-weight:900; }
+.evo-phone-feature { position:relative; isolation:isolate; overflow:hidden; min-height:12.5rem; border-radius:1.35rem; background:#303A39; }
+.evo-phone-feature img { position:absolute; inset:0; z-index:-2; width:100%; height:100%; object-fit:cover; object-position:center 35%; }
+.evo-phone-feature::after { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(90deg, rgb(8 13 13 / .88), rgb(8 13 13 / .08)),linear-gradient(0deg,rgb(8 13 13 / .48),transparent 65%); }
+.evo-phone-feature>div { display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-end; min-height:12.5rem; padding:1rem; }
+.evo-phone-feature span { color:var(--evo-acid); font-size:.56rem; font-weight:900; letter-spacing:.12em; }
+.evo-phone-feature strong { margin-top:.6rem; font-size:1.7rem; font-weight:1000; line-height:.92; letter-spacing:-.06em; }
+.evo-phone-feature small { margin-top:.8rem; font-size:.58rem; font-weight:800; letter-spacing:.06em; }
+.evo-phone-progress { margin-top:.7rem; padding:1rem; border-radius:1rem; background:#F4F4F4; color:#080D0D; }
+.evo-phone-progress>div:first-child { display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+.evo-phone-progress span { font-size:.52rem; font-weight:900; letter-spacing:.06em; }
+.evo-phone-progress strong { font-size:1.45rem; line-height:1; font-weight:1000; }
+.evo-phone-progress strong small { color:#727272; font-size:.52rem; letter-spacing:0; }
+.evo-progress-track { height:.35rem; margin-top:.7rem; overflow:hidden; border-radius:999px; background:#D8D8D8; }
+.evo-progress-track i { display:block; width:75%; height:100%; border-radius:inherit; background:#18E99A; }
+.evo-phone-section { padding:.9rem .1rem .1rem; }
+.evo-phone-section h3 { display:flex; align-items:center; justify-content:space-between; margin-bottom:.6rem; font-size:.77rem; font-weight:950; letter-spacing:-.025em; }
+.evo-phone-section h3 span { color:var(--evo-acid); font-size:.52rem; letter-spacing:.04em; }
+.evo-exercise-row { display:flex; align-items:center; gap:.65rem; margin-top:.5rem; padding:.45rem; border:1px solid rgb(255 255 255 / .1); border-radius:.9rem; background:#141B1A; }
+.evo-exercise-row img { width:3.4rem; height:3.4rem; flex-shrink:0; object-fit:cover; border-radius:.65rem; }
+.evo-exercise-row div { display:flex; flex:1; min-width:0; flex-direction:column; gap:.22rem; }
+.evo-exercise-row strong { font-size:.68rem; font-weight:900; }
+.evo-exercise-row small { color:#A8B4B1; font-size:.58rem; }
+.evo-exercise-row>span { color:var(--evo-acid); padding:0 .3rem; }
+.evo-phone-cta { display:flex; align-items:center; justify-content:center; gap:.55rem; margin-top:.8rem; min-height:2.9rem; border-radius:999px; background:var(--evo-acid); color:#080D0D; font-size:.6rem; font-weight:950; }
+.evo-phone-caption { display:flex; align-items:center; gap:.8rem; max-width:25rem; margin-top:1.2rem; color:#353535; font-size:.58rem; line-height:1.5; font-weight:850; letter-spacing:.08em; }
+.evo-phone-caption span { color:#7659A5; white-space:nowrap; }
+@media (max-width: 850px) {
+  .evo-landing-layout { grid-template-columns:minmax(0,1fr); max-width:42rem; }
+  .evo-campaign-panel { min-height:39rem; }
+  .evo-campaign-copy h1 { font-size:clamp(3.3rem,10vw,5.4rem); }
+  .evo-phone-stage { padding:1.8rem 0 .6rem; }
+  .evo-phone { width:min(100%, 24rem); }
+}
+@media (max-width: 480px) {
+  .evo-landing { padding:.65rem; border-radius:1.15rem; }
+  .evo-campaign-panel { min-height:35rem; padding:1rem; border-radius:1.1rem; }
+  .evo-campaign-copy h1 { font-size:clamp(2.75rem,12vw,4rem); }
+  .evo-campaign-bottom { font-size:.48rem; letter-spacing:.06em; }
+  .evo-phone { border-width:5px; border-radius:2.2rem; padding:.75rem; }
+  .evo-phone-feature,.evo-phone-feature>div { min-height:11rem; }
+}
