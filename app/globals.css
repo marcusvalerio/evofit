@@ -1954,3 +1954,126 @@ body { background-color:var(--bg); }
 @media (prefers-reduced-motion: reduce) {
   .evo-student-primary-action { transition: none; }
 }
+
+
+/* FASE 4B — EVOFIT visual system inspired by editorial typography and refined gradients.
+   Applied to preview only. Keep semantic status colors distinct and preserve accessible contrast. */
+:root {
+  --evo-cultured: #F6F4F5;
+  --evo-high-style: #A8B1D7;
+  --evo-peach: #ECBCB2;
+  --evo-summer: #EAAA62;
+  --evo-deep-cove: #051040;
+  --evo-auburn: #922724;
+  --evo-gradient-lavender: linear-gradient(135deg, #A8B1D7 0%, #D7D9EC 52%, #F6F4F5 100%);
+  --evo-gradient-peach: linear-gradient(135deg, #ECBCB2 0%, #F3D8D0 48%, #EAAA62 100%);
+  --evo-gradient-night: linear-gradient(135deg, #051040 0%, #243565 58%, #414E58 100%);
+  --evo-gradient-action: linear-gradient(115deg, #922724 0%, #B83312 55%, #EAAA62 140%);
+  --evo-gradient-glass: linear-gradient(145deg, rgb(255 255 255 / .78), rgb(246 244 245 / .42));
+  --evo-radius-card: 1.15rem;
+  --evo-radius-control: .8rem;
+  --evo-shadow-card: 0 10px 32px -24px rgb(5 16 64 / .35), 0 1px 2px rgb(5 16 64 / .06);
+}
+html { scroll-behavior: smooth; }
+body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+h1, h2, h3, .t-h1, .t-h2, .evo-workout-title {
+  font-family: Outfit, Inter, ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -.035em;
+}
+.t-h1 { line-height: 1.04; text-wrap: balance; }
+.t-h2 { line-height: 1.12; text-wrap: balance; }
+.card {
+  border-radius: var(--evo-radius-card);
+  box-shadow: var(--evo-shadow-card);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.btn {
+  border-radius: var(--evo-radius-control);
+  font-weight: 750;
+  letter-spacing: -.012em;
+  transition: transform .16s ease, box-shadow .18s ease, filter .18s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary {
+  background-image: var(--evo-gradient-action);
+  background-color: var(--evo-auburn);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 5px 14px -9px rgb(146 39 36 / .8);
+}
+.btn-primary:hover { filter: saturate(1.06) brightness(1.04); box-shadow: 0 8px 20px -10px rgb(146 39 36 / .75); }
+.btn-ghost { border-radius: var(--evo-radius-control); }
+.badge {
+  border-radius: 999px;
+  font-weight: 750;
+  letter-spacing: -.01em;
+}
+.badge-accent {
+  background: var(--evo-gradient-lavender);
+  color: var(--evo-deep-cove);
+  border: 1px solid rgb(5 16 64 / .08);
+}
+.badge-success {
+  background: linear-gradient(120deg, #D9E8DF, #F0F5E9);
+  color: #24523C;
+}
+.badge-warning {
+  background: var(--evo-gradient-peach);
+  color: #672A2A;
+}
+.input, input, select, textarea {
+  border-radius: .75rem;
+}
+:where(button, a, input, select, textarea, summary):focus-visible {
+  outline: 3px solid rgb(168 177 215 / .9);
+  outline-offset: 3px;
+}
+.evo-student-primary-action {
+  background-image: linear-gradient(115deg, #A8B1D7 0%, #D9DCEE 55%, #F6F4F5 100%);
+  color: #051040;
+  box-shadow: 0 6px 18px -12px rgb(5 16 64 / .7);
+}
+.evo-student-primary-action:hover { filter: saturate(1.08); box-shadow: 0 8px 22px -12px rgb(5 16 64 / .6); }
+.evo-student-campaign {
+  background: #051040;
+  isolation: isolate;
+}
+.evo-student-campaign::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(5 16 64 / .88) 0%, rgb(5 16 64 / .48) 60%, rgb(146 39 36 / .2) 100%);
+}
+.evo-section-count {
+  background: var(--evo-gradient-lavender);
+  color: var(--evo-deep-cove);
+}
+.evo-workout-card {
+  border: 1px solid rgb(168 177 215 / .25);
+  box-shadow: var(--evo-shadow-card);
+}
+.evo-workout-cover { background: var(--evo-gradient-night); }
+.evo-workout-cover::after {
+  background: linear-gradient(110deg, rgb(5 16 64 / .62), rgb(5 16 64 / .06) 80%);
+}
+.evo-today-item {
+  border-radius: .95rem;
+  transition: background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+.evo-today-item:hover { transform: translateX(2px); }
+.evo-today-icon-lilac { background: var(--evo-gradient-lavender); color: var(--evo-deep-cove); }
+.evo-today-icon-mint { background: var(--evo-gradient-peach); color: #672A2A; }
+.evo-session-nav-item:not(.is-complete) > span { background: var(--evo-gradient-lavender); color: var(--evo-deep-cove); }
+.evo-session-nav-item.is-complete { background: linear-gradient(120deg, #D9E8DF, #F0F5E9); border-color: #B7D5C2; color: #24523C; }
+.evo-session-nav-item.is-complete > span { background: #24523C; color: #fff; }
+@media (max-width: 639px) {
+  .card { border-radius: 1rem; }
+  .btn { min-height: 2.65rem; }
+  .evo-student-campaign::after { background: linear-gradient(145deg, rgb(5 16 64 / .88), rgb(5 16 64 / .52)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card, .btn, .evo-today-item { transition: none; }
+}
