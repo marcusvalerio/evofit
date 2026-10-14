@@ -1812,3 +1812,14 @@ body { background-color:var(--bg); }
 .evo-today-value { min-width:1.4rem; text-align:right; font-size:1.25rem; font-weight:950; letter-spacing:-.06em; font-variant-numeric:tabular-nums; }
 .evo-today-item>svg:last-child { flex-shrink:0; color:var(--fg-muted); }
 @media(max-width:760px) { .evo-today-list { grid-template-columns:minmax(0,1fr); padding:0 1rem; } .evo-today-heading { padding:1rem; } .evo-today-item { gap:.65rem; } .evo-today-copy small { font-size:.72rem; } }
+
+
+/* Workout library search: fast filtering without leaving the current context. */
+.evo-workout-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.evo-workout-search { display:flex; min-width:0; width:min(100%,34rem); align-items:center; gap:.65rem; padding:.8rem .95rem; border:1px solid var(--line-strong); border-radius:.9rem; background:var(--surface); color:var(--fg-muted); }
+.evo-workout-search:focus-within { border-color:#B599F2; box-shadow:0 0 0 3px rgb(181 153 242 / .18); }
+.evo-workout-search input { min-width:0; width:100%; outline:none; background:transparent; color:var(--fg); font-size:.85rem; }
+.evo-workout-search input::placeholder { color:var(--fg-muted); }
+.evo-workout-search button { flex-shrink:0; color:var(--accent-text); font-size:.75rem; font-weight:800; }
+.evo-workout-result-count { flex-shrink:0; color:var(--fg-muted); font-size:.75rem; font-variant-numeric:tabular-nums; }
+@media(max-width:560px) { .evo-workout-toolbar { align-items:stretch; flex-direction:column; gap:.55rem; } .evo-workout-search { width:100%; } .evo-workout-result-count { align-self:flex-end; } }
