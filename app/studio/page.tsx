@@ -61,6 +61,39 @@ export default function StudioDashboard() {
         <Stat label="Sem treinar 7+ dias" value={String(attention.length)} hint="alunos ativos" tone={attention.length ? "warning" : undefined} />
       </section>
 
+      <section className="evo-today mt-5" aria-labelledby="evo-today-title">
+        <div className="evo-today-heading">
+          <div>
+            <p className="evo-today-kicker">CENTRAL DE AÇÕES</p>
+            <h2 id="evo-today-title">O que merece sua atenção</h2>
+            <p>Prioridades calculadas a partir da atividade registrada no EVOFIT.</p>
+          </div>
+          <span className="evo-today-count">{attention.length + noWorkout.length + inbox.length + live.length}</span>
+        </div>
+        <div className="evo-today-list">
+          <Link href="/studio/alunos" className="evo-today-item">
+            <span className="evo-today-icon evo-today-icon-mint"><UserPlus size={19} aria-hidden /></span>
+            <span className="evo-today-copy"><strong>Alunos sem ficha atribuída</strong><small>{noWorkout.length ? "Revise os alunos ativos que ainda não têm um plano." : "Todos os alunos ativos têm ficha atribuída."}</small></span>
+            <span className="evo-today-value">{noWorkout.length}</span><ArrowRight size={17} aria-hidden />
+          </Link>
+          <Link href="/studio/alunos" className="evo-today-item">
+            <span className="evo-today-icon evo-today-icon-lilac"><CalendarCheck size={19} aria-hidden /></span>
+            <span className="evo-today-copy"><strong>Alunos sem treino recente</strong><small>{attention.length ? "Confira quem está há 7 dias ou mais sem concluir uma sessão." : "Nenhum aluno ativo está nessa condição."}</small></span>
+            <span className="evo-today-value">{attention.length}</span><ArrowRight size={17} aria-hidden />
+          </Link>
+          <Link href="/studio/perfil#solicitacoes" className="evo-today-item">
+            <span className="evo-today-icon evo-today-icon-neutral"><Inbox size={19} aria-hidden /></span>
+            <span className="evo-today-copy"><strong>Solicitações de contato</strong><small>{inbox.length ? "Há solicitações aguardando sua análise." : "Nenhuma solicitação nova registrada."}</small></span>
+            <span className="evo-today-value">{inbox.length}</span><ArrowRight size={17} aria-hidden />
+          </Link>
+          <Link href="/studio/treinos" className="evo-today-item">
+            <span className="evo-today-icon evo-today-icon-mint"><ClipboardList size={19} aria-hidden /></span>
+            <span className="evo-today-copy"><strong>Sessões em andamento</strong><small>{live.length ? "Acompanhe os alunos que estão treinando agora." : "Nenhuma sessão em andamento neste momento."}</small></span>
+            <span className="evo-today-value">{live.length}</span><ArrowRight size={17} aria-hidden />
+          </Link>
+        </div>
+      </section>
+
       <div className="stagger mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <section className="card p-5" aria-labelledby="freq-title">
           <div className="mb-5 flex items-baseline justify-between gap-3">
