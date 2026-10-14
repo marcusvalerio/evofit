@@ -44,6 +44,14 @@ export default function AlunoHome() {
       <p className="t-eyebrow first-letter:uppercase">{fmtDateLong(now.toISOString())}</p>
       <h1 className="t-h1 mt-1">Bora treinar, {student.name.split(" ")[0]}</h1>
 
+      <section className="evo-student-campaign mt-5" aria-label="Seu treino de hoje">
+        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1000&q=85" alt="" loading="eager" />
+        <div className="evo-student-orbit" aria-hidden="true" />
+        <p className="evo-student-kicker">EVOFIT / SEU MOMENTO</p>
+        <h2>UM TREINO<br/>DE CADA VEZ.</h2>
+        <p>Seu plano, seu ritmo e cada conquista registrada no caminho.</p>
+      </section>
+
       <section className="card mt-5 flex items-center gap-4 p-4" aria-label="Meta da semana">
         <Ring value={(wk / student.weeklyTarget) * 100} size={76} stroke={8} label={`${wk} de ${student.weeklyTarget} treinos nesta semana`}>
           <span className="text-xl font-bold tabular">
