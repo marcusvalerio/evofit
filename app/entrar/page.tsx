@@ -5,11 +5,13 @@ import { LogIn } from "lucide-react"
 import { postJson, homeFor, hardNavigate } from "@/lib/account-client"
 import { Field } from "@/components/ui"
 import { AuthCard, FormError, PasswordField } from "@/components/auth-form"
+import { useDemoEnabled } from "@/components/providers"
 
 /** Contato do suporte (opcional), configurado no deploy. */
 const SUPPORT = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? ""
 
 export default function EntrarPage() {
+  const demo = useDemoEnabled()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -21,7 +23,12 @@ export default function EntrarPage() {
     setBusy(true)
     setError(null)
     const r = await postJson<{ role: string }>("/api/auth/login", { email, password }).catch(() => null)
-    if (r?.ok) return hardNavigate(homeFor(r.data.role))
+    if (r?.ok) {
+      // volta para a tela que pediu o login, se for da área desta conta
+      const home = homeFor(r.data.role)
+      const next = new URLSearchParams(window.location.search).get("next") ?? ""
+      return hardNavigate(next.startsWith(home) && !next.startsWith("//") ? next : home)
+    }
     setBusy(false)
     setError(r?.data.error ?? "Sem conexão. Tente de novo.")
   }
@@ -39,12 +46,14 @@ export default function EntrarPage() {
             </Link>
           </p>
           <p>Aluno: seu personal envia seu usuário e uma senha provisória (ou um link de convite).</p>
-          <p>
-            Só quer conhecer?{" "}
-            <Link href="/studio" className="font-semibold text-accent hover:underline">
-              Abrir a demonstração
-            </Link>
-          </p>
+          {demo && (
+            <p>
+              Só quer conhecer?{" "}
+              <Link href="/studio" className="font-semibold text-accent hover:underline">
+                Abrir a demonstração
+              </Link>
+            </p>
+          )}
         </>
       }
     >

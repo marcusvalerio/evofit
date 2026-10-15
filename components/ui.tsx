@@ -150,7 +150,7 @@ export function EmptyState({ icon: Icon, title, children, action }: { icon: Reac
   )
 }
 
-export function LoadingScreen({ label = "Carregando demonstração" }: { label?: string }) {
+export function LoadingScreen({ label = "Carregando" }: { label?: string }) {
   return (
     <div className="space-y-4 p-4 sm:p-6" role="status" aria-label={label}>
       <div className="skeleton h-8 w-48" />

@@ -61,7 +61,7 @@ export default function CriarContaPage() {
         <button type="submit" className="btn btn-primary btn-lg w-full" disabled={busy}>
           {busy ? <span className="spinner" aria-hidden /> : <UserPlus size={18} aria-hidden />} Criar conta
         </button>
-        <p className="text-xs text-muted">Sua conta começa vazia. A demonstração continua disponível sem login.</p>
+        <p className="text-xs text-muted">Sua conta começa vazia: cadastre seus alunos e monte a primeira ficha em minutos.</p>
       </form>
     </AuthCard>
   )

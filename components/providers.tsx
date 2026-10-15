@@ -2,6 +2,7 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react"
 import { CheckCircle2, AlertTriangle, Info, X } from "lucide-react"
 import { ServiceWorker } from "./offline"
+import { configureDemo } from "@/lib/store"
 
 type Tone = "success" | "error" | "info"
 interface Toast {
@@ -16,7 +17,15 @@ export function useToast() {
   return useContext(ToastCtx)
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+const DemoCtx = createContext(true)
+/** true quando este ambiente oferece a demonstração (sem banco ou DEMO_MODE=on). */
+export function useDemoEnabled() {
+  return useContext(DemoCtx)
+}
+
+export function Providers({ children, demo = true }: { children: React.ReactNode; demo?: boolean }) {
+  // antes de qualquer tela ler o store
+  configureDemo(demo)
   const [toasts, setToasts] = useState<Toast[]>([])
   const seq = useRef(0)
 
@@ -32,6 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const value = useMemo(() => push, [push])
 
   return (
+    <DemoCtx.Provider value={demo}>
     <ToastCtx.Provider value={value}>
       <ServiceWorker />
       {children}
@@ -54,5 +64,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
         })}
       </div>
     </ToastCtx.Provider>
+    </DemoCtx.Provider>
   )
 }

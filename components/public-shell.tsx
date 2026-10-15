@@ -4,17 +4,26 @@ import { usePathname } from "next/navigation"
 import { ChevronDown, LogIn, PlayCircle, Search } from "lucide-react"
 import { useDemoState } from "@/lib/store"
 import { homeFor } from "@/lib/account-client"
+import { useDemoEnabled } from "./providers"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { cx } from "./ui"
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { mode, account } = useDemoState()
-  // Topo enxuto: encontrar personal e entrar. As demonstrações ficam na landing e no rodapé.
+  const demo = useDemoEnabled()
+  // Topo enxuto: encontrar personal, como funciona e entrar. O resto fica no rodapé.
   const links = [
     { href: "/personais", label: "Encontrar personal" },
-    { href: "/studio", label: "Demonstração do Studio" },
-    { href: "/aluno", label: "Demonstração do app do aluno" },
+    ...(demo
+      ? [
+          { href: "/studio", label: "Demonstração do Studio" },
+          { href: "/aluno", label: "Demonstração do app do aluno" },
+        ]
+      : [
+          { href: "/#como-funciona", label: "Como funciona" },
+          { href: "/criar-conta", label: "Criar conta" },
+        ]),
     { href: "/biblioteca", label: "Biblioteca de exercícios" },
   ]
   return (
@@ -38,23 +47,30 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               <Search size={15} aria-hidden className="sm:hidden" />
               <span className="sr-only sm:not-sr-only">Encontrar personal</span>
             </Link>
-            <details className="lp-menu">
-              <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:text-fg">
+            {demo ? (
+              <details className="lp-menu">
+                <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:text-fg">
+                  <PlayCircle size={15} aria-hidden className="sm:hidden" />
+                  <span className="sr-only sm:not-sr-only">Ver como funciona</span>
+                  <ChevronDown size={14} aria-hidden className="hidden sm:block" />
+                </summary>
+                <div className="lp-menu-panel" onClick={(e) => (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open")}>
+                  <Link href="/studio">
+                    <b>Para o personal</b>
+                    <span>O Studio com alunos e fichas de exemplo</span>
+                  </Link>
+                  <Link href="/aluno">
+                    <b>Para o aluno</b>
+                    <span>O app que o aluno usa no treino</span>
+                  </Link>
+                </div>
+              </details>
+            ) : (
+              <Link href="/#como-funciona" className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:text-fg">
                 <PlayCircle size={15} aria-hidden className="sm:hidden" />
-                <span className="sr-only sm:not-sr-only">Ver como funciona</span>
-                <ChevronDown size={14} aria-hidden className="hidden sm:block" />
-              </summary>
-              <div className="lp-menu-panel" onClick={(e) => (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open")}>
-                <Link href="/studio">
-                  <b>Para o personal</b>
-                  <span>O Studio com alunos e fichas de exemplo</span>
-                </Link>
-                <Link href="/aluno">
-                  <b>Para o aluno</b>
-                  <span>O app que o aluno usa no treino</span>
-                </Link>
-              </div>
-            </details>
+                <span className="sr-only sm:not-sr-only">Como funciona</span>
+              </Link>
+            )}
             {mode === "account" && account ? (
               <Link href={homeFor(account.role)} className="btn btn-primary btn-sm ml-1">
                 {account.role === "student" ? "Meus treinos" : "Meu Studio"}
@@ -81,7 +97,7 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           <div>
             <Brand />
             <p className="mt-3 max-w-sm leading-relaxed text-muted">
-              Prescrição, execução e evolução em um só sistema para personal trainers autônomos. Versão de demonstração — perfis exibidos são fictícios.
+              Prescrição, execução e evolução em um só sistema para personal trainers autônomos.{demo ? " Versão de demonstração — perfis exibidos são fictícios." : ""}
             </p>
           </div>
           <nav aria-label="Rodapé" className="flex flex-wrap gap-x-5 gap-y-2 sm:justify-end">

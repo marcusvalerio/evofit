@@ -9,10 +9,12 @@ import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
 import { useToast } from "./providers"
 import { FirstAccessPassword } from "./first-access"
 import { usePrecacheWorkouts } from "./offline"
+import { GateScreen, useLoginGate } from "./login-gate"
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { data, mode, account } = useDemoState()
+  const gated = useLoginGate()
   const [picking, setPicking] = useState(false)
   const student = data?.students.find((s) => s.id === data.activeStudentId && s.status === "ativo")
   const inWorkout = path.startsWith("/aluno/treino/")
@@ -20,7 +22,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   const mustChange = role === "student" && !!account?.mustChangePassword
   usePrecacheWorkouts(data, student?.id ?? null)
-  let content: React.ReactNode = data ? children : <LoadingScreen />
+  let content: React.ReactNode = gated ? <GateScreen /> : data ? children : <LoadingScreen />
   if (data && mustChange) content = <FirstAccessPassword login={account?.email ?? ""} />
   else if (data && role === "trainer")
     content = (

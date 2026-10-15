@@ -134,7 +134,7 @@ function Clip({ c, active, decorative = false }: { c: Chapter; active: boolean; 
   )
 }
 
-export function ProductReel() {
+export function ProductReel({ demo = true }: { demo?: boolean }) {
   const [active, setActive] = useState(0)
   const steps = useRef<(HTMLLIElement | null)[]>([])
 
@@ -150,7 +150,7 @@ export function ProductReel() {
   }, [])
 
   return (
-    <section className="lp-reel ink" aria-labelledby="reel-title" data-chapter={CHAPTERS[active].id}>
+    <section id="como-funciona" className="lp-reel ink" aria-labelledby="reel-title" data-chapter={CHAPTERS[active].id}>
       <div className="lp-reel-aura" aria-hidden />
       <div className="lp-reel-head" data-reveal>
         <p className="lp-kicker">Veja funcionando</p>
@@ -185,9 +185,11 @@ export function ProductReel() {
                   </li>
                 ))}
               </ul>
-              <Link href={c.href} className="lp-link">
-                {c.cta} <ArrowRight size={16} aria-hidden />
-              </Link>
+              {(demo || c.href === "/biblioteca") && (
+                <Link href={c.href} className="lp-link">
+                  {c.cta} <ArrowRight size={16} aria-hidden />
+                </Link>
+              )}
               <div className="lp-reel-inline">
                 <Clip c={c} active />
               </div>
@@ -213,8 +215,8 @@ export function ProductReel() {
 
       <div className="lp-reel-cta">
         <p className="t-athletic">Tudo isso já está pronto para você testar.</p>
-        <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
-          Abrir o Studio agora <ArrowRight size={18} aria-hidden />
+        <Link href={demo ? "/studio" : "/criar-conta"} className="btn btn-primary btn-lg btn-pill">
+          {demo ? "Abrir o Studio agora" : "Criar minha conta"} <ArrowRight size={18} aria-hidden />
         </Link>
       </div>
     </section>

@@ -1,6 +1,9 @@
 "use client"
 import { Check, Play } from "lucide-react"
+import { useEffect, useState } from "react"
 import { useDemoState } from "@/lib/store"
+import { createSeed } from "@/lib/seed"
+import type { DemoData } from "@/lib/types"
 import { completed, needsAttention, weekAdherence, weeklySeries } from "@/lib/metrics"
 import { catalogExercise } from "@/lib/catalog"
 import { ExerciseThumb } from "./exercise"
@@ -92,8 +95,19 @@ export function LandingPreview() {
   )
 }
 
+/** Na demonstração usa os dados dela; com contas reais, sempre dados de exemplo (nunca os da conta). */
+function useSampleData() {
+  const { data, mode } = useDemoState()
+  const [sample, setSample] = useState<DemoData | null>(null)
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- datas relativas a hoje, só no cliente
+    if (mode !== "demo" && mode !== "loading") setSample(createSeed())
+  }, [mode])
+  return mode === "demo" ? data : sample
+}
+
 function StudioPanel() {
-  const { data } = useDemoState()
+  const data = useSampleData()
   if (!data) {
     return (
       <div className="lp-panel space-y-3" aria-hidden>
