@@ -1,4 +1,4 @@
-import type { Assessment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout } from "./types"
+import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout } from "./types"
 
 /**
  * Diferença entre dois estados do app, usada para sincronizar com o servidor no modo conta.
@@ -25,6 +25,7 @@ export interface Changes {
   sessions?: Coll<Session>
   contactRequests?: Coll<ContactRequest>
   assessments?: Coll<Assessment>
+  payments?: Coll<Payment>
 }
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
@@ -57,6 +58,8 @@ export function diff(prev: DemoData, next: DemoData): Changes {
   if (cr) c.contactRequests = cr
   const av = coll(prev.assessments, next.assessments, id)
   if (av) c.assessments = av
+  const pay = coll(prev.payments, next.payments, id)
+  if (pay) c.payments = pay
   return c
 }
 

@@ -1,4 +1,4 @@
-import type { Assessment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CIRCUMFERENCES, SKINFOLDS } from "./types"
 import { DATA_VERSION } from "./seed"
 
@@ -18,6 +18,7 @@ export const isProfile = (v: unknown): v is TrainerProfile =>
     specialties: (s) => isArr(s, isStr),
     registry: isStr,
     accent: (a) => a === "otan" || a === "gravy" || a === "cobblestone" || a === "smoke",
+    pixKey: isStr,
     directoryVisible: (b) => typeof b === "boolean",
   })
 
@@ -25,6 +26,8 @@ export const isStudent = (v: unknown): v is Student =>
   isObj(v) &&
   has(v, {
     id: isStr, name: isStr, goal: isStr, notes: isStr, createdAt: isStr, phone: isStr,
+    monthlyFee: (n) => n === null || (isNum(n) && n > 0 && n <= 100000),
+    dueDay: (n) => n === null || (isNum(n) && Number.isInteger(n) && n >= 1 && n <= 28),
     level: (l) => l === "iniciante" || l === "intermediario" || l === "avancado",
     weeklyTarget: (n) => isNum(n) && n >= 1 && n <= 7,
     status: (s) => s === "ativo" || s === "arquivado",
@@ -47,6 +50,19 @@ const isSet = (v: unknown) =>
   isObj(v) &&
   has(v, { itemId: isStr, exerciseId: isStr, exerciseName: isStr, setIndex: isNum, reps: isNumOrNull, load: isNumOrNull, done: (b) => typeof b === "boolean" })
 
+const isCheckin = (v: unknown) =>
+  v === null ||
+  (isObj(v) &&
+    has(v, {
+      effort: (n) => isNum(n) && Number.isInteger(n) && n >= 1 && n <= 10,
+      pain: (x) => x === null || x === "nenhuma" || x === "leve" || x === "forte",
+      sleep: (x) => x === null || x === "ruim" || x === "ok" || x === "bom",
+    }))
+
+export const isPayment = (v: unknown): v is Payment =>
+  isObj(v) &&
+  has(v, { id: isStr, studentId: isStr, paidAt: isStr, month: (m) => isStr(m) && /^\d{4}-(0[1-9]|1[0-2])$/.test(m), amount: (n) => isNum(n) && n > 0 && n <= 100000 })
+
 export const isSession = (v: unknown): v is Session =>
   isObj(v) &&
   has(v, {
@@ -54,6 +70,7 @@ export const isSession = (v: unknown): v is Session =>
     finishedAt: (f) => f === null || isStr(f),
     status: (s) => s === "em_andamento" || s === "concluida",
     sets: (s) => isArr(s, isSet),
+    checkin: isCheckin,
   })
 
 export const isContact = (v: unknown): v is ContactRequest =>
@@ -90,6 +107,7 @@ export function isDemoData(v: unknown): v is DemoData {
     isArr(v.sessions, isSession) &&
     isArr(v.contactRequests, isContact) &&
     isArr(v.assessments, isAssessment) &&
+    isArr(v.payments, isPayment) &&
     (v.activeStudentId === null || isStr(v.activeStudentId))
   )
 }

@@ -17,9 +17,14 @@ export interface TrainerProfile {
   /** Registro profissional declarado pelo próprio usuário (opcional). */
   registry: string
   accent: AccentChoice
+  /** Chave Pix do personal, usada só no texto do lembrete de mensalidade. O EVOFIT não processa pagamentos. */
+  pixKey: string
   /** Opt-in explícito para aparecer no diretório público. */
   directoryVisible: boolean
 }
+
+/** O que o diretório público pode mostrar: nunca a chave Pix. */
+export type PublicProfile = Omit<TrainerProfile, "pixKey">
 
 export interface Student {
   id: string
@@ -31,6 +36,10 @@ export interface Student {
   notes: string
   /** WhatsApp com DDD, só dígitos (ex.: 5511987654321). Vazio = não informado. */
   phone: string
+  /** Mensalidade em R$. null = não controlada no EVOFIT. */
+  monthlyFee: number | null
+  /** Dia de vencimento (1–28). */
+  dueDay: number | null
   status: StudentStatus
   createdAt: string
 }
@@ -86,6 +95,17 @@ export interface SetLog {
 
 export type SessionStatus = "em_andamento" | "concluida"
 
+export type Pain = "nenhuma" | "leve" | "forte"
+export type Sleep = "ruim" | "ok" | "bom"
+
+/** Check-in de 5 segundos ao concluir o treino. Tudo opcional, exceto o esforço. */
+export interface Checkin {
+  /** Esforço percebido (escala de Borg CR-10, 1–10). */
+  effort: number
+  pain: Pain | null
+  sleep: Sleep | null
+}
+
 export interface Session {
   id: string
   studentId: string
@@ -96,6 +116,7 @@ export interface Session {
   status: SessionStatus
   sets: SetLog[]
   note: string
+  checkin: Checkin | null
 }
 
 export interface ContactRequest {
@@ -105,6 +126,16 @@ export interface ContactRequest {
   contact: string
   message: string
   createdAt: string
+}
+
+/** Mensalidade marcada como paga pelo personal. Um registro por aluno e mês. */
+export interface Payment {
+  id: string
+  studentId: string
+  /** AAAA-MM */
+  month: string
+  amount: number
+  paidAt: string
 }
 
 export type Sex = "F" | "M"
@@ -148,6 +179,7 @@ export interface DemoData {
   sessions: Session[]
   contactRequests: ContactRequest[]
   assessments: Assessment[]
+  payments: Payment[]
   /** Aluno que o visitante está "usando" na experiência do aluno. */
   activeStudentId: string | null
 }

@@ -54,7 +54,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -143,7 +143,7 @@ describe("dados do personal no banco", () => {
     await expectStatus(run({ media: { upsert: [{ exerciseId: "Leg_Press", videoUrl: "https://evil.com/x", tip: "" }], delete: [] } }), 400)
     await expectStatus(run({ exercises: { upsert: [], delete: ["ex-own"] } }), 400) // em uso
     await expectStatus(run({ workouts: { upsert: [{ ...d.workouts[0], studentIds: ["nao-existe"] }], delete: [] } }), 400)
-    await expectStatus(run({ sessions: { upsert: [{ id: "s1", studentId: "al-carlos", workoutId: "tr-a", workoutName: "x", startedAt: new Date().toISOString(), finishedAt: null, status: "em_andamento", sets: [], note: "" }], delete: [] } }), 403)
+    await expectStatus(run({ sessions: { upsert: [{ id: "s1", studentId: "al-carlos", workoutId: "tr-a", workoutName: "x", startedAt: new Date().toISOString(), finishedAt: null, status: "em_andamento", sets: [], note: "", checkin: null }], delete: [] } }), 403)
     // nada foi gravado pelas tentativas recusadas
     expect(await load(ana)).toEqual(d)
   })
@@ -215,7 +215,7 @@ describe("aluno com convite", () => {
     await expectStatus(run({ sessions: { upsert: [{ ...d.sessions[0], note: "editado" }], delete: [] } }), 403)
     await expectStatus(run({ sessions: { upsert: [], delete: ["se-1"] } }), 403)
     // sessão em nome de outro aluno ou em ficha não liberada
-    const base = { id: "se-x", workoutName: "x", startedAt: new Date().toISOString(), finishedAt: null, status: "em_andamento" as const, sets: [], note: "" }
+    const base = { id: "se-x", workoutName: "x", startedAt: new Date().toISOString(), finishedAt: null, status: "em_andamento" as const, sets: [], note: "", checkin: null }
     await expectStatus(run({ sessions: { upsert: [{ ...base, studentId: "al-duda", workoutId: "tr-a" }], delete: [] } }), 403)
     await expectStatus(run({ sessions: { upsert: [{ ...base, studentId: "al-carlos", workoutId: "tr-duda" }], delete: [] } }), 403)
     // personal não pode apagar treino concluído
@@ -241,6 +241,35 @@ describe("aluno com convite", () => {
     await expectStatus(withTenant(tenant(ana), (q) => applyChanges(q, tenant(ana), { assessments: { upsert: [bad], delete: [] } }), db), 400)
     d = await act(ana, (x) => A.deleteAssessment(x, "av-d1"))
     expect(d.assessments.map((a) => a.id)).toEqual(["av-c1"])
+  })
+
+  it("mensalidade, pagamentos e check-in: personal controla, aluno registra o check-in e não vê valores", async () => {
+    let d = await act(ana, (x) => A.updateStudent(x, "al-carlos", { ...x.students.find((s) => s.id === "al-carlos")!, monthlyFee: 350, dueDay: 10 }))
+    d = await act(ana, (x) => A.saveProfile(x, { ...x.profile, pixKey: "ana@pix.com" }))
+    d = await act(ana, (x) => A.markPaid(x, "al-carlos", "2026-09", 350, "pg-1"))
+    expect(d.students.find((s) => s.id === "al-carlos")).toMatchObject({ monthlyFee: 350, dueDay: 10 })
+    expect(d.profile.pixKey).toBe("ana@pix.com")
+    expect(d.payments).toEqual([expect.objectContaining({ id: "pg-1", month: "2026-09", amount: 350 })])
+    expect(diff(d, await load(ana))).toEqual({})
+    // mesmo mês duas vezes: a ação ignora e o banco recusa
+    expect(A.markPaid(d, "al-carlos", "2026-09", 350, "pg-2")).toBe(d)
+    await expectStatus(withTenant(tenant(ana), (q) => applyChanges(q, tenant(ana), { payments: { upsert: [{ ...d.payments[0], id: "pg-dup" }], delete: [] } }), db), 409)
+
+    // aluno não vê mensalidade, pagamentos nem Pix, e não grava pagamentos
+    const c = await load(carlos)
+    expect(c.payments).toEqual([])
+    expect(c.profile.pixKey).toBe("")
+    expect(c.students[0]).toMatchObject({ monthlyFee: null, dueDay: null })
+    await expectStatus(withTenant(tenant(carlos), (q) => applyChanges(q, tenant(carlos), { payments: { upsert: [{ ...d.payments[0], id: "pg-x" }], delete: [] } }), db), 403)
+
+    // check-in do aluno ao concluir
+    let s = await act(carlos, (x) => A.startSession(x, "al-carlos", "tr-a", "se-ck"))
+    s = await act(carlos, (x) => A.finishSession(x, "se-ck", "", { effort: 8, pain: "leve", sleep: "ok" }))
+    expect(s.sessions.find((x) => x.id === "se-ck")?.checkin).toEqual({ effort: 8, pain: "leve", sleep: "ok" })
+    expect((await load(ana)).sessions.find((x) => x.id === "se-ck")?.checkin).toEqual({ effort: 8, pain: "leve", sleep: "ok" })
+
+    d = await act(ana, (x) => A.unmarkPaid(x, "al-carlos", "2026-09"))
+    expect(d.payments).toEqual([])
   })
 
   it("acesso gerado pelo personal: senha provisória, troca obrigatória, nova senha e revogação", async () => {

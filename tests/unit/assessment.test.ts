@@ -67,6 +67,25 @@ describe("avaliação física", () => {
     expect(out?.workouts).toEqual(v3.workouts)
   })
 
+  it("migra v3 → v4: mensalidade, Pix, pagamentos e check-in vazios", () => {
+    const v4 = seed()
+    const { payments: _p, ...rest } = v4
+    void _p
+    const v3 = {
+      ...rest,
+      version: 3,
+      profile: (({ pixKey: _k, ...p }) => (void _k, p))(v4.profile),
+      students: v4.students.map(({ monthlyFee: _f, dueDay: _d, ...s }) => (void _f, void _d, s)),
+      sessions: v4.sessions.map(({ checkin: _c, ...s }) => (void _c, s)),
+    }
+    const out = migrate(v3)
+    expect(out && isDemoData(out)).toBe(true)
+    expect(out?.payments).toEqual([])
+    expect(out?.profile.pixKey).toBe("")
+    expect(out?.students.every((s) => s.monthlyFee === null && s.dueDay === null)).toBe(true)
+    expect(out?.sessions.every((s) => s.checkin === null)).toBe(true)
+  })
+
   it("seed tem avaliações válidas com % de gordura calculável", () => {
     const d = seed()
     expect(isDemoData(d)).toBe(true)
@@ -80,7 +99,7 @@ describe("recordes pessoais", () => {
   it("só conta quando supera a maior carga anterior do exercício", async () => {
     const { personalRecords } = await import("@/lib/metrics")
     const set = (exerciseId: string, load: number | null, done = true) => ({ itemId: "i", exerciseId, exerciseName: exerciseId, setIndex: 0, reps: 8, load, done })
-    const s = (id: string, day: string, sets: ReturnType<typeof set>[]) => ({ id, studentId: "al", workoutId: "w", workoutName: "W", startedAt: `${day}T10:00:00.000Z`, finishedAt: `${day}T11:00:00.000Z`, status: "concluida" as const, sets, note: "" })
+    const s = (id: string, day: string, sets: ReturnType<typeof set>[]) => ({ id, studentId: "al", workoutId: "w", workoutName: "W", startedAt: `${day}T10:00:00.000Z`, finishedAt: `${day}T11:00:00.000Z`, status: "concluida" as const, sets, note: "", checkin: null })
     const d = { ...seed(), sessions: [s("a", "2026-09-01", [set("sq", 50), set("bp", 40)]), s("b", "2026-09-08", [set("sq", 55), set("sq", 52.5), set("bp", 40), set("dl", 80), set("bp", 45, false)])] }
     expect(personalRecords(d, d.sessions[1])).toEqual([{ exerciseId: "sq", exerciseName: "sq", load: 55, previous: 50 }])
     expect(personalRecords(d, d.sessions[0])).toEqual([])

@@ -32,6 +32,14 @@ function v2ToV3(v: Obj): Obj {
   return { ...v, version: 3, students, assessments: Array.isArray(v.assessments) ? v.assessments : [] }
 }
 
+/** v3 → v4: mensalidade e vencimento por aluno, chave Pix, pagamentos e check-in pós-treino. */
+function v3ToV4(v: Obj): Obj {
+  const students = Array.isArray(v.students) ? v.students.map((s) => (isObj(s) ? { monthlyFee: null, dueDay: null, ...s } : s)) : v.students
+  const sessions = Array.isArray(v.sessions) ? v.sessions.map((s) => (isObj(s) ? { checkin: null, ...s } : s)) : v.sessions
+  const profile = isObj(v.profile) ? { pixKey: "", ...v.profile } : v.profile
+  return { ...v, version: 4, students, sessions, profile, payments: Array.isArray(v.payments) ? v.payments : [] }
+}
+
 /** Tenta trazer dados salvos de versões anteriores para o formato atual. Retorna null se não for possível. */
 export function migrate(v: unknown): DemoData | null {
   if (isDemoData(v)) return v
@@ -39,5 +47,6 @@ export function migrate(v: unknown): DemoData | null {
   let cur: Obj = v
   if (cur.version === 1) cur = v1ToV2(cur)
   if (cur.version === 2) cur = v2ToV3(cur)
+  if (cur.version === 3) cur = v3ToV4(cur)
   return cur.version === DATA_VERSION && isDemoData(cur) ? cur : null
 }

@@ -1,11 +1,11 @@
 import { randomUUID } from "node:crypto"
-import type { TrainerProfile } from "../types"
+import type { PublicProfile, TrainerProfile } from "../types"
 import { validateContact } from "../actions"
 import { withTenant, type Db } from "./db"
 import { HttpError } from "./workspace"
 
 type Row = Record<string, unknown>
-const toProfile = (t: Row): TrainerProfile => ({
+const toProfile = (t: Row): PublicProfile => ({
   slug: String(t.slug),
   name: String(t.name),
   headline: String(t.headline),

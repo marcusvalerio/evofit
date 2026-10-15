@@ -1,6 +1,6 @@
-import type { TrainerProfile } from "./types"
+import type { PublicProfile, TrainerProfile } from "./types"
 
-export interface DirectoryProfile extends TrainerProfile {
+export interface DirectoryProfile extends PublicProfile {
   /** true = perfil fictício criado apenas para a demonstração. */
   fictional: boolean
 }
@@ -56,9 +56,16 @@ export function filterProfiles(list: DirectoryProfile[], f: DirectoryFilters) {
  * Junta os perfis reais (do banco, com opt-in), o perfil da demonstração (somente com opt-in, no modo
  * demonstração) e os perfis fictícios.
  */
-export function directoryList(own: TrainerProfile | null, real: TrainerProfile[] = []): DirectoryProfile[] {
+export function directoryList(own: TrainerProfile | null, real: PublicProfile[] = []): DirectoryProfile[] {
   const list: DirectoryProfile[] = real.map((p) => ({ ...p, fictional: false }))
-  if (own && own.directoryVisible) list.push({ ...own, fictional: true })
+  if (own && own.directoryVisible) list.push({ ...toPublic(own), fictional: true })
   const taken = new Set(list.map((p) => p.slug))
   return [...list, ...DIRECTORY_PROFILES.filter((p) => !taken.has(p.slug))]
+}
+
+/** Remove do perfil o que é privado do personal antes de exibir publicamente. */
+export function toPublic(p: TrainerProfile): PublicProfile {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { pixKey, ...pub } = p
+  return pub
 }
