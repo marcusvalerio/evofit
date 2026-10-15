@@ -5,7 +5,7 @@ test.describe("acesso público sem login", () => {
   test("início abre sem login e identifica o modo demonstração", async ({ page }) => {
     await page.goto("/")
     await expect(page).toHaveURL("/")
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("evolua")
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("perder")
     await expect(page.getByText("Modo demonstração")).toBeVisible()
     await expect(page.getByRole("button", { name: /Restaurar/ })).toBeVisible()
   })
@@ -323,7 +323,7 @@ test.describe("Biblioteca EVOFIT", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()
     const gif = page.getByRole("img", { name: /Animação EVOFIT: Prancha/ })
     await expect.poll(() => gif.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBe(480)
-    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?v=2&download")
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?v=3&download")
     await expect(page.locator("ol.steps > li").first()).toBeVisible()
   })
 
@@ -390,6 +390,22 @@ test.describe("diretório", () => {
     await expect(page.getByText("Nenhum profissional com esses filtros")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await expect(page.getByRole("heading", { name: "Perfil indisponível" })).toBeVisible()
+  })
+
+  test("WhatsApp e Instagram do perfil viram botões no perfil público", async ({ page }) => {
+    await page.goto("/studio/perfil")
+    await page.getByLabel("WhatsApp (opcional)").fill("(11) 9876-5432")
+    await page.getByLabel("Instagram (opcional)").fill("instagram.com/camila.treina")
+    await page.getByRole("button", { name: "Salvar perfil" }).click()
+    await expect(page.getByLabel("Instagram (opcional)")).toHaveValue("camila.treina")
+    await page.goto("/personais/camila-rocha-demo")
+    await expect(page.getByRole("link", { name: "Chamar no WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/551198765432\?text=/)
+    await expect(page.getByRole("link", { name: "@camila.treina" })).toHaveAttribute("href", "https://instagram.com/camila.treina")
+    // valor inválido não salva
+    await page.goto("/studio/perfil")
+    await page.getByLabel("WhatsApp (opcional)").fill("123")
+    await page.getByRole("button", { name: "Salvar perfil" }).click()
+    await expect(page.getByText("Informe o WhatsApp com DDD (10 a 13 dígitos).")).toBeVisible()
   })
 })
 

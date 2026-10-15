@@ -14,6 +14,8 @@ export interface Account {
   studentId: string | null
   /** Senha provisória: o aluno precisa criar a própria antes de usar o app. */
   mustChangePassword: boolean
+  /** Equipe do EVOFIT (users.is_admin): vê o painel de administração. */
+  isAdmin?: boolean
 }
 
 export const SESSION_DAYS = 30
@@ -88,14 +90,14 @@ async function createSession(q: Queryable, userId: string) {
 export async function accountFromToken(token: string | undefined, db: Db = getDb()): Promise<Account | null> {
   if (!token || token.length > 100) return null
   return db.tx(async (q) => {
-    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean }>(
-      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password from auth_sessions s join users u on u.id = s.user_id
+    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean; is_admin: boolean }>(
+      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password, u.is_admin from auth_sessions s join users u on u.id = s.user_id
        where s.token_hash = $1 and s.expires_at > now() and u.disabled_at is null`,
       [hashToken(token)],
     )
     const u = r.rows[0]
     return u
-      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password }
+      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password, isAdmin: !!u.is_admin }
       : null
   })
 }

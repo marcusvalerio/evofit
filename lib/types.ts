@@ -19,6 +19,10 @@ export interface TrainerProfile {
   accent: AccentChoice
   /** Chave Pix do personal, usada só no texto do lembrete de mensalidade. O EVOFIT não processa pagamentos. */
   pixKey: string
+  /** WhatsApp público do perfil (só dígitos, com DDD). Vazio = não exibido. */
+  whatsapp: string
+  /** Usuário do Instagram, sem @. Vazio = não exibido. */
+  instagram: string
   /** Opt-in explícito para aparecer no diretório público. */
   directoryVisible: boolean
 }

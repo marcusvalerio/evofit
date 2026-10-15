@@ -55,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -456,5 +456,28 @@ describe("administração", () => {
       detail: "Cobrança indevida",
     })
     expect(log[0].target).toContain("Caio Personal")
+  })
+})
+
+describe("contato público e admin pelo banco", () => {
+  it("WhatsApp e Instagram: normaliza, valida e aparece no diretório", async () => {
+    let d = await act(bia, (x) => A.saveProfile(x, { ...x.profile, city: "Natal", state: "RN", specialties: ["Força"], directoryVisible: true, whatsapp: "(84) 99876-5432", instagram: "https://instagram.com/bia.treina/" }))
+    expect(d.profile).toMatchObject({ whatsapp: "84998765432", instagram: "bia.treina" })
+    const pub = (await publicProfiles(db)).find((p) => p.slug === d.profile.slug)!
+    expect(pub).toMatchObject({ whatsapp: "84998765432", instagram: "bia.treina" })
+    expect(pub).not.toHaveProperty("pixKey")
+    expect(A.normalizeInstagram("instagram.com/bia.treina?igsh=x")).toBe("bia.treina")
+    expect(A.validateProfile({ ...d.profile, whatsapp: "123", instagram: "nome com espaço" })).toMatchObject({ whatsapp: expect.any(String), instagram: expect.any(String) })
+    await expectStatus(act(bia, (x) => ({ ...x, profile: { ...x.profile, instagram: "inválido!" } })), 400)
+    d = await act(bia, (x) => A.saveProfile(x, { ...x.profile, whatsapp: "", instagram: "@" }))
+    expect(d.profile).toMatchObject({ whatsapp: "", instagram: "" })
+  })
+
+  it("users.is_admin dá acesso ao painel sem ADMIN_EMAILS", async () => {
+    const r = await Auth.login({ email: "bia@exemplo.com", password: "senha-segura-1" }, db)
+    expect(Admin.isAdmin(await Auth.accountFromToken(r!.token, db), "")).toBe(false)
+    await db.tx((q) => q.query("update users set is_admin = true where lower(email) = 'bia@exemplo.com'"))
+    expect(Admin.isAdmin(await Auth.accountFromToken(r!.token, db), "")).toBe(true)
+    await expect(db.tx((q) => q.query("update users set is_admin = true where role = 'student'"))).rejects.toThrow()
   })
 })

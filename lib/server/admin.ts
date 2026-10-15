@@ -12,7 +12,10 @@ import { HttpError } from "./workspace"
  * Nunca vê nomes, medidas, treinos ou valores dos alunos.
  */
 
-/** Admin = conta de personal cujo e-mail está em ADMIN_EMAILS (lista separada por vírgula). */
+/**
+ * Admin = conta de personal marcada no banco (users.is_admin) ou cujo e-mail está em ADMIN_EMAILS
+ * (lista separada por vírgula).
+ */
 export function adminEmails(env = process.env.ADMIN_EMAILS) {
   return (env ?? "")
     .split(",")
@@ -21,7 +24,7 @@ export function adminEmails(env = process.env.ADMIN_EMAILS) {
 }
 
 export function isAdmin(account: Account | null, env?: string) {
-  return !!account && account.role === "trainer" && !account.mustChangePassword && adminEmails(env).includes(account.email.toLowerCase())
+  return !!account && account.role === "trainer" && !account.mustChangePassword && (!!account.isAdmin || adminEmails(env).includes(account.email.toLowerCase()))
 }
 
 /** Para quem não é admin a área simplesmente não existe (404). */

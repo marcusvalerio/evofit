@@ -5,7 +5,7 @@
  *  - páginas e dados de navegação do Next: rede primeiro (com tempo limite), cache como reserva.
  * Dados da conta NUNCA passam por aqui: /api/* fica fora (exceto as animações públicas).
  */
-const VERSION = "v1"
+const VERSION = "v2"
 const SHELL = `evofit-shell-${VERSION}`
 const PAGES = `evofit-pages-${VERSION}`
 const MEDIA = `evofit-media-${VERSION}`

@@ -210,7 +210,7 @@ A demonstração sem login continua igual. Com `DATABASE_URL` configurada, o app
 
 ## Administração (`/admin`)
 
-Para quem opera o EVOFIT. Acesso: conta de personal cujo e-mail está em `ADMIN_EMAILS`; para qualquer outra conta a página e a API (`/api/admin`) respondem como inexistentes (404).
+Para quem opera o EVOFIT. Acesso: conta de personal marcada com `users.is_admin = true` no banco (migração 006) ou cujo e-mail está em `ADMIN_EMAILS`; para qualquer outra conta a página e a API (`/api/admin`) respondem como inexistentes (404).
 
 - **Visão geral:** personais (novos em 7/30 dias), ativação (personal com aluno e ficha), alunos ativos e com login, treinos concluídos, personais ativos na semana, perfis no diretório, suspensos e cadastros por semana.
 - **Personais:** busca e filtros (ativos, parados há 14 dias, suspensos) com cadastro, último acesso, alunos, fichas e treinos da semana.
@@ -219,3 +219,13 @@ Para quem opera o EVOFIT. Acesso: conta de personal cujo e-mail está em `ADMIN_
 - **Registro de ações:** toda ação fica em `admin_audit` com quem fez, quando e o motivo.
 
 Privacidade: o papel `admin` do banco só lê (contagens) via RLS e só altera a visibilidade no diretório; nunca vê nomes, medidas, treinos ou valores dos alunos. Migração: `005_admin.sql`.
+
+## Landing: a pergunta que ela responde sem escrever
+
+O personal que chega já viu outros sistemas e pensa “por que este e não outro?”. A página responde isso sem fazer a pergunta: hero (“Feito para você não perder aluno”) → seis coisas que o EVOFIT faz por você, com CTA → **O EVOFIT em movimento** (gravações reais do app no computador e no celular, em `public/media/*.mp4`, com capa `.jpg`) e CTA → “As perguntas que todo personal faz. Já respondidas.” → como funciona → perguntas → CTA final. Sem citar concorrentes e sem números inventados.
+
+Os vídeos tocam só quando estão na tela; com “reduzir movimento” ficam parados, com controles. Para regravar depois de mudar telas: suba o app em modo demonstração (`npx next start -p 3400`, sem `DATABASE_URL`) e grave com Playwright (`recordVideo`), convertendo com `ffmpeg` para H.264 (`-crf 26–30 -movflags +faststart`).
+
+## Diretório: WhatsApp e Instagram
+
+No Studio → Perfil, o personal pode publicar WhatsApp e Instagram (opcionais). No perfil público aparecem os botões “Chamar no WhatsApp” (mensagem pronta) e “@usuario”. A chave Pix nunca é pública. Dados v5 (migração automática da demonstração) e migração `006_contacts_admin_flag.sql`.

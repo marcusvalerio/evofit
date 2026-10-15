@@ -19,6 +19,8 @@ export const isProfile = (v: unknown): v is TrainerProfile =>
     registry: isStr,
     accent: (a) => a === "otan" || a === "gravy" || a === "cobblestone" || a === "smoke",
     pixKey: isStr,
+    whatsapp: isStr,
+    instagram: isStr,
     directoryVisible: (b) => typeof b === "boolean",
   })
 

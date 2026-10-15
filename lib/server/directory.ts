@@ -17,6 +17,8 @@ const toProfile = (t: Row): PublicProfile => ({
   specialties: (t.specialties as string[]) ?? [],
   registry: String(t.registry),
   accent: t.accent as TrainerProfile["accent"],
+  whatsapp: String(t.whatsapp ?? ""),
+  instagram: String(t.instagram ?? ""),
   directoryVisible: true,
 })
 
@@ -24,7 +26,7 @@ const toProfile = (t: Row): PublicProfile => ({
 export async function publicProfiles(db?: Db) {
   const r = await withTenant(
     { role: "public", trainerId: null },
-    (q) => q.query<Row>("select slug, name, headline, bio, city, state, region, modality, specialties, registry, accent from trainers where directory_visible order by name limit 500"),
+    (q) => q.query<Row>("select slug, name, headline, bio, city, state, region, modality, specialties, registry, accent, whatsapp, instagram from trainers where directory_visible order by name limit 500"),
     db,
   )
   return r.rows.map(toProfile)

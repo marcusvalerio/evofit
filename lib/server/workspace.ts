@@ -2,7 +2,7 @@ import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, 
 import { SPECIALTIES } from "../types"
 import { DATA_VERSION } from "../seed"
 import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
-import { validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
+import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
 import type { Changes, MediaRow } from "../sync"
 import { affected, type Queryable, type Tenant } from "./db"
@@ -65,6 +65,8 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
       registry: String(t.registry),
       accent: t.accent as TrainerProfile["accent"],
       pixKey: ctx.role === "trainer" ? String(t.pix_key ?? "") : "",
+      whatsapp: String(t.whatsapp ?? ""),
+      instagram: String(t.instagram ?? ""),
       directoryVisible: Boolean(t.directory_visible),
     },
     students: students.map(
@@ -227,8 +229,8 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
     if (p.specialties.length > SPECIALTIES.length || p.specialties.some((s) => !(SPECIALTIES as readonly string[]).includes(s))) throw invalid("especialidades")
     if (p.name.length > 80 || p.city.length > 80 || p.region.length > 80 || p.registry.length > 40) throw invalid("perfil")
     await q.query(
-      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12, pix_key = $13 where id = $1`,
-      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible, p.pixKey.trim()],
+      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12, pix_key = $13, whatsapp = $14, instagram = $15 where id = $1`,
+      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible, p.pixKey.trim(), normalizePhone(p.whatsapp), normalizeInstagram(p.instagram)],
     )
   }
 

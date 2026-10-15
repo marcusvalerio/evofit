@@ -28,7 +28,7 @@ function duotone(gray: Buffer) {
 }
 
 /** Símbolo EVOFIT (pico facetado) para a barra da animação. */
-const MARK = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M14.5 3 2 21h12.5Z" fill="${"#B83312"}"/><path d="M14.5 3 22 21h-7.5Z" fill="${"#FF4E20"}"/></svg>`)
+const MARK = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="#B83312"/><path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="#FF4E20"/><path d="M19.5 11 19 17.5 12 23.5Z" fill="#E2421A"/><path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#FF8A5C"/></svg>`)
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 

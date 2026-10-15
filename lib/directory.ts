@@ -5,9 +5,11 @@ export interface DirectoryProfile extends PublicProfile {
   fictional: boolean
 }
 
-const p = (x: Omit<DirectoryProfile, "fictional" | "registry" | "directoryVisible">): DirectoryProfile => ({
+const p = (x: Omit<DirectoryProfile, "fictional" | "registry" | "directoryVisible" | "whatsapp" | "instagram">): DirectoryProfile => ({
   ...x,
   registry: "",
+  whatsapp: "",
+  instagram: "",
   directoryVisible: true,
   fictional: true,
 })

@@ -40,6 +40,12 @@ function v3ToV4(v: Obj): Obj {
   return { ...v, version: 4, students, sessions, profile, payments: Array.isArray(v.payments) ? v.payments : [] }
 }
 
+/** v4 → v5: WhatsApp e Instagram no perfil público. */
+function v4ToV5(v: Obj): Obj {
+  const profile = isObj(v.profile) ? { whatsapp: "", instagram: "", ...v.profile } : v.profile
+  return { ...v, version: 5, profile }
+}
+
 /** Tenta trazer dados salvos de versões anteriores para o formato atual. Retorna null se não for possível. */
 export function migrate(v: unknown): DemoData | null {
   if (isDemoData(v)) return v
@@ -48,5 +54,6 @@ export function migrate(v: unknown): DemoData | null {
   if (cur.version === 1) cur = v1ToV2(cur)
   if (cur.version === 2) cur = v2ToV3(cur)
   if (cur.version === 3) cur = v3ToV4(cur)
+  if (cur.version === 4) cur = v4ToV5(cur)
   return cur.version === DATA_VERSION && isDemoData(cur) ? cur : null
 }

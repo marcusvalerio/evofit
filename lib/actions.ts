@@ -229,11 +229,26 @@ export function validateProfile(p: TrainerProfile) {
   if (!/^[A-Za-z]{2}$/.test(p.state.trim())) errors.state = "Use a sigla do estado (ex.: SP)."
   if (p.specialties.length === 0) errors.specialties = "Selecione pelo menos uma especialidade."
   if (p.pixKey.length > 140) errors.pixKey = "Use no máximo 140 caracteres."
+  const wa = normalizePhone(p.whatsapp)
+  if (wa && (wa.length < 10 || wa.length > 13)) errors.whatsapp = "Informe o WhatsApp com DDD (10 a 13 dígitos)."
+  if (p.instagram && !INSTAGRAM.test(normalizeInstagram(p.instagram))) errors.instagram = "Use só o usuário (letras, números, ponto e _; até 30)."
   return errors
 }
 
+const INSTAGRAM = /^[A-Za-z0-9._]{1,30}$/
+/** Aceita "@usuario", "usuario" ou o link do perfil e guarda só o usuário. */
+export const normalizeInstagram = (s: string) =>
+  s
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "")
+    .replace(/^@/, "")
+    .replace(/[/?#].*$/, "")
+
 export function saveProfile(d: DemoData, p: TrainerProfile): DemoData {
-  return { ...d, profile: { ...p, name: p.name.trim(), city: p.city.trim(), state: p.state.trim().toUpperCase(), region: p.region.trim() } }
+  return {
+    ...d,
+    profile: { ...p, name: p.name.trim(), city: p.city.trim(), state: p.state.trim().toUpperCase(), region: p.region.trim(), whatsapp: normalizePhone(p.whatsapp), instagram: normalizeInstagram(p.instagram) },
+  }
 }
 
 export type ContactInput = Pick<ContactRequest, "name" | "contact" | "message">

@@ -86,6 +86,14 @@ describe("avaliação física", () => {
     expect(out?.sessions.every((s) => s.checkin === null)).toBe(true)
   })
 
+  it("migra v4 → v5: WhatsApp e Instagram do perfil vazios", () => {
+    const v5 = seed()
+    const v4 = { ...v5, version: 4, profile: (({ whatsapp: _w, instagram: _i, ...p }) => (void _w, void _i, p))(v5.profile) }
+    const out = migrate(v4)
+    expect(out?.version).toBe(5)
+    expect(out?.profile).toMatchObject({ whatsapp: "", instagram: "" })
+  })
+
   it("seed tem avaliações válidas com % de gordura calculável", () => {
     const d = seed()
     expect(isDemoData(d)).toBe(true)

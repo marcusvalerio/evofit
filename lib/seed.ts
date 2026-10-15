@@ -2,7 +2,7 @@ import type { Assessment, Payment, DemoData, Exercise, Session, SetLog, Student,
 import { addDays, startOfDay } from "./date"
 import { catalogExercise } from "./catalog"
 
-export const DATA_VERSION = 4
+export const DATA_VERSION = 5
 
 /** PRNG determinístico para que a demonstração seja reprodutível. */
 function mulberry32(seed: number) {
@@ -302,6 +302,9 @@ export function createSeed(now = new Date()): DemoData {
       registry: "",
       accent: "otan",
       pixKey: "camila.rocha@exemplo.com",
+      // perfil fictício: sem contatos reais
+      whatsapp: "",
+      instagram: "",
       directoryVisible: true,
     },
     students,

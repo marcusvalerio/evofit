@@ -303,6 +303,11 @@
     color: var(--on-primary);
     box-shadow: 0 1px 0 rgb(255 255 255 / 0.18) inset, 0 8px 20px -10px color-mix(in srgb, var(--primary) 70%, transparent);
   }
+  /* Marcas de terceiros: só nos atalhos de contato do perfil público */
+  .btn-whatsapp { background: #25d366; color: #072414; }
+  .btn-whatsapp:hover { background: #1fbe5b; }
+  .btn-instagram { background: linear-gradient(120deg, #6a2fb0, #b42f86 55%, #d6245c); color: #fff; }
+  .btn-instagram:hover { filter: brightness(1.08); }
   .btn-primary:hover:not(:disabled) {
     background: var(--primary-hover);
   }
@@ -1228,6 +1233,91 @@
 .lp-feature ul { display: grid; gap: 0.6rem; margin-top: 1.25rem; font-size: 0.9375rem; }
 .lp-feature li { display: flex; gap: 0.6rem; line-height: 1.45; }
 .lp-feature li svg { flex-shrink: 0; margin-top: 0.15rem; color: var(--accent-text); }
+/* ---------- O EVOFIT em movimento (gravações reais) ---------- */
+.lp-reel {
+  --aura-a: rgb(255 78 32 / 0.55);
+  --aura-b: rgb(184 51 18 / 0.5);
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  margin-top: clamp(4rem, 9vw, 7rem);
+  border-radius: 2rem;
+  padding: clamp(1.75rem, 5vw, 4.5rem) clamp(1.25rem, 4vw, 4rem);
+}
+@media (min-width: 1280px) { .lp-reel { margin-inline: -3rem; } }
+.lp-reel-aura {
+  position: absolute; inset: -20%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(40% 35% at var(--ax, 75%) var(--ay, 30%), var(--aura-a), transparent 70%),
+    radial-gradient(35% 30% at 20% 85%, var(--aura-b), transparent 70%),
+    radial-gradient(30% 25% at 50% 50%, rgb(65 78 88 / 0.5), transparent 70%);
+  filter: blur(30px) saturate(1.1);
+  opacity: 0.55;
+  transition: --ax 1.2s ease, --ay 1.2s ease, opacity 0.8s ease;
+}
+.lp-reel::before {
+  /* grão sutil */
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.lp-reel[data-chapter="studio-ficha"] .lp-reel-aura { --ax: 25%; --ay: 25%; }
+.lp-reel[data-chapter="aluno-treino"] .lp-reel-aura { --ax: 70%; --ay: 60%; opacity: 0.7; }
+.lp-reel[data-chapter="biblioteca"] .lp-reel-aura { --ax: 40%; --ay: 75%; }
+.lp-reel[data-chapter="studio-caixa"] .lp-reel-aura { --ax: 80%; --ay: 80%; }
+@property --ax { syntax: "<percentage>"; inherits: true; initial-value: 75%; }
+@property --ay { syntax: "<percentage>"; inherits: true; initial-value: 30%; }
+.lp-reel-head { max-width: 46rem; }
+.lp-reel-head .lp-h2 { font-size: clamp(2.5rem, 7vw, 5.25rem); line-height: 0.92; }
+.lp-reel-head .lp-h2 em { font-style: normal; background: var(--ember); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lp-reel-head .lp-sub { color: var(--on-ink-muted); }
+.lp-reel-grid { margin-top: clamp(2rem, 5vw, 4rem); display: grid; gap: 2rem; }
+.lp-reel-steps { display: grid; gap: 3.5rem; }
+.lp-reel-step { position: relative; display: flex; flex-direction: column; }
+.lp-reel-n { font-family: var(--font-athletic, inherit); font-stretch: 68%; font-weight: 800; font-size: 4.5rem; line-height: 0.8; color: transparent; -webkit-text-stroke: 1.5px rgb(228 227 220 / 0.22); transition: -webkit-text-stroke-color 0.4s ease; }
+.lp-reel-step.is-active .lp-reel-n { -webkit-text-stroke-color: var(--mp-otan); }
+.lp-reel-kicker { margin-top: 0.85rem; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent-text); }
+.lp-reel-step h3 { margin-top: 0.4rem; font-size: clamp(1.5rem, 3vw, 2.15rem); font-weight: 600; line-height: 1.08; letter-spacing: -0.03em; }
+.lp-reel-text { margin-top: 0.75rem; max-width: 34rem; line-height: 1.6; color: var(--on-ink-muted); }
+.lp-reel-step ul { margin-top: 1rem; display: grid; gap: 0.45rem; }
+.lp-reel-step ul li { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.9375rem; }
+.lp-reel-step ul svg { margin-top: 0.2rem; flex-shrink: 0; color: var(--mp-otan); }
+.lp-reel-step .lp-link { margin-top: 0; padding-top: 1.1rem; }
+.lp-reel-inline { margin-top: 1.75rem; }
+.lp-reel-stage { display: none; }
+
+/* Aparelhos */
+.lp-device { position: relative; margin-inline: auto; }
+.lp-device-screen { position: relative; overflow: hidden; background: #0b1013; }
+.lp-device video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.lp-device-phone { width: min(17rem, 72vw); padding: 0.55rem; border-radius: 2.6rem; background: linear-gradient(160deg, #3a4650, #10161a 40%, #1d262c); box-shadow: 0 0 0 1px rgb(255 255 255 / 0.08) inset, 0 40px 80px -30px rgb(0 0 0 / 0.8), 0 0 80px -20px rgb(255 78 32 / 0.35); }
+.lp-device-phone .lp-device-screen { aspect-ratio: 390 / 844; border-radius: 2.1rem; }
+.lp-device-laptop { width: 100%; max-width: 46rem; }
+.lp-device-laptop .lp-device-screen { aspect-ratio: 16 / 10; border-radius: 0.9rem 0.9rem 0.25rem 0.25rem; border: 0.6rem solid #10161a; border-bottom-width: 0.9rem; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.1), 0 40px 90px -35px rgb(0 0 0 / 0.85), 0 0 90px -25px rgb(255 78 32 / 0.3); }
+.lp-device-base { height: 0.85rem; margin-inline: -6%; border-radius: 0 0 1.2rem 1.2rem; background: linear-gradient(180deg, #3a4650, #1a2227); box-shadow: 0 18px 30px -18px rgb(0 0 0 / 0.9); }
+.lp-device-base::before { content: ""; display: block; width: 16%; height: 0.3rem; margin-inline: auto; border-radius: 0 0 0.5rem 0.5rem; background: #0e1417; }
+.lp-device-hint { position: absolute; left: 50%; bottom: 0.75rem; translate: -50% 0; display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.65rem; border-radius: 999px; background: rgb(0 0 0 / 0.6); font-size: 0.75rem; color: #fff; pointer-events: none; }
+
+@media (min-width: 1024px) {
+  .lp-reel-grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: 3rem; }
+  .lp-reel-steps { gap: 0; }
+  .lp-reel-step { min-height: 78vh; justify-content: center; opacity: 0.32; transition: opacity 0.5s ease; }
+  .lp-reel-step.is-active { opacity: 1; }
+  .lp-reel-inline { display: none; }
+  .lp-reel-stage { display: block; }
+  .lp-reel-sticky { position: sticky; top: calc(50vh - 17rem); height: 34rem; display: grid; place-items: center; }
+  .lp-reel-slot { grid-area: 1 / 1; width: 100%; display: grid; place-items: center; opacity: 0; transform: translateY(26px) scale(0.96) rotateX(6deg); filter: blur(6px); transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.2, 0.9, 0.2, 1), filter 0.6s ease; pointer-events: none; }
+  .lp-reel-slot.is-active { opacity: 1; transform: none; filter: none; }
+  .lp-reel-sticky { perspective: 1400px; }
+  .lp-reel-slot .lp-device-phone { width: 15.5rem; }
+  .lp-reel-dots { position: absolute; bottom: -1.5rem; left: 50%; translate: -50% 0; display: flex; gap: 0.4rem; }
+  .lp-reel-dots span { width: 0.45rem; height: 0.45rem; border-radius: 999px; background: rgb(228 227 220 / 0.25); transition: width 0.3s ease, background 0.3s ease; }
+  .lp-reel-dots span.is-on { width: 1.6rem; background: var(--mp-otan); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-reel-slot, .lp-reel-step, .lp-reel-aura { transition: none !important; }
+  .lp-reel-slot { transform: none; filter: none; }
+}
+
 .lp-link { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: auto; padding-top: 1.5rem; font-weight: 600; color: var(--accent-text); }
 .lp-link svg { transition: transform 0.2s ease; }
 .lp-link:hover svg { transform: translateX(3px); }
@@ -1246,6 +1336,37 @@
 @media (max-width: 639px) {
   .lp-compare th, .lp-compare td { padding: 0.75rem 0.65rem; font-size: 0.8125rem; }
   .lp-compare th[scope="row"] { width: 36%; }
+}
+
+/* A pergunta: por que o EVOFIT e não outro */
+.lp-why-head .lp-h2 { font-size: clamp(2.5rem, 7vw, 5.25rem); line-height: 0.92; max-width: 14ch; }
+.lp-why-head .lp-h2 em { font-style: normal; color: var(--accent-text); }
+.lp-why { margin-top: 2.5rem; display: grid; gap: 0.85rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); }
+.lp-why-card { position: relative; display: flex; height: 100%; flex-direction: column; gap: 0.6rem; overflow: hidden; padding: 1.4rem; border-radius: 1.25rem; border: 1px solid var(--line); background: var(--surface); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+.lp-why-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--mp-otan) 45%, var(--line)); box-shadow: 0 24px 50px -30px color-mix(in srgb, var(--mp-otan) 60%, transparent); }
+.lp-why-card h3 { margin-top: 0.4rem; font-size: 1.25rem; font-weight: 600; line-height: 1.15; letter-spacing: -0.02em; }
+.lp-why-card p { font-size: 0.9375rem; line-height: 1.55; color: var(--fg-muted); }
+.lp-why-n { position: absolute; right: 1rem; top: 0.5rem; font-family: var(--font-athletic); font-stretch: 68%; font-weight: 800; font-size: 3.25rem; line-height: 1; color: transparent; -webkit-text-stroke: 1.5px var(--line-strong); }
+.lp-why-go { margin-top: auto; padding-top: 0.6rem; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.875rem; font-weight: 600; color: var(--accent-text); }
+.lp-why-card:hover .lp-why-go svg { transform: translateX(3px); }
+.lp-why-go svg { transition: transform 0.2s ease; }
+
+.lp-cta-inline { margin-top: 2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.25rem; }
+.lp-cta-inline .lp-trigger { margin-top: 0; }
+.lp-reel-cta { margin-top: clamp(3rem, 7vw, 5rem); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; padding-top: 2rem; border-top: 1px solid var(--line); }
+.lp-reel-cta p { font-size: clamp(1.6rem, 3.6vw, 2.6rem); line-height: 0.95; max-width: 18ch; }
+.lp-ask { margin-top: 2.5rem; overflow: hidden; border-radius: 1.25rem; }
+.lp-ask table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.lp-ask th, .lp-ask td { padding: 0.95rem 1rem; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+.lp-ask thead th { border-top: 0; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+.lp-ask thead th:nth-child(2) { color: var(--accent-text); }
+.lp-ask th[scope="row"] { font-weight: 600; width: 42%; }
+.lp-ask td:nth-child(2), .lp-ask thead th:nth-child(2) { background: var(--accent-soft); }
+.lp-ask-yes { display: inline-flex; gap: 0.45rem; font-weight: 500; }
+.lp-ask-yes svg { margin-top: 0.2rem; flex-shrink: 0; color: var(--accent-text); }
+@media (max-width: 639px) {
+  .lp-ask th, .lp-ask td { padding: 0.75rem 0.65rem; font-size: 0.8125rem; }
+  .lp-ask th[scope="row"] { width: 48%; }
 }
 
 .lp-faq { margin-top: 2rem; border-top: 1px solid var(--line); }
@@ -1426,7 +1547,7 @@
  * Motion da landing. Só com "movimento normal"; com "reduzir movimento"
  * tudo aparece no estado final, sem animação.
  * ===================================================================== */
-.lp-w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.lp-w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.24em 0 0.06em; margin: -0.24em 0 -0.06em; }
 .lp-w > span { display: inline-block; }
 .lp-week-title { position: absolute; left: 0.75rem; top: -1.35rem; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #bcc2c5; }
 .lp-week { position: relative; margin-top: 1.6rem !important; justify-content: space-around; }

@@ -128,6 +128,21 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
               {show.specialties && <p className="field-error">{show.specialties}</p>}
             </fieldset>
           </section>
+
+          <section className="card grid gap-4 p-5 sm:grid-cols-2" aria-labelledby="social-title">
+            <div className="sm:col-span-2">
+              <h2 id="social-title" className="t-h2">
+                Contato no perfil público
+              </h2>
+              <p className="mt-1 text-sm text-muted">Quem encontrar você no diretório chama no WhatsApp ou conhece seu trabalho no Instagram com um toque. Deixe em branco para não exibir.</p>
+            </div>
+            <Field label="WhatsApp (opcional)" error={show.whatsapp} hint="Com DDD. Ex.: (11) 98765-4321">
+              {(p) => <input {...p} className="input" inputMode="tel" autoComplete="tel" value={v.whatsapp} maxLength={20} onChange={(e) => set("whatsapp", e.target.value)} />}
+            </Field>
+            <Field label="Instagram (opcional)" error={show.instagram} hint="Seu usuário, com ou sem @.">
+              {(p) => <input {...p} className="input" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={v.instagram} maxLength={60} placeholder="@seuperfil" onChange={(e) => set("instagram", e.target.value)} />}
+            </Field>
+          </section>
         </div>
 
         <aside className="space-y-4">
@@ -139,7 +154,7 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
               <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-[var(--primary)]" checked={v.directoryVisible} onChange={(e) => set("directoryVisible", e.target.checked)} />
               <span className="text-sm">
                 <strong className="block text-[0.9375rem]">Aparecer em “Encontrar personal”</strong>
-                <span className="text-muted">Só nome, chamada, sobre, cidade/região, modalidade, especialidades e registro (se informado) ficam públicos.</span>
+                <span className="text-muted">Só nome, chamada, sobre, cidade/região, modalidade, especialidades, registro, WhatsApp e Instagram (se informados) ficam públicos. A chave Pix nunca aparece.</span>
               </span>
             </label>
             <p className={cx("mt-3 flex items-center gap-2 text-sm font-medium", profile.directoryVisible ? "text-success" : "text-muted")}>

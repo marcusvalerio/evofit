@@ -8,14 +8,16 @@ import { ConfirmDialog, cx } from "./ui"
 import { useToast } from "./providers"
 
 /**
- * Símbolo EVOFIT: pico facetado — a face Gravy sobe devagar, a face Ōtan é o esforço.
- * Vem do cartão da paleta MP020 e do motivo do hero. Funciona de 16 px (favicon) ao hero.
+ * Símbolo EVOFIT: brasa cristalizada — uma chama facetada que sobe. A face Gravy é a base, a Ōtan é
+ * o esforço e o facho claro é a evolução registrada. Funciona de 16 px (favicon) ao ícone do app.
  */
 export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" className={cx("shrink-0", className)} aria-hidden>
-      <path d="M14.5 3 2 21h12.5Z" fill="var(--mp-gravy)" />
-      <path d="M14.5 3 22 21h-7.5Z" fill="var(--mp-otan)" />
+      <path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="var(--mp-gravy)" />
+      <path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="var(--mp-otan)" />
+      <path d="M19.5 11 19 17.5 12 23.5Z" fill="#E2421A" />
+      <path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#FF8A5C" />
     </svg>
   )
 }
@@ -154,7 +156,7 @@ function DemoStrip() {
   const toast = useToast()
   return (
     <>
-      <div className="border-b border-line bg-ink text-on-ink">
+      <div data-demo-strip className="border-b border-line bg-ink text-on-ink">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-1.5 text-[0.8125rem]">
           <FlaskConical size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
