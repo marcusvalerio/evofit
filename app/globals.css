@@ -1503,3 +1503,23 @@
 .evo-access-cred dt { width: 8.5rem; flex-shrink: 0; font-size: 0.8125rem; color: var(--fg-muted); }
 .evo-access-cred dd { flex: 1; min-width: 0; font-size: 1rem; font-weight: 600; letter-spacing: 0.04em; overflow-wrap: anywhere; }
 @media (max-width: 420px) { .evo-access-cred dt { width: 6.5rem; } }
+
+/* Mapa muscular: escala sequencial de um só tom (Ōtan), do neutro ao máximo. */
+.evo-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.evo-body-fig { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+.evo-body-fig svg { width: 100%; max-width: 9.5rem; height: auto; }
+.evo-body.is-compact .evo-body-fig svg { max-width: 5.5rem; }
+.evo-body-fig figcaption { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
+.evo-body-base { fill: color-mix(in srgb, var(--fg) 9%, transparent); }
+.evo-body-part { fill: color-mix(in srgb, var(--fg) 13%, transparent); transition: fill 0.4s ease; }
+.evo-body-part[data-level="1"] { fill: color-mix(in srgb, var(--mp-otan) 28%, var(--surface)); }
+.evo-body-part[data-level="2"] { fill: color-mix(in srgb, var(--mp-otan) 50%, var(--surface)); }
+.evo-body-part[data-level="3"] { fill: color-mix(in srgb, var(--mp-otan) 75%, var(--surface)); }
+.evo-body-part[data-level="4"] { fill: var(--mp-otan); }
+.evo-muscles { display: grid; grid-template-columns: 11rem minmax(0, 1fr); align-items: center; gap: 1rem; padding: 0.9rem; border-radius: 1rem; background: var(--surface-2); }
+.evo-muscles-key { display: flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; color: var(--fg-muted); }
+.evo-muscles-key i { width: 0.7rem; height: 0.7rem; border-radius: 3px; background: var(--mp-otan); }
+.evo-muscles-key i[data-level="2"] { background: color-mix(in srgb, var(--mp-otan) 50%, var(--surface)); }
+@media (max-width: 420px) { .evo-muscles { grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0.75rem; } }
+.evo-vol-bar { position: relative; flex: 1; height: 0.45rem; overflow: hidden; border-radius: 999px; background: var(--line); }
+.evo-vol-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--mp-otan); transition: width 0.4s ease; }

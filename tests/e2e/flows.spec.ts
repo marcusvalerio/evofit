@@ -274,6 +274,8 @@ test.describe("persistência", () => {
 
   test("dados corrompidos são substituídos com aviso", async ({ page }) => {
     await page.goto("/")
+    // espera a demonstração iniciar nesta página; senão ela mesma detecta e restaura os dados corrompidos
+    await expect(page.getByText("Modo demonstração")).toBeVisible()
     await page.evaluate(() => localStorage.setItem("evofit:demo:v1", '{"version":0,"lixo":true}'))
     await page.goto("/studio")
     await expect(page.getByRole("alert").filter({ hasText: "dados salvos" })).toContainText("formato antigo ou inválido")

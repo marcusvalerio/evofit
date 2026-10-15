@@ -86,3 +86,20 @@ describe("recordes pessoais", () => {
     expect(personalRecords(d, d.sessions[0])).toEqual([])
   })
 })
+
+describe("equilíbrio da ficha", () => {
+  it("conta séries por músculo (secundário vale meia) e aponta pares desequilibrados", async () => {
+    const { muscleVolume, volumeLevels, balanceNotes } = await import("@/lib/volume")
+    const d = seed()
+    // Agachamento com barra: Quadríceps principal; Glúteos, Posteriores, Lombar, Panturrilha… secundários
+    const vol = muscleVolume(d, [{ exerciseId: "Barbell_Squat", sets: 4 }])
+    expect(vol[0]).toEqual({ muscle: "Quadríceps", sets: 4 })
+    expect(vol.find((v) => v.muscle === "Posteriores")?.sets).toBe(2)
+    expect(volumeLevels(vol)).toMatchObject({ Quadríceps: 4, Posteriores: 2 })
+    expect(balanceNotes(vol)).toEqual([]) // exatamente metade não é sinalizado
+    const quadHeavy = muscleVolume(d, [{ exerciseId: "Barbell_Squat", sets: 4 }, { exerciseId: "Leg_Extensions", sets: 4 }])
+    expect(balanceNotes(quadHeavy)).toEqual(["Posteriores com 2 séries, menos da metade de Quadríceps (8)."])
+    expect(balanceNotes(muscleVolume(d, [{ exerciseId: "Barbell_Squat", sets: 4 }, { exerciseId: "Lying_Leg_Curls", sets: 4 }]))).toEqual([])
+    expect(muscleVolume(d, [{ exerciseId: "nao-existe", sets: 3 }])).toEqual([])
+  })
+})

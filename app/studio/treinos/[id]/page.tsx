@@ -4,7 +4,9 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
-import type { Workout, WorkoutItem } from "@/lib/types"
+import type { DemoData, Workout, WorkoutItem } from "@/lib/types"
+import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"
+import { BodyMap } from "@/components/body-map"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
 import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
 import { ConfirmDialog, Field, Modal, NotFoundState, cx } from "@/components/ui"
@@ -227,6 +229,7 @@ function Editor({ workout }: { workout: Workout }) {
         </div>
 
         <aside className="space-y-4">
+          <WorkoutBalance d={d} items={draft.items} />
           <div className="card p-5">
             <h2 className="t-h2">Alunos</h2>
             <p className="mt-1 text-sm text-muted">Quem verá esta ficha no app.</p>
@@ -461,5 +464,48 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
         {added.length ? `${added.length} exercício(s) adicionado(s)` : ""}
       </span>
     </Modal>
+  )
+}
+
+/** Mapa de calor do volume da ficha por músculo, atualizado enquanto o personal edita. */
+function WorkoutBalance({ d, items }: { d: DemoData; items: Workout["items"] }) {
+  const vol = muscleVolume(d, items)
+  const notes = balanceNotes(vol)
+  return (
+    <section className="card p-5" aria-labelledby="balance-title">
+      <h2 id="balance-title" className="t-h2">
+        Equilíbrio da ficha
+      </h2>
+      <p className="mt-1 text-sm text-muted">Séries por músculo (secundário conta meia série).</p>
+      {vol.length === 0 ? (
+        <p className="mt-4 text-sm text-muted">Adicione exercícios para ver o mapa.</p>
+      ) : (
+        <>
+          <BodyMap levels={volumeLevels(vol)} className="mt-4" />
+          <ul className="mt-4 space-y-1.5 text-sm">
+            {vol.slice(0, 6).map((v) => (
+              <li key={v.muscle} className="flex items-center gap-2">
+                <span className="w-24 shrink-0 truncate">{v.muscle}</span>
+                <span className="evo-vol-bar" aria-hidden>
+                  <span style={{ width: `${(v.sets / vol[0].sets) * 100}%` }} />
+                </span>
+                <span className="w-8 shrink-0 text-right tabular text-muted">{String(Math.round(v.sets * 10) / 10).replace(".", ",")}</span>
+              </li>
+            ))}
+          </ul>
+          {notes.length > 0 && (
+            <div className="mt-4 rounded-xl bg-warning-soft p-3 text-sm text-warning">
+              <p className="font-semibold">Observação de equilíbrio</p>
+              <ul className="mt-1 space-y-1">
+                {notes.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+              <p className="mt-1 text-xs opacity-90">Se o foco é intencional, ignore.</p>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   )
 }

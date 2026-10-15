@@ -6,6 +6,8 @@ import { ArrowLeft, Check, Flag, Lightbulb, Medal, Play, PlayCircle, Timer, Trop
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { DemoData, Session, Workout } from "@/lib/types"
+import { muscleVolume, volumeLevels } from "@/lib/volume"
+import { BodyMap } from "@/components/body-map"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
 import { inProgressSession, personalRecords, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
@@ -82,7 +84,8 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
         <p className="mt-6 rounded-2xl border border-dashed border-line-strong p-6 text-center text-muted">Esta ficha ainda não tem exercícios.</p>
       ) : (
         <>
-          <p className="mt-5 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
+          <TodayMuscles d={d} workout={workout} />
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
             <PlayCircle size={18} aria-hidden className="shrink-0 text-accent" />
             Treinando sem o personal hoje? Toque em um exercício para ver como fazer.
           </p>
@@ -477,5 +480,24 @@ function Summary({ session, records }: { session: Session; records: PersonalReco
         </Link>
       </div>
     </div>
+  )
+}
+
+/** Músculos de hoje: o mesmo mapa da ficha, para o aluno saber o que vai trabalhar. */
+function TodayMuscles({ d, workout }: { d: DemoData; workout: Workout }) {
+  const vol = muscleVolume(d, workout.items)
+  if (!vol.length) return null
+  return (
+    <section className="evo-muscles mt-5" aria-label="Músculos de hoje">
+      <BodyMap levels={volumeLevels(vol)} compact />
+      <div className="min-w-0">
+        <p className="t-eyebrow">Músculos de hoje</p>
+        <p className="mt-1 text-sm leading-relaxed">
+          <b>{vol.slice(0, 3).map((v) => v.muscle).join(", ")}</b>
+          {vol.length > 3 && <span className="text-muted"> e mais {vol.length - 3}</span>}
+        </p>
+        <p className="mt-1 text-xs text-muted">Quanto mais forte a cor, mais séries para o músculo.</p>
+      </div>
+    </section>
   )
 }
