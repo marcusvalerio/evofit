@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Dumbbell, LayoutDashboard, Search, Smartphone, UserRound, Users } from "lucide-react"
+import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, Smartphone, UserRound, Users } from "lucide-react"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
@@ -10,6 +10,7 @@ const NAV = [
   { href: "/studio", label: "Painel", icon: LayoutDashboard, exact: true },
   { href: "/studio/alunos", label: "Alunos", icon: Users },
   { href: "/studio/treinos", label: "Treinos", icon: ClipboardList },
+  { href: "/studio/avaliacoes", label: "Avaliações", icon: Ruler },
   { href: "/studio/exercicios", label: "Exercícios", icon: Dumbbell },
   { href: "/studio/perfil", label: "Perfil", icon: UserRound },
 ]
@@ -102,7 +103,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
       {/* Navegação inferior (mobile/tablet) */}
       <nav aria-label="Studio" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
-        <ul className="mx-auto grid max-w-xl grid-cols-5">
+        <ul className="mx-auto grid max-w-xl grid-cols-6">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
             const on = isActive(path, href, exact)
             return (
@@ -110,9 +111,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href={href}
                   aria-current={on ? "page" : undefined}
-                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}
+                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.625rem] font-semibold tracking-tight transition-colors", on ? "text-accent" : "text-muted")}
                 >
-                  <span className={cx("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
+                  <span className={cx("grid h-7 w-11 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
                     <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
                   </span>
                   {label}

@@ -1,8 +1,8 @@
-import type { DemoData, Exercise, Session, SetLog, Student, Workout, WorkoutItem } from "./types"
+import type { Assessment, DemoData, Exercise, Session, SetLog, Student, Workout, WorkoutItem } from "./types"
 import { addDays, startOfDay } from "./date"
 import { catalogExercise } from "./catalog"
 
-export const DATA_VERSION = 2
+export const DATA_VERSION = 3
 
 /** PRNG determinístico para que a demonstração seja reprodutível. */
 function mulberry32(seed: number) {
@@ -82,12 +82,12 @@ export function createSeed(now = new Date()): DemoData {
   const created = iso(addDays(startOfDay(now), -70))
 
   const students: Student[] = [
-    { id: "al-ana", name: "Ana Ribeiro", goal: "Hipertrofia de membros inferiores", level: "intermediario", weeklyTarget: 4, notes: "Prefere treinar pela manhã.", status: "ativo", createdAt: created },
-    { id: "al-bruno", name: "Bruno Tavares", goal: "Ganho de força", level: "avancado", weeklyTarget: 4, notes: "", status: "ativo", createdAt: created },
-    { id: "al-carla", name: "Carla Menezes", goal: "Condicionamento e emagrecimento", level: "iniciante", weeklyTarget: 3, notes: "Histórico de dor lombar leve — evitar carga axial alta.", status: "ativo", createdAt: created },
-    { id: "al-diego", name: "Diego Faria", goal: "Retomar a rotina de treinos", level: "iniciante", weeklyTarget: 3, notes: "", status: "ativo", createdAt: created },
-    { id: "al-elisa", name: "Elisa Prado", goal: "Mobilidade e qualidade de vida", level: "intermediario", weeklyTarget: 2, notes: "", status: "ativo", createdAt: created },
-    { id: "al-fabio", name: "Fábio Lins", goal: "Hipertrofia", level: "intermediario", weeklyTarget: 3, notes: "Pausou os treinos por viagem.", status: "arquivado", createdAt: created },
+    { id: "al-ana", phone: "5511900000001", name: "Ana Ribeiro", goal: "Hipertrofia de membros inferiores", level: "intermediario", weeklyTarget: 4, notes: "Prefere treinar pela manhã.", status: "ativo", createdAt: created },
+    { id: "al-bruno", phone: "5511900000002", name: "Bruno Tavares", goal: "Ganho de força", level: "avancado", weeklyTarget: 4, notes: "", status: "ativo", createdAt: created },
+    { id: "al-carla", phone: "5511900000003", name: "Carla Menezes", goal: "Condicionamento e emagrecimento", level: "iniciante", weeklyTarget: 3, notes: "Histórico de dor lombar leve — evitar carga axial alta.", status: "ativo", createdAt: created },
+    { id: "al-diego", phone: "5511900000004", name: "Diego Faria", goal: "Retomar a rotina de treinos", level: "iniciante", weeklyTarget: 3, notes: "", status: "ativo", createdAt: created },
+    { id: "al-elisa", phone: "", name: "Elisa Prado", goal: "Mobilidade e qualidade de vida", level: "intermediario", weeklyTarget: 2, notes: "", status: "ativo", createdAt: created },
+    { id: "al-fabio", phone: "", name: "Fábio Lins", goal: "Hipertrofia", level: "intermediario", weeklyTarget: 3, notes: "Pausou os treinos por viagem.", status: "arquivado", createdAt: created },
   ]
 
   const workouts: Workout[] = [
@@ -209,6 +209,60 @@ export function createSeed(now = new Date()): DemoData {
 
   sessions.sort((a, b) => a.startedAt.localeCompare(b.startedAt))
 
+  // Avaliações fictícias a cada ~4 semanas, com variação plausível.
+  const day = (back: number) => iso(addDays(today, -back)).slice(0, 10)
+  const assessments: Assessment[] = [
+    ...[
+      { back: 56, w: 63.4, sf: [13, 18, 24] },
+      { back: 28, w: 63.9, sf: [12, 16.5, 22] },
+      { back: 2, w: 64.6, sf: [11, 15, 20.5] },
+    ].map(({ back, w, sf }, i): Assessment => ({
+      id: `av-ana-${i + 1}`,
+      studentId: "al-ana",
+      date: day(back),
+      sex: "F",
+      age: 29,
+      weightKg: w,
+      heightCm: 165,
+      skinfolds: { triceps: sf[0], suprailiaca: sf[1], coxa: sf[2] },
+      circumferences: { cintura: 68 - i * 0.8, quadril: 99 + i * 0.6, coxaD: 57 + i * 0.7, bracoD: 27.5 + i * 0.3 },
+      bodyFatPct: null,
+      notes: i === 0 ? "Avaliação inicial." : "",
+      createdAt: iso(addDays(today, -back)),
+    })),
+    ...[
+      { back: 49, w: 84.2, sf: [16, 24, 18] },
+      { back: 7, w: 85.1, sf: [14, 21, 17] },
+    ].map(({ back, w, sf }, i): Assessment => ({
+      id: `av-bruno-${i + 1}`,
+      studentId: "al-bruno",
+      date: day(back),
+      sex: "M",
+      age: 34,
+      weightKg: w,
+      heightCm: 180,
+      skinfolds: { peitoral: sf[0], abdominal: sf[1], coxa: sf[2] },
+      circumferences: { torax: 104 + i, cintura: 86 - i, bracoD: 37 + i * 0.5 },
+      bodyFatPct: null,
+      notes: "",
+      createdAt: iso(addDays(today, -back)),
+    })),
+    {
+      id: "av-carla-1",
+      studentId: "al-carla",
+      date: day(20),
+      sex: "F",
+      age: 41,
+      weightKg: 78.5,
+      heightCm: 162,
+      skinfolds: {},
+      circumferences: { cintura: 88, quadril: 108 },
+      bodyFatPct: 36.2,
+      notes: "% de gordura por bioimpedância.",
+      createdAt: iso(addDays(today, -20)),
+    },
+  ]
+
   return {
     version: DATA_VERSION,
     seededAt: iso(now),
@@ -236,6 +290,7 @@ export function createSeed(now = new Date()): DemoData {
     workouts,
     sessions,
     contactRequests: [],
+    assessments,
     activeStudentId: "al-ana",
   }
 }

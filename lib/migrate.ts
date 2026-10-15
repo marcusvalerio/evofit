@@ -26,11 +26,18 @@ function v1ToV2(v: Obj): Obj {
   return { ...v, version: 2, exercises: [...own, ...revived], exerciseMedia: {}, workouts, sessions }
 }
 
+/** v2 → v3: aluno ganha telefone (WhatsApp) e entram as avaliações físicas. */
+function v2ToV3(v: Obj): Obj {
+  const students = Array.isArray(v.students) ? v.students.map((s) => (isObj(s) && typeof s.phone !== "string" ? { ...s, phone: "" } : s)) : v.students
+  return { ...v, version: 3, students, assessments: Array.isArray(v.assessments) ? v.assessments : [] }
+}
+
 /** Tenta trazer dados salvos de versões anteriores para o formato atual. Retorna null se não for possível. */
 export function migrate(v: unknown): DemoData | null {
   if (isDemoData(v)) return v
   if (!isObj(v) || typeof v.version !== "number") return null
   let cur: Obj = v
   if (cur.version === 1) cur = v1ToV2(cur)
+  if (cur.version === 2) cur = v2ToV3(cur)
   return cur.version === DATA_VERSION && isDemoData(cur) ? cur : null
 }

@@ -54,7 +54,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "0042_exercise_illustrations.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -220,6 +220,27 @@ describe("aluno com convite", () => {
     await expectStatus(run({ sessions: { upsert: [{ ...base, studentId: "al-carlos", workoutId: "tr-duda" }], delete: [] } }), 403)
     // personal não pode apagar treino concluído
     await expectStatus(withTenant(tenant(ana), (q) => applyChanges(q, tenant(ana), { sessions: { upsert: [], delete: ["se-1"] } }), db), 403)
+  })
+
+  it("avaliações e telefone: personal grava, aluno só lê as próprias", async () => {
+    const base = { date: "2026-09-01", sex: "M" as const, age: 30, weightKg: 80, heightCm: 178, skinfolds: { peitoral: 12, abdominal: 20, coxa: 15 }, circumferences: { cintura: 84 }, bodyFatPct: null, notes: "" }
+    let d = await act(ana, (x) => A.updateStudent(x, "al-carlos", { ...x.students.find((s) => s.id === "al-carlos")!, phone: "(11) 98765-4321" }))
+    expect(d.students.find((s) => s.id === "al-carlos")?.phone).toBe("11987654321")
+    d = await act(ana, (x) => A.saveAssessment(x, "al-carlos", base, "av-c1"))
+    d = await act(ana, (x) => A.saveAssessment(x, "al-duda", { ...base, sex: "F" }, "av-d1"))
+    expect(d.assessments.map((a) => a.id)).toEqual(["av-c1", "av-d1"])
+    expect(d.assessments[0]).toMatchObject({ weightKg: 80, skinfolds: { peitoral: 12 }, circumferences: { cintura: 84 } })
+    expect(diff(d, await load(ana))).toEqual({})
+    // aluno vê só a própria avaliação e não escreve
+    const c = await load(carlos)
+    expect(c.assessments.map((a) => a.id)).toEqual(["av-c1"])
+    const run = (ch: Parameters<typeof applyChanges>[2]) => withTenant(tenant(carlos), (q) => applyChanges(q, tenant(carlos), ch), db)
+    await expectStatus(run({ assessments: { upsert: [{ ...c.assessments[0], weightKg: 60 }], delete: [] } }), 403)
+    // medidas fora da faixa são recusadas pelo servidor
+    const bad = { ...d.assessments[0], id: "av-bad", weightKg: 900 }
+    await expectStatus(withTenant(tenant(ana), (q) => applyChanges(q, tenant(ana), { assessments: { upsert: [bad], delete: [] } }), db), 400)
+    d = await act(ana, (x) => A.deleteAssessment(x, "av-d1"))
+    expect(d.assessments.map((a) => a.id)).toEqual(["av-c1"])
   })
 
   it("excluir conta do personal apaga tudo, inclusive o login do aluno", async () => {

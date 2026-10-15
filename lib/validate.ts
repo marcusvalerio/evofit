@@ -1,4 +1,5 @@
-import type { ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import type { Assessment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import { CIRCUMFERENCES, SKINFOLDS } from "./types"
 import { DATA_VERSION } from "./seed"
 
 type Obj = Record<string, unknown>
@@ -23,7 +24,7 @@ export const isProfile = (v: unknown): v is TrainerProfile =>
 export const isStudent = (v: unknown): v is Student =>
   isObj(v) &&
   has(v, {
-    id: isStr, name: isStr, goal: isStr, notes: isStr, createdAt: isStr,
+    id: isStr, name: isStr, goal: isStr, notes: isStr, createdAt: isStr, phone: isStr,
     level: (l) => l === "iniciante" || l === "intermediario" || l === "avancado",
     weeklyTarget: (n) => isNum(n) && n >= 1 && n <= 7,
     status: (s) => s === "ativo" || s === "arquivado",
@@ -58,6 +59,23 @@ export const isSession = (v: unknown): v is Session =>
 export const isContact = (v: unknown): v is ContactRequest =>
   isObj(v) && has(v, { id: isStr, trainerSlug: isStr, name: isStr, contact: isStr, message: isStr, createdAt: isStr })
 
+const isMeasureMap = (keys: readonly string[], max: number) => (v: unknown) =>
+  isObj(v) && Object.entries(v).every(([k, n]) => keys.includes(k) && isNum(n) && n > 0 && n <= max)
+
+export const isAssessment = (v: unknown): v is Assessment =>
+  isObj(v) &&
+  has(v, {
+    id: isStr, studentId: isStr, notes: isStr, createdAt: isStr,
+    date: (d) => isStr(d) && /^\d{4}-\d{2}-\d{2}$/.test(d),
+    sex: (x) => x === "F" || x === "M",
+    age: isNumOrNull,
+    weightKg: isNumOrNull,
+    heightCm: isNumOrNull,
+    bodyFatPct: isNumOrNull,
+    skinfolds: isMeasureMap(SKINFOLDS, 100),
+    circumferences: isMeasureMap(CIRCUMFERENCES, 250),
+  })
+
 /** Valida o formato persistido. Dados de versões antigas ou corrompidos são rejeitados. */
 export function isDemoData(v: unknown): v is DemoData {
   return (
@@ -71,6 +89,7 @@ export function isDemoData(v: unknown): v is DemoData {
     isArr(v.workouts, isWorkout) &&
     isArr(v.sessions, isSession) &&
     isArr(v.contactRequests, isContact) &&
+    isArr(v.assessments, isAssessment) &&
     (v.activeStudentId === null || isStr(v.activeStudentId))
   )
 }

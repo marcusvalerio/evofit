@@ -1376,3 +1376,31 @@
 .lp-h2.t-athletic { font-weight: 800; letter-spacing: 0; line-height: 0.9; }
 .lp-proof-link { display: block; border-radius: 0.5rem; }
 .lp-proof-link:hover span { color: var(--accent-text); }
+
+/* ---------- Studio: avaliação física ---------- */
+.evo-av-live { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border-radius: 1rem; background: var(--line); }
+.evo-av-live > div { display: flex; flex-direction: column; gap: 0.15rem; padding: 0.85rem 1rem; background: var(--surface-2); }
+.evo-av-live span { font-size: 0.75rem; font-weight: 600; color: var(--fg-muted); }
+.evo-av-live strong { font-family: var(--font-display); font-size: 1.5rem; font-weight: 600; line-height: 1.1; }
+.evo-av-live small { font-size: 0.6875rem; line-height: 1.3; color: var(--fg-muted); }
+.evo-av-legend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.25rem 0.6rem; margin-bottom: 0.75rem; font-family: var(--font-display); font-size: 1rem; font-weight: 600; }
+.evo-av-legend span { font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500; color: var(--fg-muted); }
+.evo-av-key { border-color: var(--accent-text); box-shadow: inset 3px 0 0 var(--accent-text); }
+.evo-av-hero { overflow: hidden; border-radius: 1.5rem; padding: 1.25rem; }
+.evo-av-hero-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.evo-av-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; margin-top: 1.25rem; }
+.evo-av-tile { display: flex; flex-direction: column; gap: 0.35rem; padding: 0.9rem; border-radius: 1rem; background: rgb(228 227 220 / 0.05); border: 1px solid rgb(228 227 220 / 0.08); }
+.evo-av-tile dt { font-size: 0.75rem; font-weight: 600; color: var(--on-ink-muted); }
+.evo-av-tile strong { font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 600; line-height: 1; letter-spacing: -0.02em; }
+.evo-av-unit { margin-left: 0.25rem; font-size: 0.875rem; color: var(--on-ink-muted); }
+.evo-av-delta { font-size: 0.75rem; color: var(--on-ink-muted); }
+@media (max-width: 760px) { .evo-av-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .evo-av-live { grid-template-columns: minmax(0, 1fr); } }
+.evo-av-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.evo-av-table th, .evo-av-table td { padding: 0.6rem 1rem; text-align: left; border-top: 1px solid var(--line); white-space: nowrap; }
+.evo-av-table thead th { border-top: 0; background: var(--surface-2); font-size: 0.75rem; font-weight: 600; color: var(--fg-muted); }
+.evo-av-table th[scope="row"] { font-weight: 500; }
+
+/* Recorde pessoal no fim do treino */
+.evo-pr { padding: 1rem 1.1rem; border-radius: 1.125rem; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); }
+.evo-pr-title { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--accent-text); }

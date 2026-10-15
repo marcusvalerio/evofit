@@ -53,3 +53,12 @@ export function durationMin(startIso: string, endIso: string | null) {
   if (!endIso) return 0
   return Math.max(1, Math.round((new Date(endIso).getTime() - new Date(startIso).getTime()) / 60_000))
 }
+
+/** Data AAAA-MM-DD (sem fuso) → "01/09/2026". Meio-dia evita voltar um dia em fusos negativos. */
+export function fmtIsoDay(day: string) {
+  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(`${day}T12:00:00`))
+}
+
+export function daysSinceIso(day: string, now = new Date()) {
+  return Math.floor((startOfDay(now).getTime() - startOfDay(new Date(`${day}T12:00:00`)).getTime()) / DAY_MS)
+}

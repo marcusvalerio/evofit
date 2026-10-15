@@ -7,7 +7,7 @@ import { update, useIsDemo } from "@/lib/store"
 import { Field, Modal } from "./ui"
 import { useToast } from "./providers"
 
-const EMPTY: StudentInput = { name: "", goal: "", level: "iniciante", weeklyTarget: 3, notes: "" }
+const EMPTY: StudentInput = { name: "", goal: "", level: "iniciante", weeklyTarget: 3, notes: "", phone: "" }
 
 export function StudentFormModal({ open, onClose, student, onCreated }: { open: boolean; onClose: () => void; student?: Student; onCreated?: (id: string) => void }) {
   return open ? <StudentForm onClose={onClose} student={student} onCreated={onCreated} /> : null
@@ -16,7 +16,7 @@ export function StudentFormModal({ open, onClose, student, onCreated }: { open: 
 function StudentForm({ onClose, student, onCreated }: { onClose: () => void; student?: Student; onCreated?: (id: string) => void }) {
   const toast = useToast()
   const demo = useIsDemo()
-  const [v, setV] = useState<StudentInput>(student ? { name: student.name, goal: student.goal, level: student.level, weeklyTarget: student.weeklyTarget, notes: student.notes } : EMPTY)
+  const [v, setV] = useState<StudentInput>(student ? { name: student.name, goal: student.goal, level: student.level, weeklyTarget: student.weeklyTarget, notes: student.notes, phone: student.phone } : EMPTY)
   const [touched, setTouched] = useState(false)
   const errors = validateStudent(v)
   const show = touched ? errors : {}
@@ -79,6 +79,9 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
           {(p) => (
             <input {...p} className="input" type="number" inputMode="numeric" min={1} max={7} value={Number.isNaN(v.weeklyTarget) ? "" : v.weeklyTarget} onChange={(e) => set("weeklyTarget", parseInt(e.target.value, 10))} />
           )}
+        </Field>
+        <Field label="WhatsApp (opcional)" error={show.phone} className="sm:col-span-2" hint="Com DDD. Usado no botão de mensagem rápida quando o aluno some.">
+          {(p) => <input {...p} className="input" type="tel" inputMode="tel" autoComplete="off" placeholder="(11) 98765-4321" value={v.phone ?? ""} onChange={(e) => set("phone", e.target.value)} maxLength={20} />}
         </Field>
         <Field label="Observações" error={show.notes} className="sm:col-span-2" hint="Restrições, preferências de horário etc.">
           {(p) => <textarea {...p} className="input" value={v.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} rows={3} />}

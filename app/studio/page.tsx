@@ -1,6 +1,7 @@
 "use client"
 import Link from "next/link"
-import { ArrowRight, CalendarCheck, ClipboardList, Inbox, UserPlus, type LucideIcon } from "lucide-react"
+import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, UserPlus, type LucideIcon } from "lucide-react"
+import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { useData, useIsDemo } from "@/lib/store"
 import { completed, needsAttention, sessionProgress, weekAdherence, weekCount, weeklySeries } from "@/lib/metrics"
 import { addDays, fmtDate, fmtDayMonth, fmtTime, relativeDays } from "@/lib/date"
@@ -95,12 +96,22 @@ export default function StudioDashboard() {
           ) : (
             <ul className="mt-4 divide-y divide-line">
               {attention.map(({ student, since }) => (
-                <li key={student.id}>
-                  <Link href={`/studio/alunos/${student.id}`} className="flex items-center gap-3 rounded-lg py-3 hover:bg-line/40">
+                <li key={student.id} className="flex items-center gap-2">
+                  <Link href={`/studio/alunos/${student.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg py-3 hover:bg-line/40">
                     <Avatar name={student.name} size="sm" />
                     <span className="min-w-0 flex-1 truncate font-medium">{student.name}</span>
                     <span className="badge badge-warning">{since === null ? "nunca treinou" : `${since} dias`}</span>
                   </Link>
+                  <a
+                    href={whatsappLink(student.phone, comebackMessage(student.name, d.profile.name, since))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline btn-sm shrink-0"
+                    aria-label={`Chamar ${student.name} no WhatsApp`}
+                    title={student.phone ? "Mensagem pronta no WhatsApp" : "Sem telefone cadastrado: escolha o contato no WhatsApp"}
+                  >
+                    <MessageCircle size={16} aria-hidden /> <span className="hidden sm:inline">Chamar</span>
+                  </a>
                 </li>
               ))}
             </ul>

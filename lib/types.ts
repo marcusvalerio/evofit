@@ -29,6 +29,8 @@ export interface Student {
   /** Meta de sessões por semana (1–7). */
   weeklyTarget: number
   notes: string
+  /** WhatsApp com DDD, só dígitos (ex.: 5511987654321). Vazio = não informado. */
+  phone: string
   status: StudentStatus
   createdAt: string
 }
@@ -105,6 +107,35 @@ export interface ContactRequest {
   createdAt: string
 }
 
+export type Sex = "F" | "M"
+
+export const SKINFOLDS = ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"] as const
+export type Skinfold = (typeof SKINFOLDS)[number]
+
+export const CIRCUMFERENCES = ["ombros", "torax", "cintura", "abdomen", "quadril", "bracoD", "bracoE", "coxaD", "coxaE", "panturrilhaD", "panturrilhaE"] as const
+export type Circumference = (typeof CIRCUMFERENCES)[number]
+
+/** Avaliação física registrada pelo personal. Só mostra o que foi medido — nada é estimado sem dado. */
+export interface Assessment {
+  id: string
+  studentId: string
+  /** Data da avaliação (AAAA-MM-DD). */
+  date: string
+  sex: Sex
+  /** Idade na data da avaliação (necessária para as equações de dobras). */
+  age: number | null
+  weightKg: number | null
+  heightCm: number | null
+  /** Dobras cutâneas em mm. */
+  skinfolds: Partial<Record<Skinfold, number>>
+  /** Circunferências em cm. */
+  circumferences: Partial<Record<Circumference, number>>
+  /** % de gordura medido por outro método (ex.: bioimpedância). Usado quando não há dobras completas. */
+  bodyFatPct: number | null
+  notes: string
+  createdAt: string
+}
+
 export interface DemoData {
   version: number
   seededAt: string
@@ -116,6 +147,7 @@ export interface DemoData {
   workouts: Workout[]
   sessions: Session[]
   contactRequests: ContactRequest[]
+  assessments: Assessment[]
   /** Aluno que o visitante está "usando" na experiência do aluno. */
   activeStudentId: string | null
 }
@@ -165,3 +197,27 @@ export const MUSCLE_GROUPS = [
   "Corpo inteiro",
   "Cardio",
 ] as const
+
+export const SKINFOLD_LABEL: Record<Skinfold, string> = {
+  peitoral: "Peitoral",
+  axilar: "Axilar média",
+  triceps: "Tríceps",
+  subescapular: "Subescapular",
+  abdominal: "Abdominal",
+  suprailiaca: "Suprailíaca",
+  coxa: "Coxa",
+}
+
+export const CIRCUMFERENCE_LABEL: Record<Circumference, string> = {
+  ombros: "Ombros",
+  torax: "Tórax",
+  cintura: "Cintura",
+  abdomen: "Abdômen",
+  quadril: "Quadril",
+  bracoD: "Braço direito",
+  bracoE: "Braço esquerdo",
+  coxaD: "Coxa direita",
+  coxaE: "Coxa esquerda",
+  panturrilhaD: "Panturrilha direita",
+  panturrilhaE: "Panturrilha esquerda",
+}

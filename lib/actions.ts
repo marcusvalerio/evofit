@@ -1,4 +1,4 @@
-import type { ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import type { Assessment, ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CATALOG, exerciseName, fold, getExercise } from "./catalog"
 import { parseVideoUrl, validateVideoUrl } from "./video"
 
@@ -14,7 +14,10 @@ const now = () => new Date().toISOString()
 
 /* ---------- Alunos ---------- */
 
-export type StudentInput = Pick<Student, "name" | "goal" | "level" | "weeklyTarget" | "notes">
+export type StudentInput = Pick<Student, "name" | "goal" | "level" | "weeklyTarget" | "notes"> & { phone?: string }
+
+/** Mantém só os dígitos do telefone. */
+export const normalizePhone = (p: string) => p.replace(/\D/g, "")
 
 export function validateStudent(s: StudentInput) {
   const errors: Partial<Record<keyof StudentInput, string>> = {}
@@ -23,16 +26,18 @@ export function validateStudent(s: StudentInput) {
   if (!Number.isInteger(s.weeklyTarget) || s.weeklyTarget < 1 || s.weeklyTarget > 7) errors.weeklyTarget = "A meta deve ser de 1 a 7 sessões por semana."
   if (s.goal.length > 120) errors.goal = "Use no máximo 120 caracteres."
   if (s.notes.length > 500) errors.notes = "Use no máximo 500 caracteres."
+  const phone = normalizePhone(s.phone ?? "")
+  if (phone && (phone.length < 10 || phone.length > 13)) errors.phone = "Informe o WhatsApp com DDD (10 a 13 dígitos)."
   return errors
 }
 
 export function addStudent(d: DemoData, input: StudentInput, id = uid("al")): DemoData {
-  const st: Student = { ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), id, status: "ativo", createdAt: now() }
+  const st: Student = { ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), phone: normalizePhone(input.phone ?? ""), id, status: "ativo", createdAt: now() }
   return { ...d, students: [...d.students, st] }
 }
 
 export function updateStudent(d: DemoData, id: string, input: StudentInput): DemoData {
-  return { ...d, students: d.students.map((s) => (s.id === id ? { ...s, ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim() } : s)) }
+  return { ...d, students: d.students.map((s) => (s.id === id ? { ...s, ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), phone: normalizePhone(input.phone ?? s.phone) } : s)) }
 }
 
 export function setStudentStatus(d: DemoData, id: string, status: Student["status"]): DemoData {
@@ -242,4 +247,36 @@ export function addContactRequest(d: DemoData, trainerSlug: string, c: ContactIn
 
 export function removeContactRequest(d: DemoData, id: string): DemoData {
   return { ...d, contactRequests: d.contactRequests.filter((c) => c.id !== id) }
+}
+
+/* ---------- Avaliações ---------- */
+
+export type AssessmentInput = Omit<Assessment, "id" | "studentId" | "createdAt">
+
+const inRange = (v: number | null, min: number, max: number) => v === null || (Number.isFinite(v) && v >= min && v <= max)
+
+export function validateAssessment(a: AssessmentInput) {
+  const errors: Partial<Record<"date" | "age" | "weightKg" | "heightCm" | "bodyFatPct" | "measures" | "notes", string>> = {}
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date) || Number.isNaN(Date.parse(a.date))) errors.date = "Informe a data da avaliação."
+  else if (Date.parse(a.date) > Date.now() + 86_400_000) errors.date = "A data não pode estar no futuro."
+  if (!inRange(a.age, 5, 110)) errors.age = "Idade entre 5 e 110 anos."
+  if (!inRange(a.weightKg, 20, 350)) errors.weightKg = "Peso entre 20 e 350 kg."
+  if (!inRange(a.heightCm, 100, 250)) errors.heightCm = "Altura entre 100 e 250 cm."
+  if (!inRange(a.bodyFatPct, 2, 70)) errors.bodyFatPct = "Percentual entre 2 e 70%."
+  if (Object.values(a.skinfolds).some((v) => !inRange(v ?? null, 1, 100)) || Object.values(a.circumferences).some((v) => !inRange(v ?? null, 5, 250)))
+    errors.measures = "Confira as medidas: dobras de 1 a 100 mm e circunferências de 5 a 250 cm."
+  if (a.notes.length > 500) errors.notes = "Use no máximo 500 caracteres."
+  const measured = a.weightKg !== null || a.bodyFatPct !== null || Object.keys(a.skinfolds).length > 0 || Object.keys(a.circumferences).length > 0
+  if (!measured && !errors.measures) errors.measures = "Registre pelo menos uma medida."
+  return errors
+}
+
+export function saveAssessment(d: DemoData, studentId: string, input: AssessmentInput, id?: string): DemoData {
+  const existing = id ? d.assessments.find((a) => a.id === id) : undefined
+  const a: Assessment = { ...input, notes: input.notes.trim(), id: existing?.id ?? id ?? uid("av"), studentId, createdAt: existing?.createdAt ?? now() }
+  return { ...d, assessments: existing ? d.assessments.map((x) => (x.id === a.id ? a : x)) : [...d.assessments, a] }
+}
+
+export function deleteAssessment(d: DemoData, id: string): DemoData {
+  return { ...d, assessments: d.assessments.filter((a) => a.id !== id) }
 }

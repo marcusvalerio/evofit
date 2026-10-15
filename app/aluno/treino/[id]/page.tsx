@@ -2,12 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Lightbulb, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Lightbulb, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { DemoData, Session, Workout } from "@/lib/types"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
-import { inProgressSession, sessionProgress, sessionVolume } from "@/lib/metrics"
+import { inProgressSession, personalRecords, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
@@ -38,7 +38,7 @@ export default function TreinoPage() {
 
   if (finishedId) {
     const s = d.sessions.find((x) => x.id === finishedId)
-    if (s) return <Summary session={s} />
+    if (s) return <Summary session={s} records={personalRecords(d, s)} />
   }
 
   if (!student) {
@@ -424,7 +424,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
 /* ---------- Concluído ---------- */
 
-function Summary({ session }: { session: Session }) {
+function Summary({ session, records }: { session: Session; records: PersonalRecord[] }) {
   const p = sessionProgress(session)
   const vol = sessionVolume(session)
   return (
@@ -451,6 +451,23 @@ function Summary({ session }: { session: Session }) {
           </div>
         ))}
       </dl>
+      {records.length > 0 && (
+        <section className="evo-pr pop mx-auto mt-6 max-w-sm text-left" aria-labelledby="pr-title">
+          <h2 id="pr-title" className="evo-pr-title">
+            <Medal size={18} aria-hidden /> {records.length === 1 ? "Novo recorde pessoal" : `${records.length} recordes pessoais`}
+          </h2>
+          <ul className="mt-2 space-y-1.5">
+            {records.map((r) => (
+              <li key={r.exerciseId} className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate font-medium">{r.exerciseName}</span>
+                <span className="shrink-0 tabular">
+                  <b>{String(r.load).replace(".", ",")} kg</b> <span className="text-muted">antes {String(r.previous).replace(".", ",")}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="mx-auto mt-8 flex max-w-sm flex-col gap-2">
         <Link href="/aluno/historico" className="btn btn-primary btn-lg">
           Ver histórico

@@ -2,7 +2,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, Pencil, Send, Smartphone } from "lucide-react"
+import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, MessageCircle, Pencil, Ruler, Send, Smartphone } from "lucide-react"
+import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { update, useData, useIsDemo } from "@/lib/store"
 import { LEVEL_LABEL } from "@/lib/types"
 import { setStudentStatus, toggleAssignment } from "@/lib/actions"
@@ -79,6 +80,20 @@ export default function AlunoDetalhe() {
               <Send size={18} aria-hidden /> Convidar para o app
             </button>
           )}
+          {!archived && (
+            <a
+              href={whatsappLink(student.phone, comebackMessage(student.name, d.profile.name, since))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline"
+              title={student.phone ? "Mensagem pronta no WhatsApp" : "Sem telefone cadastrado: escolha o contato no WhatsApp"}
+            >
+              <MessageCircle size={18} aria-hidden /> WhatsApp
+            </a>
+          )}
+          <Link href={`/studio/avaliacoes/${student.id}`} className="btn btn-outline">
+            <Ruler size={18} aria-hidden /> Avaliações
+          </Link>
           <button type="button" className="btn btn-outline" onClick={() => setEditing(true)}>
             <Pencil size={18} aria-hidden /> Editar
           </button>
