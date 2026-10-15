@@ -1233,6 +1233,17 @@
 .lp-feature ul { display: grid; gap: 0.6rem; margin-top: 1.25rem; font-size: 0.9375rem; }
 .lp-feature li { display: flex; gap: 0.6rem; line-height: 1.45; }
 .lp-feature li svg { flex-shrink: 0; margin-top: 0.15rem; color: var(--accent-text); }
+/* Menu "Ver como funciona" no topo público */
+.lp-menu { position: relative; }
+.lp-menu summary::-webkit-details-marker { display: none; }
+.lp-menu[open] summary { color: var(--fg); }
+.lp-menu-panel { position: absolute; right: 0; top: calc(100% + 0.4rem); z-index: 40; display: grid; width: 17rem; padding: 0.4rem; border-radius: 1rem; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-lg); }
+.lp-menu-panel a { display: grid; gap: 0.1rem; padding: 0.65rem 0.8rem; border-radius: 0.7rem; }
+.lp-menu-panel a:hover, .lp-menu-panel a:focus-visible { background: var(--line); }
+.lp-menu-panel b { font-size: 0.9375rem; }
+@media (max-width: 639px) { .lp-menu { position: static; } .lp-menu-panel { left: 1rem; right: 1rem; width: auto; top: calc(100% - 0.25rem); } }
+.lp-menu-panel span { font-size: 0.8125rem; color: var(--fg-muted); }
+
 /* ---------- O EVOFIT em movimento (gravações reais) ---------- */
 .lp-reel {
   --aura-a: rgb(255 78 32 / 0.55);

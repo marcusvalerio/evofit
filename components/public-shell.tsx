@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LogIn } from "lucide-react"
+import { ChevronDown, LogIn, PlayCircle, Search } from "lucide-react"
 import { useDemoState } from "@/lib/store"
 import { homeFor } from "@/lib/account-client"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
@@ -10,11 +10,12 @@ import { cx } from "./ui"
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { mode, account } = useDemoState()
+  // Topo enxuto: encontrar personal e entrar. As demonstrações ficam na landing e no rodapé.
   const links = [
-    { href: "/biblioteca", label: "Biblioteca" },
     { href: "/personais", label: "Encontrar personal" },
-    { href: "/aluno", label: "App do aluno" },
-    { href: "/studio", label: "Studio" },
+    { href: "/studio", label: "Demonstração do Studio" },
+    { href: "/aluno", label: "Demonstração do app do aluno" },
+    { href: "/biblioteca", label: "Biblioteca de exercícios" },
   ]
   return (
     <div className="flex min-h-dvh flex-col">
@@ -26,20 +27,34 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
           <Brand />
           <nav aria-label="Principal" className="flex items-center gap-1">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                aria-current={path.startsWith(l.href) ? "page" : undefined}
-                className={cx(
-                  "h-9 items-center rounded-full px-3 text-sm font-medium transition-colors",
-                  l.href === "/biblioteca" ? "hidden sm:inline-flex" : l.href === "/studio" ? "inline-flex" : "hidden md:inline-flex",
-                  path.startsWith(l.href) ? "bg-surface text-fg shadow-[var(--shadow)]" : "text-muted hover:text-fg",
-                )}
-              >
-                {l.label}
-              </Link>
-            ))}
+            <Link
+              href="/personais"
+              aria-current={path.startsWith("/personais") ? "page" : undefined}
+              className={cx(
+                "inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+                path.startsWith("/personais") ? "bg-surface text-fg shadow-[var(--shadow)]" : "text-muted hover:text-fg",
+              )}
+            >
+              <Search size={15} aria-hidden className="sm:hidden" />
+              <span className="sr-only sm:not-sr-only">Encontrar personal</span>
+            </Link>
+            <details className="lp-menu">
+              <summary className="inline-flex h-9 cursor-pointer list-none items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted hover:text-fg">
+                <PlayCircle size={15} aria-hidden className="sm:hidden" />
+                <span className="sr-only sm:not-sr-only">Ver como funciona</span>
+                <ChevronDown size={14} aria-hidden className="hidden sm:block" />
+              </summary>
+              <div className="lp-menu-panel" onClick={(e) => (e.currentTarget.closest("details") as HTMLDetailsElement | null)?.removeAttribute("open")}>
+                <Link href="/studio">
+                  <b>Para o personal</b>
+                  <span>O Studio com alunos e fichas de exemplo</span>
+                </Link>
+                <Link href="/aluno">
+                  <b>Para o aluno</b>
+                  <span>O app que o aluno usa no treino</span>
+                </Link>
+              </div>
+            </details>
             {mode === "account" && account ? (
               <Link href={homeFor(account.role)} className="btn btn-primary btn-sm ml-1">
                 {account.role === "student" ? "Meus treinos" : "Meu Studio"}
