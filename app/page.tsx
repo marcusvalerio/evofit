@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import Link from "next/link"
 import {
   ArrowRight,
@@ -14,6 +15,7 @@ import {
 } from "lucide-react"
 import { PublicShell } from "@/components/public-shell"
 import { LandingPreview } from "@/components/landing-preview"
+import { LibraryMarquee, RevealOnScroll } from "@/components/landing-motion"
 import { CATALOG_SIZE } from "@/lib/catalog"
 
 /*
@@ -73,22 +75,30 @@ const FAQ = [
   },
 ]
 
+const HERO_WORDS = ["Prescreva,", "acompanhe", "e", "evolua", "seus", "alunos."]
+
 export default function Home() {
   return (
     <PublicShell>
       {/* Hero */}
       <section className="lp-hero fade-in" aria-labelledby="hero-title">
         <div>
-          <p className="evo-pill">
+          <p className="evo-pill lp-in" style={{ "--d": "0ms" } as React.CSSProperties}>
             <span>Novo</span> Para personal trainers autônomos
           </p>
-          <h1 id="hero-title" className="t-athletic mt-6">
-            Prescreva, acompanhe e <em>evolua</em> seus alunos.
+          <h1 id="hero-title" className="lp-title t-athletic mt-6">
+            {HERO_WORDS.map((w, i) => (
+              <Fragment key={i}>
+                <span className="lp-w">
+                  <span style={{ "--i": i } as React.CSSProperties}>{w === "evolua" ? <em>evolua</em> : w}</span>
+                </span>{" "}
+              </Fragment>
+            ))}
           </h1>
-          <p className="lp-lead">
+          <p className="lp-lead lp-in" style={{ "--d": "520ms" } as React.CSSProperties}>
             Sem planilha e sem PDF no WhatsApp: você monta a ficha, o aluno treina série a série pelo celular e o seu painel mostra quem treinou, quem sumiu e quem está perto de bater a meta.
           </p>
-          <div className="lp-cta-row">
+          <div className="lp-cta-row lp-in" style={{ "--d": "640ms" } as React.CSSProperties}>
             <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
               Começar pelo Studio <ArrowRight size={18} aria-hidden />
             </Link>
@@ -96,7 +106,7 @@ export default function Home() {
               <Smartphone size={18} aria-hidden /> Ver o app do aluno
             </Link>
           </div>
-          <p className="lp-trigger">
+          <p className="lp-trigger lp-in" style={{ "--d": "740ms" } as React.CSSProperties}>
             <span>
               <Check size={14} aria-hidden /> Sem cadastro
             </span>
@@ -107,7 +117,7 @@ export default function Home() {
               <Check size={14} aria-hidden /> Abre com dados de demonstração
             </span>
           </p>
-          <dl className="lp-proof">
+          <dl className="lp-proof lp-in" style={{ "--d": "840ms" } as React.CSSProperties}>
             <div>
               <dt className="sr-only">Exercícios</dt>
               <dd>
@@ -136,14 +146,16 @@ export default function Home() {
         <LandingPreview />
       </section>
 
+      <LibraryMarquee />
+
       {/* Dor */}
       <section className="lp-section" aria-labelledby="pain-title">
-        <div className="lp-band ink">
+        <div className="lp-band ink" data-reveal>
           <p className="lp-kicker">O problema</p>
           <h2 id="pain-title" className="lp-h2 t-athletic max-w-[16ch] !text-[clamp(2.4rem,6vw,4.5rem)]">
             Planilha e WhatsApp não mostram quem está desistindo.
           </h2>
-          <ul className="lp-pains">
+          <ul className="lp-pains lp-stagger" data-reveal>
             {PAINS.map((p, i) => (
               <li key={p.title} className="lp-pain">
                 <span className="lp-pain-n">0{i + 1}</span>
@@ -160,7 +172,7 @@ export default function Home() {
 
       {/* Mecanismo */}
       <section className="lp-section" aria-labelledby="how-title">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between" data-reveal>
           <div>
             <p className="lp-kicker">Como funciona</p>
             <h2 id="how-title" className="lp-h2 max-w-[18ch]">
@@ -171,7 +183,7 @@ export default function Home() {
             Montar uma ficha <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
-        <ol className="lp-steps">
+        <ol className="lp-steps lp-stagger" data-reveal>
           <li className="card lp-step">
             <div className="lp-step-head">
               <span className="lp-icon">
@@ -249,11 +261,13 @@ export default function Home() {
 
       {/* Experiências */}
       <section className="lp-section" aria-labelledby="exp-title">
+        <div data-reveal>
         <p className="lp-kicker">Três experiências, um sistema</p>
         <h2 id="exp-title" className="lp-h2 max-w-[20ch]">
           Feito para quem prescreve. Simples para quem treina.
         </h2>
-        <div className="lp-features">
+        </div>
+        <div className="lp-features lp-stagger" data-reveal>
           <article className="card lp-feature lp-feature-main">
             <span className="lp-icon">
               <BellRing size={20} aria-hidden />
@@ -303,11 +317,13 @@ export default function Home() {
 
       {/* Comparação */}
       <section className="lp-section" aria-labelledby="cmp-title">
+        <div data-reveal>
         <p className="lp-kicker">Antes e depois</p>
         <h2 id="cmp-title" className="lp-h2 max-w-[22ch]">
           O que muda quando a planilha sai da sua rotina.
         </h2>
-        <div className="card lp-compare">
+        </div>
+        <div className="card lp-compare" data-reveal>
           <table>
             <caption className="sr-only">Comparação entre planilha com WhatsApp e EVOFIT</caption>
             <thead>
@@ -343,7 +359,7 @@ export default function Home() {
       </section>
 
       {/* Objeções */}
-      <section className="lp-section grid gap-8 lg:grid-cols-[1fr_1.6fr]" aria-labelledby="faq-title">
+      <section className="lp-section grid gap-8 lg:grid-cols-[1fr_1.6fr]" aria-labelledby="faq-title" data-reveal>
         <div>
           <p className="lp-kicker">Perguntas</p>
           <h2 id="faq-title" className="lp-h2">
@@ -371,7 +387,7 @@ export default function Home() {
 
       {/* CTA final */}
       <section className="lp-section" aria-labelledby="final-title">
-        <div className="lp-band lp-final ink">
+        <div className="lp-band lp-final ink" data-reveal>
           <p className="lp-kicker justify-center">Comece agora</p>
           <h2 id="final-title" className="lp-h2 t-athletic !text-[clamp(2.6rem,7vw,5.5rem)]">
             Seu próximo aluno não precisa de mais um PDF.
@@ -387,6 +403,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <RevealOnScroll />
     </PublicShell>
   )
 }

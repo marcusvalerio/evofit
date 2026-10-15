@@ -3,8 +3,8 @@ import Link from "next/link"
 import { Check, ChevronRight, Clock, Dumbbell, Play } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
-import { inProgressSession, sessionProgress, sessionsOf, weekCount } from "@/lib/metrics"
-import { addDays, fmtDateLong, isSameDay, relativeDays, startOfWeek } from "@/lib/date"
+import { inProgressSession, sessionProgress, sessionsOf, weekCount, weeklySeries } from "@/lib/metrics"
+import { fmtDateLong, isSameDay, relativeDays, startOfWeek } from "@/lib/date"
 import { StudentChoices } from "@/components/student-shell"
 import { cx, EmptyState, Progress } from "@/components/ui"
 import { useToast } from "@/components/providers"
@@ -39,17 +39,19 @@ export default function AlunoHome() {
   const history = sessionsOf(d, student.id)
   const wk = weekCount(d, student.id, now)
   const weekStart = startOfWeek(now)
-  const week = ["S", "T", "Q", "Q", "S", "S", "D"].map((label, i) => {
-    const date = addDays(weekStart, i)
-    return {
-      label,
-      date,
-      long: new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(date),
-      done: history.some((h) => isSameDay(new Date(h.startedAt), date)),
-      today: isSameDay(date, now),
-      future: date > now && !isSameDay(date, now),
-    }
-  })
+  const thisWeek = history.filter((h) => new Date(h.startedAt) >= weekStart)
+  const dayName = (iso: string) => new Intl.DateTimeFormat("pt-BR", { weekday: "short" }).format(new Date(iso)).replace(".", "")
+  // Um círculo por treino da meta; treinos além da meta também aparecem.
+  const slots = Array.from({ length: Math.max(student.weeklyTarget, thisWeek.length) }, (_, i) => thisWeek[i] ?? null)
+  // Semanas completas seguidas batendo a meta (a semana atual entra só se já bateu).
+  const weeks = weeklySeries(history, 26, now)
+  let streak = 0
+  for (let i = weeks.length - 1; i >= 0; i--) {
+    const hit = weeks[i].count >= student.weeklyTarget
+    if (i === weeks.length - 1 && !hit) continue
+    if (!hit) break
+    streak++
+  }
   // Sugestão: o treino em andamento ou o que está há mais tempo sem ser feito.
   const next = workouts
     .map((workout) => ({
@@ -82,16 +84,20 @@ export default function AlunoHome() {
             <CountUp text={String(history.length)} /> no total
           </span>
         </div>
-        <ol className="evo-week mt-4" aria-label="Treinos concluídos nesta semana">
-          {week.map((day) => (
-            <li key={day.label + day.date.getDate()} className={cx("evo-week-day", day.today && "is-today")}>
-              <span>{day.label}</span>
-              <span className={cx("evo-week-dot", day.done && "is-done")} aria-label={`${day.long}: ${day.done ? "treinou" : day.future ? "ainda não chegou" : "sem treino"}`}>
-                {day.done && <Check size={14} strokeWidth={3} aria-hidden />}
-              </span>
+        <ol className="evo-goal mt-4" aria-label={`Meta da semana: ${thisWeek.length} de ${student.weeklyTarget} treinos`}>
+          {slots.map((h, i) => (
+            <li key={h?.id ?? `slot-${i}`} className={cx("evo-goal-slot", h && "is-done", i >= student.weeklyTarget && "is-extra")}>
+              <span className="evo-goal-dot">{h ? <Check size={16} strokeWidth={3} aria-hidden /> : <span className="tabular">{i + 1}</span>}</span>
+              <span className="evo-goal-label">{h ? dayName(h.startedAt) : "—"}</span>
+              <span className="sr-only">{h ? `Treino ${i + 1}: feito (${dayName(h.startedAt)})` : `Treino ${i + 1}: a fazer`}</span>
             </li>
           ))}
         </ol>
+        {streak > 0 && (
+          <p className="mt-3 text-sm text-muted">
+            <b className="text-fg">{streak === 1 ? "1 semana" : `${streak} semanas`}</b> seguidas batendo a meta de {student.weeklyTarget}x.
+          </p>
+        )}
       </section>
 
       {next && (

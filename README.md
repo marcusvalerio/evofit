@@ -7,6 +7,7 @@ Três experiências conectadas, todas acessíveis sem login:
 | Experiência | Rota | O que faz |
 |---|---|---|
 | **EVOFIT Studio** (personal) | `/studio` | Painel com indicadores calculados dos dados, alunos (cadastro, edição, arquivamento, histórico, frequência, evolução de carga), biblioteca com 876 exercícios demonstrados (vídeo e dica próprios por exercício), editor de fichas (séries, repetições, carga, descanso, instruções, ordem) e atribuição a alunos, perfil profissional e caixa de solicitações de contato. |
+| **Avaliações** (no Studio) | `/studio/avaliacoes` | Peso, altura, 7 dobras cutâneas, 11 circunferências e % de gordura informado (bioimpedância). Calcula % de gordura (Jackson & Pollock 3 ou 7 dobras + Siri), massa magra/gorda, IMC e cintura/quadril **só a partir do que foi medido**. Gráficos por medida, comparativo entre duas datas e histórico editável. |
 | **EVOFIT Aluno** | `/aluno` | Mobile-first. Escolha de aluno fictício, treinos atribuídos, execução série a série (reps e kg editáveis, cronômetro de descanso), “Como fazer” em cada exercício (demonstração animada, vídeo do personal, dica e passo a passo com leitura em voz alta), conclusão com observação, histórico e gráficos de frequência e carga. |
 | **Biblioteca EVOFIT** | `/biblioteca` | Pública. 876 exercícios com GIF animado com a marca EVOFIT, busca e filtros, passo a passo em português, baixar GIF, compartilhar (menu do celular/WhatsApp) e copiar link. |
 | **Encontrar personal** | `/personais` | Diretório público com busca (sem acento), filtros por estado, modalidade e especialidade, URL compartilhável, perfil público e formulário de solicitação de contato. |
@@ -134,6 +135,14 @@ Contraste (WCAG 2.x):
 | Ōtan sobre Cotton | < 3 ✗ | Ōtan nunca é texto no claro |
 | Cotton sobre Cobblestone | 11,65 | texto principal (escuro) |
 | `#FF7A52` sobre `#1F282E` | 5,82 | realce no escuro |
+
+**Símbolo:** pico facetado (face Gravy + face Ōtan), derivado do cartão da paleta MP020; logotipo "evofit" em minúsculas (Outfit 600). Ícones em `app/icon.svg` e `app/apple-icon.png`.
+
+**Acervo de exercícios:** as fotos do catálogo recebem duotone Cobblestone → Cotton — em CSS nas telas (sem arquivos novos) e no servidor nos GIFs de marca (`lib/gif.ts`). A URL das animações leva `?v=` (`ANIM_VERSION` em `lib/catalog.ts`): aumente ao mudar o visual, porque as respostas são imutáveis na CDN.
+
+**Motion (landing):** título palavra por palavra, pico que se ergue, telefone que entra e flutua (com leve inclinação seguindo o mouse), faixa infinita do acervo e revelação das seções na rolagem. Tudo em CSS + um `IntersectionObserver`; com "reduzir movimento" nada se move e nada fica escondido.
+
+**Retenção:** meta semanal flexível no app do aluno (um círculo por treino da meta, 1x a 7x, e semanas seguidas batendo a meta); recordes de carga celebrados ao concluir o treino (só quando superam a melhor carga anterior); botão "Chamar no WhatsApp" com mensagem pronta para alunos sem treino recente.
 
 **Assinatura visual:** o gradiente *ember* (Gravy → Ōtan) aparece só onde existe progresso real — barras, anéis, o símbolo da marca e o "pico" do hero (motivo tirado do cartão da paleta MP020).
 

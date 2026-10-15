@@ -1,5 +1,5 @@
 "use client"
-import { useId, useState, useSyncExternalStore } from "react"
+import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
@@ -7,23 +7,16 @@ import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useToast } from "./providers"
 
-/** Símbolo EVOFIT: três barras ascendentes — prescrição, execução, evolução. A última carrega o gradiente ember. */
-export function BrandMark({ size = 28, className }: { size?: number; className?: string }) {
-  const id = `evo-g${useId().replace(/[^a-zA-Z0-9]/g, "")}`
+/**
+ * Símbolo EVOFIT: pico facetado — a face Gravy sobe devagar, a face Ōtan é o esforço.
+ * Vem do cartão da paleta MP020 e do motivo do hero. Funciona de 16 px (favicon) ao hero.
+ */
+export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
   return (
-    <span className={cx("evo-mark", className)} style={{ width: size, height: size }} aria-hidden>
-      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 20 20" fill="none">
-        <defs>
-          <linearGradient id={id} x1="0" y1="20" x2="0" y2="0" gradientUnits="userSpaceOnUse">
-            <stop stopColor="#922724" />
-            <stop offset="1" stopColor="#EAAA62" />
-          </linearGradient>
-        </defs>
-        <rect x="1.5" y="11" width="4.2" height="7.5" rx="2.1" fill="currentColor" opacity=".45" />
-        <rect x="7.9" y="6.5" width="4.2" height="12" rx="2.1" fill="currentColor" opacity=".75" />
-        <rect x="14.3" y="1.5" width="4.2" height="17" rx="2.1" fill={`url(#${id})`} />
-      </svg>
-    </span>
+    <svg width={size} height={size} viewBox="0 0 24 24" className={cx("shrink-0", className)} aria-hidden>
+      <path d="M14.5 3 2 21h12.5Z" fill="var(--mp-gravy)" />
+      <path d="M14.5 3 22 21h-7.5Z" fill="var(--mp-otan)" />
+    </svg>
   )
 }
 
@@ -31,7 +24,7 @@ export function Brand({ className, suffix }: { className?: string; suffix?: stri
   return (
     <Link href="/" className={cx("inline-flex items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
       <BrandMark />
-      <span className="t-brand text-[1.1875rem] leading-none text-fg">EVOFIT</span>
+      <span className="t-brand text-[1.4375rem] leading-none text-fg">evofit</span>
       {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
     </Link>
   )

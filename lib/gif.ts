@@ -17,6 +17,19 @@ const IMG = path.join(ROOT, "public/exercises/img")
 
 const C = { cobblestone: "#1F282E", cotton: "#E4E3DC", otan: "#FF4E20", gravy: "#B83312", muted: "#BCC2C5" }
 
+/** Cinza → Cobblestone (sombras) … Cotton (luzes). */
+const DUO_SHADOW = [31, 40, 46]
+const DUO_LIGHT = [228, 227, 220]
+function duotone(gray: Buffer) {
+  const out = Buffer.alloc(gray.length * 3)
+  for (let i = 0; i < gray.length; i++)
+    for (let c = 0; c < 3; c++) out[i * 3 + c] = Math.round(DUO_SHADOW[c] + ((DUO_LIGHT[c] - DUO_SHADOW[c]) * gray[i]) / 255)
+  return out
+}
+
+/** Símbolo EVOFIT (pico facetado) para a barra da animação. */
+const MARK = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M14.5 3 2 21h12.5Z" fill="${"#B83312"}"/><path d="M14.5 3 22 21h-7.5Z" fill="${"#FF4E20"}"/></svg>`)
+
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
 function text(markup: string, font: string, size: number, color: string) {
@@ -61,8 +74,18 @@ export async function renderExerciseAnimation(id: string, format: AnimFormat): P
   const ex = catalogExercise(id)
   if (!ex || ex.frames < 2) return null
 
+  // Duotone EVOFIT: sombras em Cobblestone, luzes em Cotton — o acervo fica coeso com a interface.
   const [a, b] = await Promise.all(
-    [0, 1].map((i) => sharp(path.join(IMG, `${id}-${i}.webp`)).resize(W, H, { fit: "cover" }).removeAlpha().raw().toBuffer()),
+    [0, 1].map((i) =>
+      sharp(path.join(IMG, `${id}-${i}.webp`))
+        .resize(W, H, { fit: "cover" })
+        .removeAlpha()
+        .grayscale()
+        .linear(1.12, -12)
+        .raw()
+        .toBuffer()
+        .then(duotone),
+    ),
   )
   const blend = (t: number) => {
     const o = Buffer.alloc(a.length)
@@ -70,21 +93,20 @@ export async function renderExerciseAnimation(id: string, format: AnimFormat): P
     return o
   }
 
-  const [evo, fit, sub, start, end] = await Promise.all([
-    text("<b>EVO</b>", "Geist-BlackItalic.ttf", 22, C.cotton),
-    text("<b>FIT</b>", "Geist-BlackItalic.ttf", 22, C.otan),
+  const [word, sub, start, end] = await Promise.all([
+    text("evofit", "Geist-SemiBold.ttf", 21, C.cotton),
     text("BIBLIOTECA EVOFIT", "Geist-SemiBold.ttf", 10, C.muted),
     pill("INÍCIO", C.cobblestone),
     pill("FIM", C.gravy),
   ])
-  const brandW = evo.info.width + fit.info.width
+  const brandW = 22 + 6 + word.info.width
   const name = await fittedName(ex.name, W - 28 - brandW - 16)
 
   const chrome = [
     { input: sub.data, left: 14, top: H + 12 },
     { input: name.data, left: 14, top: H + 27 },
-    { input: evo.data, left: W - 14 - brandW, top: H + 18 },
-    { input: fit.data, left: W - 14 - fit.info.width, top: H + 18 },
+    { input: MARK, left: W - 14 - brandW, top: H + 19 },
+    { input: word.data, left: W - 14 - word.info.width, top: H + 17 },
   ]
   const frame = (raw: Buffer, label: Buffer | null) =>
     sharp({ create: { width: W, height: H + BAR, channels: 3, background: C.cobblestone } })

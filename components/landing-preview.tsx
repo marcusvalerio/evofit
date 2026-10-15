@@ -4,6 +4,8 @@ import { useDemoState } from "@/lib/store"
 import { completed, needsAttention, weekAdherence, weeklySeries } from "@/lib/metrics"
 import { catalogExercise } from "@/lib/catalog"
 import { ExerciseThumb } from "./exercise"
+import { CountUp } from "./motion"
+import { useTilt } from "./landing-motion"
 
 /** Exercícios reais do catálogo usados no telefone da prévia. */
 const PHONE = [
@@ -11,7 +13,8 @@ const PHONE = [
   { id: "Incline_Dumbbell_Press", rx: "3 séries × 12 × 14 kg" },
   { id: "Wide-Grip_Lat_Pulldown", rx: "4 séries × 10 × 45 kg" },
 ]
-const WEEK = ["D", "S", "T", "Q", "Q", "S", "S"]
+/** Meta flexível do aluno da prévia: 4 treinos, 3 feitos. */
+const GOAL = ["seg", "qua", "sex", null]
 
 /**
  * Prévia do hero: o app do aluno (exercícios do catálogo) e o painel do Studio
@@ -19,8 +22,9 @@ const WEEK = ["D", "S", "T", "Q", "Q", "S", "S"]
  */
 export function LandingPreview() {
   const items = PHONE.map((p) => ({ ...p, ex: catalogExercise(p.id) })).filter((p) => p.ex)
+  const tilt = useTilt<HTMLDivElement>()
   return (
-    <div className="lp-stage" aria-label="Prévia do EVOFIT com dados da demonstração">
+    <div ref={tilt} className="lp-stage" aria-label="Prévia do EVOFIT com dados da demonstração">
       <div className="lp-stage-peak" aria-hidden />
       <div className="lp-stage-left">
         <div className="lp-stage-word t-athletic" aria-hidden>
@@ -58,10 +62,11 @@ export function LandingPreview() {
           </div>
 
           <div className="lp-week mx-3 mt-2">
-            {WEEK.map((d, i) => (
-              <span key={i} className="lp-week-day">
-                {d}
-                <span className={i < 4 ? "lp-streak on" : "lp-streak"}>{i < 4 && <Check size={10} strokeWidth={3.5} />}</span>
+            <span className="lp-week-title">Meta 4x · 3 feitos</span>
+            {GOAL.map((d, i) => (
+              <span key={i} className="lp-week-day" style={{ "--i": i } as React.CSSProperties}>
+                <span className={d ? "lp-streak on" : "lp-streak"}>{d ? <Check size={10} strokeWidth={3.5} /> : i + 1}</span>
+                {d ?? "—"}
               </span>
             ))}
           </div>
@@ -144,11 +149,11 @@ function StudioPanel() {
       <div className="mt-2 flex items-end gap-3 border-t border-white/10 pt-3">
         <div>
           <p className="text-[0.6875rem] text-on-ink-muted">Aderência da semana</p>
-          <p className="t-athletic text-[2.1rem] tabular">{adherence === null ? "—" : `${adherence}%`}</p>
+          <p className="t-athletic text-[2.1rem] tabular">{adherence === null ? "—" : <CountUp text={`${adherence}%`} duration={1400} />}</p>
         </div>
         <div className="lp-bars flex-1" aria-hidden>
-          {series.map((w) => (
-            <i key={w.start.toISOString()} style={{ height: `${Math.max(10, (w.count / max) * 100)}%` }} />
+          {series.map((w, i) => (
+            <i key={w.start.toISOString()} style={{ height: `${Math.max(10, (w.count / max) * 100)}%`, "--i": i } as React.CSSProperties} />
           ))}
         </div>
       </div>

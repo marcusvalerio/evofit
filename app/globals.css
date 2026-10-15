@@ -193,10 +193,11 @@
   /* ---------- Tipografia ----------
    * Outfit (títulos) em 500–700, Inter (interface) em 400–600.
    * Peso 800+ é reservado ao logotipo. */
+  /* Logotipo: "evofit" em minúsculas, Outfit 600, espaçamento fechado. */
   .t-brand {
     font-family: var(--font-display);
-    font-weight: 700;
-    letter-spacing: -0.03em;
+    font-weight: 600;
+    letter-spacing: -0.045em;
   }
   /* Voz atlética: condensada, pesada, caixa alta. Só em títulos de marca (landing, capas),
    * nunca em dados, formulários ou na execução do treino. */
@@ -554,12 +555,41 @@
   /* ---------- Demonstração de exercício (quadros de início e fim alternando) ---------- */
   .demo {
     position: relative;
+    isolation: isolate;
     aspect-ratio: 3 / 2;
     width: 100%;
     overflow: hidden;
     border-radius: 1rem;
-    background: #fff;
+    background: var(--mp-cobblestone);
     border: 1px solid var(--line);
+  }
+  /*
+   * Duotone EVOFIT nas fotos do catálogo (sombras Cobblestone, luzes Cotton), sem gerar arquivos novos:
+   * a foto vira cinza, ::before eleva o preto até Cobblestone e ::after leva o branco até Cotton.
+   */
+  .demo img,
+  .thumb img {
+    filter: grayscale(1) contrast(1.12) brightness(1.04);
+  }
+  .demo:not(.demo-empty)::before,
+  .demo:not(.demo-empty)::after,
+  .thumb:has(img)::before,
+  .thumb:has(img)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .demo:not(.demo-empty)::before,
+  .thumb:has(img)::before {
+    background: var(--mp-cobblestone);
+    mix-blend-mode: lighten;
+  }
+  .demo:not(.demo-empty)::after,
+  .thumb:has(img)::after {
+    background: var(--mp-cotton);
+    mix-blend-mode: multiply;
   }
   .demo-empty {
     background: var(--surface-2);
@@ -589,6 +619,7 @@
   }
   .demo-label {
     position: absolute;
+    z-index: 2;
     left: 0.625rem;
     top: 0.625rem;
     padding: 0.125rem 0.5rem;
@@ -605,6 +636,7 @@
   }
   .demo-toggle {
     position: absolute;
+    z-index: 2;
     right: 0.5rem;
     bottom: 0.5rem;
     color: var(--fg);
@@ -638,12 +670,13 @@
 
   .thumb {
     position: relative;
+    isolation: isolate;
     display: block;
     flex-shrink: 0;
     aspect-ratio: 3 / 2;
     overflow: hidden;
     border-radius: 0.75rem;
-    background: #fff;
+    background: var(--surface-2);
     border: 1px solid var(--line);
   }
   .thumb img {
@@ -969,20 +1002,6 @@
  * ===================================================================== */
 
 /* ---------- Marca ---------- */
-.evo-mark {
-  display: inline-grid;
-  place-items: center;
-  flex-shrink: 0;
-  border-radius: 28%;
-  background: var(--mp-cobblestone);
-  color: var(--mp-cotton);
-}
-:root[data-theme="dark"] .evo-mark { background: var(--mp-cotton); color: var(--mp-cobblestone); }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .evo-mark { background: var(--mp-cotton); color: var(--mp-cobblestone); }
-}
-.ink .evo-mark { background: var(--mp-cotton); color: var(--mp-cobblestone); }
-
 /* Texto com sublinhado ember — usado só em uma palavra por título. */
 .evo-ember-text {
   background-image: var(--ember);
@@ -1366,16 +1385,14 @@
   80%, 100% { box-shadow: 0 0 0 0.5rem rgb(255 78 32 / 0); }
 }
 
-/* Sequência da semana (seg–dom) no app do aluno */
-.evo-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.25rem; }
-.evo-week-day { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; font-size: 0.75rem; font-weight: 600; color: var(--fg-muted); }
-.evo-week-day.is-today { color: var(--fg); }
-.evo-week-dot { display: grid; place-items: center; width: 2.25rem; height: 2.25rem; border-radius: 50%; border: 1.5px dashed var(--line-strong); color: var(--on-primary); transition: background-color 0.3s ease; }
-.evo-week-day.is-today .evo-week-dot { border-style: solid; border-color: var(--fg); }
-.evo-week-dot.is-done { border: 0; background: var(--primary); }
-.lp-h2.t-athletic { font-weight: 800; letter-spacing: 0; line-height: 0.9; }
-.lp-proof-link { display: block; border-radius: 0.5rem; }
-.lp-proof-link:hover span { color: var(--accent-text); }
+/* Meta semanal flexível: um círculo por treino da meta do aluno (1x a 7x). */
+.evo-goal { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.evo-goal-slot { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; min-width: 2.75rem; }
+.evo-goal-dot { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; border: 1.5px dashed var(--line-strong); font-size: 0.8125rem; font-weight: 600; color: var(--fg-muted); transition: background-color 0.3s ease, transform 0.3s ease; }
+.evo-goal-slot.is-done .evo-goal-dot { border: 0; background: var(--primary); color: var(--on-primary); }
+.evo-goal-slot.is-extra .evo-goal-dot { background: var(--ember); }
+.evo-goal-label { font-size: 0.75rem; font-weight: 600; text-transform: capitalize; color: var(--fg-muted); }
+.evo-goal-slot.is-done .evo-goal-label { color: var(--fg); }
 
 /* ---------- Studio: avaliação física ---------- */
 .evo-av-live { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border-radius: 1rem; background: var(--line); }
@@ -1404,3 +1421,74 @@
 /* Recorde pessoal no fim do treino */
 .evo-pr { padding: 1rem 1.1rem; border-radius: 1.125rem; background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent); }
 .evo-pr-title { display: flex; align-items: center; gap: 0.5rem; font-family: var(--font-display); font-size: 1rem; font-weight: 600; color: var(--accent-text); }
+
+/* =====================================================================
+ * Motion da landing. Só com "movimento normal"; com "reduzir movimento"
+ * tudo aparece no estado final, sem animação.
+ * ===================================================================== */
+.lp-w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.06em; margin-bottom: -0.06em; }
+.lp-w > span { display: inline-block; }
+.lp-week-title { position: absolute; left: 0.75rem; top: -1.35rem; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #bcc2c5; }
+.lp-week { position: relative; margin-top: 1.6rem !important; justify-content: space-around; }
+.lp-week-day { text-transform: capitalize; }
+
+/* Faixa infinita do acervo */
+.lp-marquee {
+  position: relative;
+  margin: clamp(2.5rem, 6vw, 4rem) 0 0;
+  overflow: hidden;
+  padding: 0.75rem 0;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.lp-marquee-track { display: flex; width: max-content; gap: 1rem; }
+.lp-marquee-row { display: flex; gap: 1rem; }
+.lp-marquee-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.4rem 1.1rem 0.4rem 0.4rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); white-space: nowrap; }
+.lp-marquee-item .thumb { width: 4.5rem; border-radius: 999px; border: 0; }
+.lp-marquee-item span { font-family: var(--font-athletic); font-stretch: 68%; font-size: 1.25rem; font-weight: 800; text-transform: uppercase; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Abertura do hero */
+  .lp-w > span { animation: lp-word 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) both; animation-delay: calc(120ms + var(--i, 0) * 70ms); }
+  .lp-in { animation: lp-up 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) both; animation-delay: var(--d, 0ms); }
+  .lp-stage { animation: lp-stage 1s cubic-bezier(0.2, 0.9, 0.2, 1) 200ms both; }
+  .lp-stage-peak { animation: lp-peak 1.4s cubic-bezier(0.6, 0, 0.1, 1) 450ms both; }
+  .lp-stage-word { animation: lp-up 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) 700ms both; }
+  .lp-phone { transform: perspective(1200px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)); transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  .lp-phone-screen { animation: lp-phone 1.1s cubic-bezier(0.2, 0.9, 0.2, 1) 550ms both, lp-float 6s ease-in-out 2s infinite; }
+  .lp-panel { animation: lp-slide 0.9s cubic-bezier(0.2, 0.9, 0.2, 1) 950ms both; }
+  .lp-bars i { transform-origin: bottom; animation: lp-bar 0.8s cubic-bezier(0.2, 0.9, 0.2, 1) both; animation-delay: calc(1.2s + var(--i, 0) * 70ms); }
+  .lp-week-day { animation: lp-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) both; animation-delay: calc(1.5s + var(--i, 0) * 120ms); }
+  .lp-phone-start { animation: lp-glow 2.6s ease-in-out 2.4s infinite; }
+
+  .lp-marquee-track { animation: lp-marquee 60s linear infinite; }
+  .lp-marquee:hover .lp-marquee-track { animation-play-state: paused; }
+
+  /* Revelação na rolagem (só depois que o JS marcou a página) */
+  .reveal-ready [data-reveal] { opacity: 0; transform: translateY(28px); transition: opacity 0.9s cubic-bezier(0.2, 0.9, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  .reveal-ready [data-reveal].is-in { opacity: 1; transform: none; }
+  .reveal-ready .lp-stagger[data-reveal] { opacity: 1; transform: none; }
+  .reveal-ready .lp-stagger > * { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.2, 0.9, 0.2, 1), transform 0.8s cubic-bezier(0.2, 0.9, 0.2, 1); }
+  .reveal-ready .lp-stagger.is-in > * { opacity: 1; transform: none; }
+  .reveal-ready .lp-stagger.is-in > :nth-child(2) { transition-delay: 120ms; }
+  .reveal-ready .lp-stagger.is-in > :nth-child(3) { transition-delay: 240ms; }
+  /* checks do "como funciona" marcados em sequência */
+  .reveal-ready .lp-steps .lp-mini-check.on { transform: scale(0.4); opacity: 0; transition: transform 0.45s cubic-bezier(0.3, 1.6, 0.5, 1), opacity 0.3s ease; }
+  .reveal-ready .lp-steps.is-in .lp-mini-check.on { transform: none; opacity: 1; }
+  .reveal-ready .lp-steps.is-in .lp-step-ui-row:nth-child(1) .lp-mini-check { transition-delay: 700ms; }
+  .reveal-ready .lp-steps.is-in .lp-step-ui-row:nth-child(2) .lp-mini-check { transition-delay: 1000ms; }
+  .reveal-ready .lp-steps .progress > span { transition: width 1.2s cubic-bezier(0.2, 0.9, 0.2, 1) 900ms; }
+  .reveal-ready .lp-steps:not(.is-in) .progress > span { width: 0 !important; }
+}
+
+@keyframes lp-word { from { transform: translateY(105%); } }
+@keyframes lp-up { from { opacity: 0; transform: translateY(18px); } }
+@keyframes lp-stage { from { opacity: 0; transform: translateY(24px) scale(0.98); } }
+@keyframes lp-peak { from { clip-path: polygon(-5% 100%, 58% 100%, 105% 100%); } }
+@keyframes lp-phone { from { opacity: 0; transform: translateY(70px) rotate(4deg); } }
+@keyframes lp-float { 50% { transform: translateY(-8px); } }
+@keyframes lp-slide { from { opacity: 0; transform: translateX(-28px); } }
+@keyframes lp-bar { from { transform: scaleY(0); } }
+@keyframes lp-pop { from { opacity: 0; transform: scale(0.4); } }
+@keyframes lp-glow { 50% { box-shadow: 0 0 0 6px rgb(255 78 32 / 0.18); } }
+@keyframes lp-marquee { to { transform: translateX(calc(-50% - 0.5rem)); } }

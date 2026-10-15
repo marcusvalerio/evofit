@@ -101,19 +101,20 @@ export function LineChart({ points, title, unit }: { points: { date: string; val
   const first = points[0].value
   const last = points[points.length - 1].value
   const diff = Math.round((last - first) * 10) / 10
+  const n = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 })
 
   return (
     <figure>
       <figcaption className="mb-2 text-sm text-muted">
         {title}:{" "}
         <strong className="text-fg tabular">
-          {first} → {last} {unit}
+          {n(first)} → {n(last)} {unit}
         </strong>{" "}
-        ({diff >= 0 ? "+" : ""}
-        {diff} {unit})
+        ({diff >= 0 ? "+" : "−"}
+        {n(Math.abs(diff))} {unit})
       </figcaption>
       <div className="relative">
-        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="img" aria-label={`${title}: de ${first} para ${last} ${unit} em ${points.length} sessões`}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full overflow-visible" role="img" aria-label={`${title}: de ${n(first)} para ${n(last)} ${unit} em ${points.length} registros`}>
           {grid.map((g) => (
             <g key={g}>
               <line x1={pad.l} x2={W - pad.r} y1={y(g)} y2={y(g)} stroke="var(--line)" />
@@ -161,12 +162,12 @@ export function LineChart({ points, title, unit }: { points: { date: string; val
           >
             <span className="block opacity-80">{fmtDate(points[hover].date)}</span>
             <strong className="tabular">
-              {points[hover].value} {unit}
+              {n(points[hover].value)} {unit}
             </strong>
           </div>
         )}
       </div>
-      <DataTable caption={title} head={["Data", unit]} rows={points.map((p) => [fmtDate(p.date), String(p.value)])} />
+      <DataTable caption={title} head={["Data", unit]} rows={points.map((p) => [fmtDate(p.date), n(p.value)])} />
     </figure>
   )
 }

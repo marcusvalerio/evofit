@@ -291,7 +291,7 @@ test.describe("Biblioteca EVOFIT", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()
     const gif = page.getByRole("img", { name: /Animação EVOFIT: Prancha/ })
     await expect.poll(() => gif.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBe(480)
-    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?download")
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?v=2&download")
     await expect(page.locator("ol.steps > li").first()).toBeVisible()
   })
 

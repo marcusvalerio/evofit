@@ -166,6 +166,9 @@ export const MECHANIC_LABEL: Record<string, string> = { compound: "Multiarticula
 export const FORCE_LABEL: Record<string, string> = { push: "Empurrar", pull: "Puxar", static: "Isométrico" }
 
 /** Animação com a marca EVOFIT gerada pela rota /api/gif (somente exercícios do catálogo com dois quadros). */
+/** Versão do visual das animações. Mude ao alterar lib/gif.ts: as respostas são imutáveis na CDN. */
+export const ANIM_VERSION = 2
+
 export const animUrl = (id: string, format: "gif" | "webp" = "gif", download = false) =>
-  `/api/gif/${encodeURIComponent(id)}${format === "webp" ? "?f=webp" : ""}${download ? `${format === "webp" ? "&" : "?"}download` : ""}`
+  `/api/gif/${encodeURIComponent(id)}?v=${ANIM_VERSION}${format === "webp" ? "&f=webp" : ""}${download ? "&download" : ""}`
 export const libraryUrl = (id: string) => `/biblioteca/${encodeURIComponent(id)}`
