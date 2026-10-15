@@ -43,7 +43,7 @@ export function churnRadar(d: DemoData, now = new Date()): RiskRow[] {
       const checkins = done.filter((s) => s.checkin).slice(-3).map((s) => s.checkin!)
       if (checkins.slice(-2).some((c) => c.pain === "forte")) signals.push({ w: 2, text: "relatou dor forte em treino recente" })
       else if (checkins.filter((c) => c.pain === "leve").length >= 2) signals.push({ w: 1, text: "relatou dor leve em treinos seguidos" })
-      if (checkins.length >= 2 && checkins.slice(-2).every((c) => c.effort >= 9)) signals.push({ w: 1, text: "esforço no limite nos últimos treinos" })
+      if (checkins.length >= 2 && checkins.slice(-2).every((c) => (c.effort ?? 0) >= 9)) signals.push({ w: 1, text: "esforço no limite nos últimos treinos" })
 
       const fee = fees.get(student.id)
       if (fee?.status === "vencida") signals.push({ w: fee.overdueDays > 7 ? 2 : 1, text: `mensalidade vencida há ${fee.overdueDays} ${fee.overdueDays === 1 ? "dia" : "dias"}` })

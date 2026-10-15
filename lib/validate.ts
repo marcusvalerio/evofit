@@ -54,7 +54,7 @@ const isCheckin = (v: unknown) =>
   v === null ||
   (isObj(v) &&
     has(v, {
-      effort: (n) => isNum(n) && Number.isInteger(n) && n >= 1 && n <= 10,
+      effort: (n) => n === null || (isNum(n) && Number.isInteger(n) && n >= 1 && n <= 10),
       pain: (x) => x === null || x === "nenhuma" || x === "leve" || x === "forte",
       sleep: (x) => x === null || x === "ruim" || x === "ok" || x === "bom",
     }))

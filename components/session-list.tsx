@@ -3,6 +3,7 @@ import type { Session } from "@/lib/types"
 import { durationMin, fmtDate, fmtTime } from "@/lib/date"
 import { sessionProgress, sessionVolume } from "@/lib/metrics"
 import { ChevronDown } from "lucide-react"
+import { CheckinBadges } from "./checkin-badges"
 
 /** Lista de sessões concluídas, com detalhamento por exercício. */
 export function SessionList({ sessions, limit = 20 }: { sessions: Session[]; limit?: number }) {
@@ -32,6 +33,11 @@ export function SessionList({ sessions, limit = 20 }: { sessions: Session[]; lim
                     {fmtTime(s.startedAt)} · {durationMin(s.startedAt, s.finishedAt)} min · {p.done}/{p.total} séries
                     {vol > 0 && ` · ${Math.round(vol).toLocaleString("pt-BR")} kg de volume`}
                   </p>
+                  {s.checkin && (
+                    <p className="mt-1">
+                      <CheckinBadges checkin={s.checkin} />
+                    </p>
+                  )}
                 </div>
                 <ChevronDown size={18} aria-hidden className="shrink-0 text-muted transition-transform group-open:rotate-180" />
               </summary>

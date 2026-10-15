@@ -2,6 +2,8 @@
 import Link from "next/link"
 import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, UserPlus, type LucideIcon } from "lucide-react"
 import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
+import { CheckinBadges } from "@/components/checkin-badges"
+import { ChurnRadar } from "@/components/churn-radar"
 import { useData, useIsDemo } from "@/lib/store"
 import { completed, needsAttention, sessionProgress, weekAdherence, weekCount, weeklySeries } from "@/lib/metrics"
 import { addDays, fmtDate, fmtDayMonth, fmtTime, relativeDays } from "@/lib/date"
@@ -59,6 +61,10 @@ export default function StudioDashboard() {
           <TodayItem href="/studio/perfil#solicitacoes" icon={Inbox} title="Pedidos de contato" value={inbox.length} detail={inbox.length ? "Novos alunos pelo diretório." : "Nenhum pedido novo."} />
         </div>
       </section>
+
+      <div className="mt-4">
+        <ChurnRadar d={d} now={now} />
+      </div>
 
       <section aria-label="Indicadores" className="stagger mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Aderência da semana" value={adherence === null ? "—" : String(adherence)} unit={adherence === null ? undefined : "%"} hint="sessões feitas ÷ metas semanais" tone="accent" />
@@ -167,6 +173,11 @@ export default function StudioDashboard() {
                     <p className="text-xs text-muted">
                       {relativeDays(s.startedAt, now)} · {fmtTime(s.startedAt)}
                     </p>
+                    {s.checkin && (
+                      <p className="mt-1">
+                        <CheckinBadges checkin={s.checkin} />
+                      </p>
+                    )}
                   </div>
                 </li>
               ))}

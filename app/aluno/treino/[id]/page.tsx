@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Check, Flag, Lightbulb, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
-import type { DemoData, Session, Workout } from "@/lib/types"
+import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
 import { muscleVolume, volumeLevels } from "@/lib/volume"
 import { BodyMap } from "@/components/body-map"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
@@ -168,6 +168,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   const [finishing, setFinishing] = useState(false)
   const [discarding, setDiscarding] = useState(false)
   const [note, setNote] = useState("")
+  const [checkin, setCheckin] = useState<Checkin>({ effort: null, pain: null, sleep: null })
   const [howTo, setHowTo] = useState<string | null>(null)
   const now = useNow(true)
   const alerted = useRef(false)
@@ -380,7 +381,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
               className="btn btn-primary"
               disabled={progress.done === 0}
               onClick={() => {
-                update((x) => finishSession(x, session.id, note))
+                update((x) => finishSession(x, session.id, note, checkin.effort !== null || checkin.pain !== null || checkin.sleep !== null ? checkin : null))
                 setFinishing(false)
                 onFinished(session.id)
                 toast("Treino concluído e registrado no histórico.")
@@ -399,7 +400,8 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
               Você fez <strong className="text-fg">{progress.done}</strong> de {progress.total} séries.
               {progress.done < progress.total && " As séries não marcadas ficam registradas como não feitas."}
             </p>
-            <Field label="Como foi o treino? (opcional)" className="mt-4">
+            <CheckinForm value={checkin} onChange={setCheckin} />
+            <Field label="Quer contar algo ao seu personal? (opcional)" className="mt-4">
               {(p) => <textarea {...p} className="input" rows={3} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ex.: senti o joelho no agachamento" />}
             </Field>
           </>
@@ -499,5 +501,57 @@ function TodayMuscles({ d, workout }: { d: DemoData; workout: Workout }) {
         <p className="mt-1 text-xs text-muted">Quanto mais forte a cor, mais séries para o músculo.</p>
       </div>
     </section>
+  )
+}
+
+const EFFORT_HINT: Record<number, string> = { 1: "muito leve", 3: "leve", 5: "moderado", 7: "pesado", 9: "muito pesado", 10: "máximo" }
+
+/** Check-in de 5 segundos: esforço, dor e sono. Tudo opcional; vai para o personal acompanhar. */
+function CheckinForm({ value, onChange }: { value: Checkin; onChange: (c: Checkin) => void }) {
+  const hint = value.effort === null ? "toque de 1 a 10" : (EFFORT_HINT[value.effort] ?? EFFORT_HINT[value.effort - 1] ?? "")
+  return (
+    <div className="evo-checkin mt-4">
+      <fieldset>
+        <legend className="field-label">
+          Quão pesado foi? <span className="font-normal text-muted">· {hint}</span>
+        </legend>
+        <div className="evo-effort" role="radiogroup" aria-label="Esforço de 1 a 10">
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={value.effort === n}
+              aria-label={`Esforço ${n}${EFFORT_HINT[n] ? `, ${EFFORT_HINT[n]}` : ""}`}
+              className="evo-effort-dot"
+              data-on={value.effort !== null && n <= value.effort ? "" : undefined}
+              onClick={() => onChange({ ...value, effort: value.effort === n ? null : n })}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Choice<Pain> legend="Sentiu dor?" options={[["nenhuma", "Não"], ["leve", "Leve"], ["forte", "Forte"]]} value={value.pain} onChange={(pain) => onChange({ ...value, pain })} />
+        <Choice<Sleep> legend="Como dormiu?" options={[["ruim", "Mal"], ["ok", "Ok"], ["bom", "Bem"]]} value={value.sleep} onChange={(sleep) => onChange({ ...value, sleep })} />
+      </div>
+      {value.pain === "forte" && <p className="mt-2 text-sm text-warning">Seu personal vai ver isso. Se a dor continuar, pare e fale com ele antes do próximo treino.</p>}
+    </div>
+  )
+}
+
+function Choice<T extends string>({ legend, options, value, onChange }: { legend: string; options: [T, string][]; value: T | null; onChange: (v: T | null) => void }) {
+  return (
+    <fieldset>
+      <legend className="field-label">{legend}</legend>
+      <div className="flex gap-1.5" role="radiogroup" aria-label={legend}>
+        {options.map(([v, label]) => (
+          <button key={v} type="button" role="radio" aria-checked={value === v} className="chip flex-1 justify-center" onClick={() => onChange(value === v ? null : v)}>
+            {label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   )
 }

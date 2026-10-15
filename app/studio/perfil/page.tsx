@@ -78,6 +78,18 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
             </Field>
           </section>
 
+          <section className="card grid gap-4 p-5" aria-labelledby="pix-title">
+            <div>
+              <h2 id="pix-title" className="t-h2">
+                Recebimento
+              </h2>
+              <p className="mt-1 text-sm text-muted">Vai no lembrete de mensalidade que você envia pelo WhatsApp. Não aparece no seu perfil público. O EVOFIT não recebe nem repassa pagamentos.</p>
+            </div>
+            <Field label="Chave Pix (opcional)" error={show.pixKey} hint="CPF, e-mail, telefone ou chave aleatória.">
+              {(p) => <input {...p} className="input" value={v.pixKey} maxLength={140} autoComplete="off" onChange={(e) => set("pixKey", e.target.value)} />}
+            </Field>
+          </section>
+
           <section className="card grid gap-4 p-5 sm:grid-cols-3" aria-labelledby="atend-title">
             <h2 id="atend-title" className="t-h2 sm:col-span-3">
               Atendimento

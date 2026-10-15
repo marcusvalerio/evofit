@@ -1523,3 +1523,34 @@
 @media (max-width: 420px) { .evo-muscles { grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0.75rem; } }
 .evo-vol-bar { position: relative; flex: 1; height: 0.45rem; overflow: hidden; border-radius: 999px; background: var(--line); }
 .evo-vol-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--mp-otan); transition: width 0.4s ease; }
+
+/* Caixa: mensalidades do mês */
+.evo-cash-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.evo-cash-tile { display: flex; flex-direction: column; gap: 0.25rem; padding: 1rem; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+.evo-cash-tile span { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); }
+.evo-cash-tile strong { font-family: var(--font-display); font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 600; letter-spacing: -0.02em; }
+.evo-cash-tile small { font-size: 0.8125rem; color: var(--fg-muted); }
+.evo-cash-tile.is-late { border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: var(--danger-soft); }
+.evo-cash-tile.is-late strong { color: var(--danger); }
+.evo-cash-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 1rem; padding: 0.85rem 1rem; }
+.evo-cash-actions { display: flex; gap: 0.4rem; margin-left: auto; }
+@media (max-width: 560px) {
+  .evo-cash-tiles { grid-template-columns: minmax(0, 1fr); }
+  .evo-cash-actions { width: 100%; }
+  .evo-cash-actions > * { flex: 1; }
+}
+
+/* Check-in pós-treino */
+.evo-checkin { padding: 0.9rem; border-radius: 1rem; background: var(--surface-2); }
+.evo-effort { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 0.25rem; }
+.evo-effort-dot { display: grid; place-items: center; height: 2.6rem; border-radius: 0.6rem; border: 1px solid var(--line-strong); background: var(--surface); font-size: 0.8125rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--fg-muted); transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+.evo-effort-dot[data-on] { border-color: transparent; background: color-mix(in srgb, var(--mp-otan) 55%, var(--surface)); color: var(--mp-cobblestone); }
+.evo-effort-dot[aria-checked="true"] { background: var(--mp-otan); color: var(--mp-cobblestone); }
+
+/* Radar de evasão */
+.evo-radar { overflow: hidden; }
+.evo-radar-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.25rem 1.25rem 0.75rem; }
+.evo-radar-money { margin-top: 0.35rem; font-family: var(--font-athletic); font-stretch: 68%; font-size: clamp(2.2rem, 5vw, 3.2rem); font-weight: 800; line-height: 0.95; color: var(--danger); }
+.evo-radar-list { border-top: 1px solid var(--line); }
+.evo-radar-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1.25rem; border-bottom: 1px solid var(--line); }
+.evo-radar-foot { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: var(--fg-muted); background: var(--surface-2); }

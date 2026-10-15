@@ -98,10 +98,10 @@ export type SessionStatus = "em_andamento" | "concluida"
 export type Pain = "nenhuma" | "leve" | "forte"
 export type Sleep = "ruim" | "ok" | "bom"
 
-/** Check-in de 5 segundos ao concluir o treino. Tudo opcional, exceto o esforço. */
+/** Check-in de 5 segundos ao concluir o treino. Cada resposta é opcional; só é salvo se houver alguma. */
 export interface Checkin {
   /** Esforço percebido (escala de Borg CR-10, 1–10). */
-  effort: number
+  effort: number | null
   pain: Pain | null
   sleep: Sleep | null
 }
