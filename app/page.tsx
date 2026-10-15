@@ -1,165 +1,390 @@
 import Link from "next/link"
 import {
   ArrowRight,
-  BarChart3,
+  BellRing,
   Check,
   ClipboardList,
-  Dumbbell,
-  Search,
+  MapPin,
+  Palette,
+  PlayCircle,
+  Plus,
   Smartphone,
-  Users,
+  Timer,
+  X,
 } from "lucide-react"
 import { PublicShell } from "@/components/public-shell"
+import { LandingPreview } from "@/components/landing-preview"
 import { CATALOG_SIZE } from "@/lib/catalog"
 
-const EXPERIENCES = [
+/*
+ * Estrutura guiada por Revenue-Centric Design:
+ * ICP = personal trainer autônomo, consciente do problema (planilha + WhatsApp).
+ * Hero responde em 5 s: o que é, para quem, por que agora. A prova (prévia com dados
+ * da demonstração) chega antes de qualquer pedido. CTA específico + gatilho de clique.
+ * Nada de depoimentos ou números inventados: só fatos verificáveis do produto.
+ */
+
+const PAINS = [
   {
-    href: "/studio",
-    icon: BarChart3,
-    eyebrow: "Gestão do personal",
-    title: "EVOFIT Studio",
-    text: "Organize alunos, monte fichas e acompanhe frequência e evolução sem alternar entre planilhas e mensagens.",
-    cta: "Explorar o Studio",
+    title: "A ficha vira um PDF perdido no WhatsApp.",
+    text: "O aluno não acha, não entende a execução e improvisa a carga.",
+    fix: "Ficha no celular do aluno, com demonstração de cada exercício.",
   },
   {
-    href: "/aluno",
-    icon: Smartphone,
-    eyebrow: "Experiência do aluno",
-    title: "EVOFIT Aluno",
-    text: "O treino fica claro no celular: exercícios demonstrados, séries, cargas, descanso e histórico em um só lugar.",
-    cta: "Ver a experiência do aluno",
+    title: "Você só descobre que o aluno sumiu quando ele cancela.",
+    text: "Sem registro de treino, a falta de frequência fica invisível até virar perda de receita.",
+    fix: "Alerta de quem está 7+ dias sem treinar, antes de o aluno desistir.",
   },
   {
-    href: "/personais",
-    icon: Search,
-    eyebrow: "Descoberta profissional",
-    title: "Encontrar personal",
-    text: "Ajude novos alunos a encontrar profissionais por região, modalidade e especialidade — com publicação opcional do perfil.",
-    cta: "Conhecer o diretório",
+    title: "A evolução mora na sua memória.",
+    text: "Carga, repetições e frequência ficam espalhadas em planilhas e conversas.",
+    fix: "Cada série registrada vira histórico e gráfico, sem você digitar nada.",
   },
 ]
 
-const FLOW = [
-  { n: "01", icon: Users, title: "Organize", text: "Cadastre seus alunos e entenda quem precisa de atenção." },
-  { n: "02", icon: ClipboardList, title: "Monte os treinos", text: "Monte fichas com exercícios, séries, repetições, carga e descanso." },
-  { n: "03", icon: Dumbbell, title: "Acompanhe", text: "Veja o que foi concluído e acompanhe a evolução registrada." },
+const COMPARE: [string, string, string][] = [
+  ["Onde o aluno vê o treino", "PDF ou print no WhatsApp", "App no celular, exercício por exercício"],
+  ["Como ele sabe executar", "Áudio ou vídeo solto na conversa", `${CATALOG_SIZE} exercícios demonstrados + seu vídeo`],
+  ["Registro de carga e séries", "Quando o aluno lembra de mandar", "Série a série, durante o treino"],
+  ["Quem precisa de atenção", "Você descobre tarde demais", "Lista automática no seu painel"],
+  ["Sua marca", "Arquivo genérico", "Seu nome e seu perfil público"],
+]
+
+const FAQ = [
+  {
+    q: "Preciso criar conta ou cadastrar cartão para testar?",
+    a: "Não. A demonstração abre direto, com alunos e treinos fictícios salvos só no seu navegador. Você pode criar uma conta real quando quiser.",
+  },
+  {
+    q: "Meu aluno precisa baixar um aplicativo?",
+    a: "Não. O app do aluno funciona no navegador do celular e pode ser adicionado à tela inicial. Você envia um link de convite e ele cria o acesso.",
+  },
+  {
+    q: "De onde vêm os exercícios?",
+    a: `São ${CATALOG_SIZE} exercícios de um catálogo aberto (domínio público), traduzidos para o português, com a posição inicial e final de cada movimento. Você também pode cadastrar exercícios próprios e anexar seu vídeo.`,
+  },
+  {
+    q: "Os indicadores mostram ganho de massa ou perda de gordura?",
+    a: "Não. O EVOFIT mostra o que foi registrado: frequência, aderência às metas, cargas e repetições. Não inventamos resultados físicos que não foram medidos.",
+  },
+  {
+    q: "Tem pagamento, chat ou dieta?",
+    a: "Ainda não. O foco agora é o ciclo prescrição → execução → acompanhamento. Essas ideias serão avaliadas depois da validação com personais reais.",
+  },
 ]
 
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in evo-landing relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
-        <div className="evo-landing-grid" aria-hidden="true" />
-        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT</div>
-        <div className="evo-landing-layout">
-          <article className="evo-campaign-panel">
-            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=85" alt="Academia preparada para um treino de força" className="evo-campaign-image" loading="eager" />
-            <div className="evo-campaign-overlay" aria-hidden="true" />
-            <div className="evo-campaign-top"><span>EVOFIT / TRAINING SYSTEM</span><span>01—04</span></div>
-            <div className="evo-campaign-copy">
-              <p>TREINO COM INTENÇÃO</p>
-              <h1>TREINO<br/>INTELIGENTE.<br/><span>RESULTADO REAL.</span></h1>
-              <p className="evo-campaign-description">Planeje os treinos, acompanhe seus alunos e transforme cada sessão em progresso visível.</p>
-              <Link href="/studio" className="evo-lime-button">CONHECER O EVOFIT <ArrowRight size={17} aria-hidden /></Link>
-            </div>
-            <div className="evo-campaign-bottom"><span>FORÇA / FOCO / PROGRESSO</span><span>RIO DE JANEIRO · BR</span></div>
-          </article>
-
-          <div className="evo-phone-stage">
-            <div className="evo-phone-orbit" aria-hidden="true" />
-            <div className="evo-phone" aria-label="Prévia da experiência de treino do aluno">
-              <div className="evo-phone-status"><span>9:41</span><span>● ● ▰</span></div>
-              <div className="evo-phone-header"><div><span>SEU PLANO DE TREINO</span><h2>BORA TREINAR.</h2></div><div className="evo-avatar">E.</div></div>
-              <div className="evo-phone-feature">
-                <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=85" alt="" loading="eager" />
-                <div><span>TREINO DE HOJE</span><strong>TREINO DE<br/>MEMBROS SUPERIORES</strong><small>45 MIN · 6 EXERCÍCIOS</small></div>
-              </div>
-              <div className="evo-phone-progress"><div><span>META DA SEMANA</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
-              <div className="evo-phone-section"><h3>EXERCÍCIOS <span>VER FICHA ↗</span></h3>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>SUPINO RETO</strong><small>Peito · 4 × 10 repetições</small></div><span>↗</span></div>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>PUXADA ALTA</strong><small>Costas · 3 × 12 repetições</small></div><span>↗</span></div>
-              </div>
-              <Link href="/aluno" className="evo-phone-cta">EXPERIMENTAR O APP DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
-            </div>
-            <p className="evo-phone-caption"><span>02 / 04</span> TREINOS E EVOLUÇÃO CONECTADOS</p>
+      {/* Hero */}
+      <section className="lp-hero fade-in" aria-labelledby="hero-title">
+        <div>
+          <p className="evo-pill">
+            <span>Novo</span> Para personal trainers autônomos
+          </p>
+          <h1 id="hero-title" className="t-athletic mt-6">
+            Prescreva, acompanhe e <em>evolua</em> seus alunos.
+          </h1>
+          <p className="lp-lead">
+            Sem planilha e sem PDF no WhatsApp: você monta a ficha, o aluno treina série a série pelo celular e o seu painel mostra quem treinou, quem sumiu e quem está perto de bater a meta.
+          </p>
+          <div className="lp-cta-row">
+            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
+              Começar pelo Studio <ArrowRight size={18} aria-hidden />
+            </Link>
+            <Link href="/aluno" className="btn btn-outline btn-lg btn-pill">
+              <Smartphone size={18} aria-hidden /> Ver o app do aluno
+            </Link>
           </div>
+          <p className="lp-trigger">
+            <span>
+              <Check size={14} aria-hidden /> Sem cadastro
+            </span>
+            <span>
+              <Check size={14} aria-hidden /> Sem cartão
+            </span>
+            <span>
+              <Check size={14} aria-hidden /> Abre com dados de demonstração
+            </span>
+          </p>
+          <dl className="lp-proof">
+            <div>
+              <dt className="sr-only">Exercícios</dt>
+              <dd>
+                <Link href="/biblioteca" className="lp-proof-link" aria-label={`Biblioteca EVOFIT: ${CATALOG_SIZE} exercícios em GIF`}>
+                  <strong>{CATALOG_SIZE}</strong>
+                  <span>exercícios demonstrados em português →</span>
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt className="sr-only">Registro</dt>
+              <dd>
+                <strong>Série a série</strong>
+                <span>reps, carga e descanso registrados</span>
+              </dd>
+            </div>
+            <div>
+              <dt className="sr-only">Alertas</dt>
+              <dd>
+                <strong>7+ dias</strong>
+                <span>sem treino viram alerta no painel</span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <LandingPreview />
+      </section>
+
+      {/* Dor */}
+      <section className="lp-section" aria-labelledby="pain-title">
+        <div className="lp-band ink">
+          <p className="lp-kicker">O problema</p>
+          <h2 id="pain-title" className="lp-h2 t-athletic max-w-[16ch] !text-[clamp(2.4rem,6vw,4.5rem)]">
+            Planilha e WhatsApp não mostram quem está desistindo.
+          </h2>
+          <ul className="lp-pains">
+            {PAINS.map((p, i) => (
+              <li key={p.title} className="lp-pain">
+                <span className="lp-pain-n">0{i + 1}</span>
+                <h3>{p.title}</h3>
+                <p>{p.text}</p>
+                <p className="lp-pain-fix">
+                  <Check size={16} aria-hidden /> {p.fix}
+                </p>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      {/* Mecanismo */}
+      <section className="lp-section" aria-labelledby="how-title">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="t-eyebrow">Tudo conectado</p>
-            <h2 id="flow-title" className="t-h1 mt-2">Do planejamento à evolução.</h2>
+            <p className="lp-kicker">Como funciona</p>
+            <h2 id="how-title" className="lp-h2 max-w-[18ch]">
+              Um ciclo só: o que você prescreve vira dado de evolução.
+            </h2>
           </div>
-          <p className="max-w-md text-sm leading-relaxed text-muted">O que você prescreve no Studio aparece para o aluno executar e registrar.</p>
+          <Link href="/studio/treinos" className="btn btn-outline btn-pill shrink-0 self-start md:self-auto">
+            Montar uma ficha <ArrowRight size={16} aria-hidden />
+          </Link>
         </div>
-        <ol className="mt-6 grid gap-3 md:grid-cols-3">
-          {FLOW.map(({ n, icon: Icon, title, text }) => (
-            <li key={n} className="card p-5 sm:p-6">
-              <div className="flex items-center justify-between">
-                <span className="grid size-10 place-items-center rounded-2xl bg-inverse text-on-inverse">
-                  <Icon size={19} aria-hidden />
-                </span>
-                <span className="text-sm font-semibold tabular text-muted">{n}</span>
+        <ol className="lp-steps">
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <ClipboardList size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">01</span>
+            </div>
+            <h3>Você prescreve</h3>
+            <p>Escolhe exercícios da biblioteca, define séries, repetições, carga e descanso, e atribui ao aluno.</p>
+            <div className="lp-step-ui" aria-hidden>
+              <div className="lp-step-ui-row">
+                <b className="flex-1">Agachamento com barra</b>
+                <span className="badge">4 × 8</span>
               </div>
-              <h3 className="mt-5 text-lg font-bold tracking-tight">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
-            </li>
-          ))}
+              <div className="lp-step-ui-row">
+                <b className="flex-1">Supino inclinado</b>
+                <span className="badge">3 × 12</span>
+              </div>
+              <div className="lp-step-ui-row text-accent">
+                <Plus size={15} /> <span className="font-semibold">Adicionar exercício</span>
+              </div>
+            </div>
+          </li>
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <Timer size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">02</span>
+            </div>
+            <h3>O aluno executa</h3>
+            <p>Vê como fazer cada movimento, marca as séries, ajusta a carga e o descanso começa sozinho.</p>
+            <div className="lp-step-ui" aria-hidden>
+              {[
+                ["1", "8", "50", true],
+                ["2", "8", "50", true],
+                ["3", "7", "52,5", false],
+              ].map(([n, r, kg, on]) => (
+                <div key={String(n)} className="lp-step-ui-row">
+                  <span className="w-4 text-center font-bold tabular">{n}</span>
+                  <span className="lp-mini-num">{r}</span>
+                  <span className="lp-mini-num">{kg} kg</span>
+                  <span className={on ? "lp-mini-check on" : "lp-mini-check"}>
+                    <Check size={13} strokeWidth={3} />
+                  </span>
+                </div>
+              ))}
+            </div>
+          </li>
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <BellRing size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">03</span>
+            </div>
+            <h3>Você acompanha</h3>
+            <p>O painel calcula frequência e aderência e aponta quem precisa de uma mensagem hoje.</p>
+            <div className="lp-step-ui" aria-hidden>
+              <div className="lp-step-ui-row">
+                <span className="flex-1">Meta da semana</span>
+                <b className="tabular">3/4</b>
+              </div>
+              <div className="progress">
+                <span style={{ width: "75%" }} />
+              </div>
+              <div className="lp-step-ui-row mt-1">
+                <span className="flex-1">Sem treinar</span>
+                <span className="badge badge-warning">9 dias</span>
+              </div>
+            </div>
+          </li>
         </ol>
       </section>
 
-      <section className="mt-12 sm:mt-16" aria-labelledby="experiences-title">
-        <div className="max-w-2xl">
-          <p className="t-eyebrow">Entre no EVOFIT</p>
-          <h2 id="experiences-title" className="t-h1 mt-2">Um sistema para quem prescreve. Uma experiência para quem treina.</h2>
+      {/* Experiências */}
+      <section className="lp-section" aria-labelledby="exp-title">
+        <p className="lp-kicker">Três experiências, um sistema</p>
+        <h2 id="exp-title" className="lp-h2 max-w-[20ch]">
+          Feito para quem prescreve. Simples para quem treina.
+        </h2>
+        <div className="lp-features">
+          <article className="card lp-feature lp-feature-main">
+            <span className="lp-icon">
+              <BellRing size={20} aria-hidden />
+            </span>
+            <h3>Um Studio que diz o que fazer, não só o que aconteceu.</h3>
+            <p>A primeira coisa que você vê é a lista de ações do dia — calculada a partir do que os alunos registraram.</p>
+            <ul>
+              <li>
+                <Check size={17} aria-hidden /> Alunos sem treino recente e sem ficha atribuída
+              </li>
+              <li>
+                <Check size={17} aria-hidden /> Sessões em andamento, ao vivo
+              </li>
+              <li>
+                <Check size={17} aria-hidden /> Frequência, aderência e evolução de carga por aluno
+              </li>
+              <li>
+                <Check size={17} aria-hidden /> Editor de fichas com prévia do que o aluno verá
+              </li>
+            </ul>
+            <Link href="/studio" className="lp-link">
+              Abrir o painel do Studio <ArrowRight size={16} aria-hidden />
+            </Link>
+          </article>
+          <article className="card lp-feature">
+            <span className="lp-icon">
+              <PlayCircle size={20} aria-hidden />
+            </span>
+            <h3>Um app que o aluno usa no meio da série.</h3>
+            <p>Botões grandes, números legíveis, cronômetro de descanso com vibração e “Como fazer” em cada exercício.</p>
+            <Link href="/aluno" className="lp-link">
+              Testar como aluno <ArrowRight size={16} aria-hidden />
+            </Link>
+          </article>
+          <article className="card lp-feature">
+            <span className="lp-icon">
+              <MapPin size={20} aria-hidden />
+            </span>
+            <h3>Seu perfil público para novos alunos te encontrarem.</h3>
+            <p>Publicação opcional no diretório, com busca por região e especialidade. Pedidos de contato chegam no Studio.</p>
+            <Link href="/personais" className="lp-link">
+              Ver o diretório <ArrowRight size={16} aria-hidden />
+            </Link>
+          </article>
         </div>
-        <ul className="mt-6 grid gap-4 md:grid-cols-3">
-          {EXPERIENCES.map(({ href, icon: Icon, eyebrow, title, text, cta }) => (
-            <li key={href}>
-              <Link href={href} className="card evo-experience-card group flex h-full flex-col overflow-hidden p-0 transition-colors hover:border-line-strong">
-                <div className="evo-experience-photo">
-                  <img
-                    src={href === "/studio"
-                      ? "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=82"
-                      : href === "/aluno"
-                        ? "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=900&q=82"
-                        : "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=82"}
-                    alt=""
-                    loading="lazy"
-                  />
-                  <span>{href === "/studio" ? "GESTÃO E ACOMPANHAMENTO" : href === "/aluno" ? "TREINE NO SEU RITMO" : "ENCONTRE SEU PERSONAL"}</span>
-                </div>
-                <div className="flex flex-1 flex-col p-5 sm:p-6">
-                <span className="grid size-11 place-items-center rounded-2xl bg-accent-soft text-accent">
-                  <Icon size={20} aria-hidden />
-                </span>
-                <p className="t-eyebrow mt-5">{eyebrow}</p>
-                <h3 className="mt-1 text-xl font-bold tracking-tight">{title}</h3>
-                <p className="mt-2 flex-1 text-[0.9375rem] leading-relaxed text-muted">{text}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-accent">
-                  {cta} <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
-                </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
       </section>
 
-      <section className="mt-12 grid gap-4 rounded-2xl border border-line p-5 text-sm sm:mt-16 sm:grid-cols-3 sm:p-6" aria-label="Sobre a demonstração">
-        <div>
-          <h2 className="font-semibold">Comece sem barreiras</h2>
-          <p className="mt-1 leading-relaxed text-muted">Explore as telas sem precisar criar uma conta antes.</p>
+      {/* Comparação */}
+      <section className="lp-section" aria-labelledby="cmp-title">
+        <p className="lp-kicker">Antes e depois</p>
+        <h2 id="cmp-title" className="lp-h2 max-w-[22ch]">
+          O que muda quando a planilha sai da sua rotina.
+        </h2>
+        <div className="card lp-compare">
+          <table>
+            <caption className="sr-only">Comparação entre planilha com WhatsApp e EVOFIT</caption>
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Aspecto</span>
+                </th>
+                <th scope="col">Planilha + WhatsApp</th>
+                <th scope="col">EVOFIT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {COMPARE.map(([row, before, after]) => (
+                <tr key={row}>
+                  <th scope="row">{row}</th>
+                  <td>
+                    <span className="inline-flex gap-1.5">
+                      <X size={15} aria-hidden className="mt-0.5 shrink-0 opacity-60" />
+                      {before}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="inline-flex gap-1.5">
+                      <Check size={15} aria-hidden className="mt-0.5 shrink-0 text-accent" />
+                      {after}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </section>
+
+      {/* Objeções */}
+      <section className="lp-section grid gap-8 lg:grid-cols-[1fr_1.6fr]" aria-labelledby="faq-title">
         <div>
-          <h2 className="font-semibold">Demonstrações de exercícios</h2>
-          <p className="mt-1 leading-relaxed text-muted">A biblioteca mostra movimentos em animação e orientações em português para ajudar o aluno a executar a ficha.</p>
+          <p className="lp-kicker">Perguntas</p>
+          <h2 id="faq-title" className="lp-h2">
+            Antes de você perguntar.
+          </h2>
+          <p className="lp-sub text-base">
+            Ainda com dúvida? Abra a demonstração e faça o ciclo completo: atribua uma ficha, treine como aluno e volte ao painel.
+          </p>
+          <p className="mt-5 inline-flex items-center gap-2 text-sm text-muted">
+            <Palette size={16} aria-hidden className="text-accent" /> Seu nome e sua cor no perfil profissional.
+          </p>
         </div>
-        <div>
-          <h2 className="font-semibold">Teste o ciclo completo</h2>
-          <p className="mt-1 leading-relaxed text-muted">Atribua uma ficha no Studio, execute o treino no app do aluno e volte para conferir os indicadores.</p>
+        <div className="lp-faq">
+          {FAQ.map((f) => (
+            <details key={f.q}>
+              <summary>
+                {f.q}
+                <Plus size={20} aria-hidden />
+              </summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="lp-section" aria-labelledby="final-title">
+        <div className="lp-band lp-final ink">
+          <p className="lp-kicker justify-center">Comece agora</p>
+          <h2 id="final-title" className="lp-h2 t-athletic !text-[clamp(2.6rem,7vw,5.5rem)]">
+            Seu próximo aluno não precisa de mais um PDF.
+          </h2>
+          <p className="lp-sub mx-auto text-on-ink-muted">Abra o Studio com dados de demonstração e monte a primeira ficha em poucos minutos.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
+              Abrir o Studio agora <ArrowRight size={18} aria-hidden />
+            </Link>
+            <Link href="/personais" className="btn btn-lg btn-pill border border-white/20 text-on-ink hover:bg-white/10">
+              Procuro um personal
+            </Link>
+          </div>
         </div>
       </section>
     </PublicShell>

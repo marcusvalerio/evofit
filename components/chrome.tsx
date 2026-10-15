@@ -1,5 +1,5 @@
 "use client"
-import { useState, useSyncExternalStore } from "react"
+import { useId, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
@@ -7,11 +7,32 @@ import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useToast } from "./providers"
 
+/** Símbolo EVOFIT: três barras ascendentes — prescrição, execução, evolução. A última carrega o gradiente ember. */
+export function BrandMark({ size = 28, className }: { size?: number; className?: string }) {
+  const id = `evo-g${useId().replace(/[^a-zA-Z0-9]/g, "")}`
+  return (
+    <span className={cx("evo-mark", className)} style={{ width: size, height: size }} aria-hidden>
+      <svg width={size * 0.62} height={size * 0.62} viewBox="0 0 20 20" fill="none">
+        <defs>
+          <linearGradient id={id} x1="0" y1="20" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#922724" />
+            <stop offset="1" stopColor="#EAAA62" />
+          </linearGradient>
+        </defs>
+        <rect x="1.5" y="11" width="4.2" height="7.5" rx="2.1" fill="currentColor" opacity=".45" />
+        <rect x="7.9" y="6.5" width="4.2" height="12" rx="2.1" fill="currentColor" opacity=".75" />
+        <rect x="14.3" y="1.5" width="4.2" height="17" rx="2.1" fill={`url(#${id})`} />
+      </svg>
+    </span>
+  )
+}
+
 export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
   return (
-    <Link href="/" className={cx("inline-flex items-baseline gap-1.5 rounded-md", className)} aria-label="EVOFIT — início">
-      <span className="t-brand text-xl leading-none text-fg">EVOFIT</span>
-      {suffix && <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{suffix}</span>}
+    <Link href="/" className={cx("inline-flex items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
+      <BrandMark />
+      <span className="t-brand text-[1.1875rem] leading-none text-fg">EVOFIT</span>
+      {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
     </Link>
   )
 }
@@ -84,7 +105,7 @@ function AccountBar() {
   const [busy, setBusy] = useState(false)
   return (
     <>
-      <div className="border-b border-line bg-inverse text-on-inverse">
+      <div className="border-b border-line bg-ink text-on-ink">
         <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-2 px-3 py-1 text-xs sm:gap-3 sm:px-4 sm:py-1.5 sm:text-[0.8125rem]">
           <UserRound size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
@@ -136,7 +157,7 @@ function DemoStrip() {
   const toast = useToast()
   return (
     <>
-      <div className="border-b border-line bg-inverse text-on-inverse">
+      <div className="border-b border-line bg-ink text-on-ink">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-1.5 text-[0.8125rem]">
           <FlaskConical size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">

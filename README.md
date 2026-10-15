@@ -99,11 +99,11 @@ Pensada para os dias em que o personal não está junto do aluno.
 
 ## Movimento e interface
 
-Entradas em cascata em listas e cards, números que contam até o valor, anéis de progresso (meta semanal e descanso), confirmação animada de série com vibração curta no celular, rolagem automática para o próximo exercício, comemoração ao concluir o treino, cards que elevam no hover e uma prévia animada do app na página inicial. Tudo em CSS/SVG, sem bibliotecas novas, e desligado com `prefers-reduced-motion`.
+Entradas em cascata em listas e cards, números que contam até o valor, anéis de progresso (meta semanal e descanso), confirmação animada de série com vibração curta no celular, rolagem automática para o próximo exercício, comemoração ao concluir o treino e cards que elevam no hover. Tudo em CSS/SVG, sem bibliotecas novas, e desligado com `prefers-reduced-motion`.
 
 ## Arquitetura
 
-- **Next.js 16 (App Router, Turbopack)**, React 19, TypeScript strict, Tailwind CSS 4, `lucide-react`, fonte **Geist** (pacote `geist`, licença OFL, servida localmente — o build não depende da internet).
+- **Next.js 16 (App Router, Turbopack)**, React 19, TypeScript strict, Tailwind CSS 4, `lucide-react`, fontes Inter, Outfit e Archivo (`@fontsource-variable`, licença OFL, servidas localmente — o build não depende da internet).
 - `lib/types.ts` — modelo de dados · `lib/seed.ts` — dados demonstrativos (PRNG determinístico, datas relativas ao primeiro acesso) · `lib/actions.ts` — operações puras e validações · `lib/metrics.ts` — indicadores · `lib/store.ts` — persistência (`useSyncExternalStore` + `localStorage`) · `lib/directory.ts` — perfis fictícios e filtros · `lib/catalog.ts` — catálogo de exercícios, busca e passo a passo sob demanda · `lib/video.ts` — validação de links de vídeo · `lib/migrate.ts` — migração dos dados salvos.
 - `components/exercise.tsx` — demonstração animada, miniatura, player de vídeo, passo a passo e guia completo · `components/motion.tsx` — contagem animada, anel de progresso, confete, vibração.
 - `components/ui.tsx` — primitivas (Field, Modal com `<dialog>` nativo, ConfirmDialog, EmptyState, Stat, Progress, Avatar…) · `components/charts.tsx` — gráficos SVG com tooltip e tabela acessível.
@@ -111,26 +111,44 @@ Entradas em cascata em listas e cards, números que contam até o valor, anéis 
 
 ## Design system
 
-Paleta oficial centralizada em tokens semânticos em `app/globals.css` (componentes não usam hexadecimais). Temas claro/escuro seguem o sistema, com alternância manual (automático → claro → escuro) salva no navegador.
+Paleta **MP020** centralizada em tokens semânticos em `app/globals.css` (componentes não usam hexadecimais). Temas claro/escuro seguem o sistema, com alternância manual salva no navegador.
 
-Contraste (WCAG 2.x) avaliado antes da aplicação:
-
-| Combinação | Razão | Decisão |
+| Cor | Hex | Papel |
 |---|---|---|
-| Cobblestone sobre Bright Sandstone | 10,49 | texto principal (claro) |
-| Midnight Smoke sobre Sandstone | 5,99 | texto secundário (claro) |
-| Branco sobre Ōtan Red | 3,30 ✗ | **rejeitado** |
-| Cobblestone sobre Ōtan Red | 4,54 ✓ | botão primário (claro) |
-| Ōtan Red sobre Sandstone | 2,31 ✗ | Ōtan não é usado como texto no claro |
-| `#9E2B0E` (Red Gravy escurecido) sobre Sandstone | 5,24 | texto/realce de destaque (claro) |
-| Dusty Cotton sobre Cobblestone | 11,65 | texto principal (escuro) |
-| Dusty Cotton sobre Red Gravy | 4,64 ✓ | botão primário (escuro) |
-| Red Gravy sobre Cobblestone | 2,51 ✗ | Red Gravy não é usado como texto no escuro |
-| `#FF7A52` (Ōtan clareado) sobre superfície `#2A343B` | 4,94 | texto/realce de destaque (escuro) |
+| Dusty Cotton | `#E4E3DC` | fundo claro |
+| Bright Sandstone | `#DAD8CF` | superfícies secundárias, trilhos |
+| Ōtan Red | `#FF4E20` | energia: CTA principal (sempre com texto Cobblestone), progresso, sequência semanal |
+| Red Gravy | `#B83312` | texto e realce de marca no claro |
+| Web Cobblestone | `#1F282E` | texto principal, superfícies escuras (`.ink`) |
+| Midnight Smoke | `#414E58` | texto secundário |
 
-No tema escuro, Midnight Smoke é usado em estrutura e campos; os cards usam um tom intermediário (`#2A343B`) para manter o texto de destaque acima de 4,5:1. Botões: Primary, Outline, Inverse, Ghost e Danger, tamanhos sm/md/lg e variação pill, com hover, `focus-visible`, active e disabled. Animações discretas, desligadas com `prefers-reduced-motion`. Translucidez (`.glass`) apenas em barras fixas de navegação.
+Contraste (WCAG 2.x):
 
-Tipografia: Geist (UI). **Switzer não está disponível/licenciada no repositório**; a marca usa Geist Black com itálico sintetizado (Geist não possui itálico real).
+| Combinação | Razão | Uso |
+|---|---|---|
+| Cobblestone sobre Cotton | 11,65 | texto principal (claro) |
+| Smoke sobre Cotton | 6,65 | texto secundário (claro) |
+| Cobblestone sobre Ōtan | 4,54 ✓ | botão primário |
+| Branco sobre Ōtan | 3,30 ✗ | **proibido** |
+| Gravy sobre Cotton | 4,64 ✓ | palavra de destaque, links |
+| Ōtan sobre Cotton | < 3 ✗ | Ōtan nunca é texto no claro |
+| Cotton sobre Cobblestone | 11,65 | texto principal (escuro) |
+| `#FF7A52` sobre `#1F282E` | 5,82 | realce no escuro |
+
+**Assinatura visual:** o gradiente *ember* (Gravy → Ōtan) aparece só onde existe progresso real — barras, anéis, o símbolo da marca e o "pico" do hero (motivo tirado do cartão da paleta MP020).
+
+**Tipografia** (pacotes `@fontsource-variable`, servidos localmente):
+
+- **Inter** — interface, dados, formulários (400–600).
+- **Outfit** — títulos e métricas (500–600).
+- **Archivo condensado** (`.t-athletic`, 800, caixa alta) — voz atlética, **só** em títulos de marca (landing, capas). Nunca em dados, formulários ou na execução do treino.
+- Geist continua apenas na geração dos GIFs (`lib/gif.ts`).
+
+**Princípios aplicados** ([Revenue-Centric Design](https://github.com/heliocosta-dev/revenue-centric-design)):
+
+- Landing: Hero → Dor → Mecanismo → Experiências → Comparação → Objeções → CTA. O hero responde em 5 s o que é, para quem e por quê; CTA específico com gatilho de clique ("Sem cadastro · Sem cartão"); a prévia usa os **dados reais da demonstração**, não um mockup. Sem depoimentos ou números inventados.
+- Studio: a Central de ações abre o painel (padrão F) e mostra nomes, não só contagens — o painel diz o que fazer.
+- Aluno: sequência semanal (seg–dom) calculada das sessões registradas, próximo treino sugerido e um CTA dominante.
 
 ## Limitações conhecidas
 

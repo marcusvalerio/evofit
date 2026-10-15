@@ -1,12 +1,12 @@
 "use client"
 import Link from "next/link"
-import { ChevronRight, Clock, Dumbbell, Play } from "lucide-react"
+import { Check, ChevronRight, Clock, Dumbbell, Play } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import { inProgressSession, sessionProgress, sessionsOf, weekCount } from "@/lib/metrics"
-import { fmtDateLong, isSameDay, relativeDays } from "@/lib/date"
+import { addDays, fmtDateLong, isSameDay, relativeDays, startOfWeek } from "@/lib/date"
 import { StudentChoices } from "@/components/student-shell"
-import { EmptyState } from "@/components/ui"
+import { cx, EmptyState, Progress } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { getExercise } from "@/lib/catalog"
 import { ExerciseThumb } from "@/components/exercise"
@@ -38,55 +38,90 @@ export default function AlunoHome() {
   const live = inProgressSession(d, student.id)
   const history = sessionsOf(d, student.id)
   const wk = weekCount(d, student.id, now)
+  const weekStart = startOfWeek(now)
+  const week = ["S", "T", "Q", "Q", "S", "S", "D"].map((label, i) => {
+    const date = addDays(weekStart, i)
+    return {
+      label,
+      date,
+      long: new Intl.DateTimeFormat("pt-BR", { weekday: "long" }).format(date),
+      done: history.some((h) => isSameDay(new Date(h.startedAt), date)),
+      today: isSameDay(date, now),
+      future: date > now && !isSameDay(date, now),
+    }
+  })
+  // Sugestão: o treino em andamento ou o que está há mais tempo sem ser feito.
+  const next = workouts
+    .map((workout) => ({
+      workout,
+      last: [...history].reverse().find((h) => h.workoutId === workout.id),
+      est: Math.round(workout.items.reduce((a, i) => a + i.sets * (45 + i.restSec), 0) / 60),
+    }))
+    .sort((a, b) => (live?.workoutId === a.workout.id ? -1 : live?.workoutId === b.workout.id ? 1 : (a.last ? new Date(a.last.startedAt).getTime() : 0) - (b.last ? new Date(b.last.startedAt).getTime() : 0)))[0]
 
   return (
     <div className="fade-in">
-      <p className="t-eyebrow first-letter:uppercase">{fmtDateLong(now.toISOString())}</p>
-      <h1 className="t-h1 mt-1">Bora treinar, {student.name.split(" ")[0]}</h1>
-
-      <section className="evo-student-campaign mt-5" aria-label="Seu treino de hoje">
-        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1000&q=85" alt="" loading="eager" />
-        <div className="evo-student-orbit" aria-hidden="true" />
-        <p className="evo-student-kicker">EVOFIT / SEU MOMENTO</p>
-        <h2>UM TREINO<br/>DE CADA VEZ.</h2>
-        <p>Seu plano, seu ritmo e cada conquista registrada no caminho.</p>
-        <Link href={live ? `/aluno/treino/${live.workoutId}` : "#student-workouts"} className="evo-student-primary-action">
-          {live ? "Continuar treino" : workouts.length ? "Escolher meu treino" : "Ver meus treinos"}
-          <ChevronRight size={17} aria-hidden />
-        </Link>
-      </section>
-
-      <section className="card mt-5 flex items-center gap-4 p-4" aria-label="Meta da semana">
-        <Ring value={(wk / student.weeklyTarget) * 100} size={76} stroke={8} label={`${wk} de ${student.weeklyTarget} treinos nesta semana`}>
-          <span className="text-xl font-bold tabular">
-            <CountUp text={String(wk)} />
+      <div className="flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="t-eyebrow first-letter:uppercase">{fmtDateLong(now.toISOString())}</p>
+          <h1 className="t-h1 mt-1">Bora treinar, {student.name.split(" ")[0]}</h1>
+        </div>
+        <Ring value={(wk / student.weeklyTarget) * 100} size={56} stroke={6} label={`${wk} de ${student.weeklyTarget} treinos nesta semana`}>
+          <span className="text-sm font-bold tabular">
+            <CountUp text={String(wk)} />/{student.weeklyTarget}
           </span>
         </Ring>
-        <div className="min-w-0 flex-1">
-          <p className="t-eyebrow">Meta da semana</p>
-          <p className="mt-1 text-lg font-bold leading-tight">
-            {wk >= student.weeklyTarget ? "Meta da semana batida!" : `Faltam ${student.weeklyTarget - wk} de ${student.weeklyTarget} treinos`}
-          </p>
-          <p className="text-sm text-muted">
-            <CountUp text={String(history.length)} /> treinos no total
-          </p>
+      </div>
+
+      <section className="card mt-5 p-4" aria-labelledby="week-title">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 id="week-title" className="t-h2">
+            {wk >= student.weeklyTarget ? "Meta da semana batida!" : wk > 0 ? `${student.weeklyTarget - wk === 1 ? "Falta 1 treino" : `Faltam ${student.weeklyTarget - wk} treinos`} na semana` : "Sua semana começa no primeiro treino"}
+          </h2>
+          <span className="shrink-0 text-sm text-muted tabular">
+            <CountUp text={String(history.length)} /> no total
+          </span>
         </div>
+        <ol className="evo-week mt-4" aria-label="Treinos concluídos nesta semana">
+          {week.map((day) => (
+            <li key={day.label + day.date.getDate()} className={cx("evo-week-day", day.today && "is-today")}>
+              <span>{day.label}</span>
+              <span className={cx("evo-week-dot", day.done && "is-done")} aria-label={`${day.long}: ${day.done ? "treinou" : day.future ? "ainda não chegou" : "sem treino"}`}>
+                {day.done && <Check size={14} strokeWidth={3} aria-hidden />}
+              </span>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      {live && (
-        <Link href={`/aluno/treino/${live.workoutId}`} className="glow shine pop mt-4 flex items-center gap-4 rounded-2xl bg-primary p-4 text-on-primary shadow-[var(--shadow)]">
-          <span className="pulse-soft grid size-12 shrink-0 place-items-center rounded-full bg-black/10">
-            <Play size={22} aria-hidden fill="currentColor" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-sm font-semibold opacity-85">Treino em andamento</span>
-            <span className="block truncate text-lg font-bold">{live.workoutName}</span>
-            <span className="block text-sm font-medium opacity-85">
-              {sessionProgress(live).done} de {sessionProgress(live).total} séries
+      {next && (
+        <section className="evo-student-today ink mt-4" aria-label={live ? "Treino em andamento" : "Seu próximo treino"}>
+          <p className="evo-student-kicker">{live ? "Em andamento" : "Próximo treino"}</p>
+          <h2>{next.workout.name}</h2>
+          <p className="evo-student-meta">
+            <span>{next.workout.items.length} exercícios</span>
+            <span>
+              <Clock size={14} aria-hidden /> ~{next.est} min
             </span>
-          </span>
-          <ChevronRight size={22} aria-hidden />
-        </Link>
+            {live ? (
+              <span>
+                {sessionProgress(live).done} de {sessionProgress(live).total} séries
+              </span>
+            ) : (
+              <span>{next.last ? `último: ${relativeDays(next.last.startedAt, now)}` : "ainda não feito"}</span>
+            )}
+          </p>
+          {live && (
+            <div className="mt-3">
+              <Progress value={sessionProgress(live).pct} label={`${sessionProgress(live).done} de ${sessionProgress(live).total} séries concluídas`} />
+            </div>
+          )}
+          <Link href={`/aluno/treino/${next.workout.id}`} className="evo-student-primary-action">
+            {live ? <Play size={18} aria-hidden fill="currentColor" /> : null}
+            {live ? "Continuar treino" : "Ver treino"}
+            <ChevronRight size={18} aria-hidden />
+          </Link>
+        </section>
       )}
 
       <h2 id="student-workouts" className="t-h2 mb-3 mt-7">Seus treinos <span className="evo-section-count">{workouts.length}</span></h2>

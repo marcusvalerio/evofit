@@ -50,11 +50,11 @@ export function BarChart({ data, title, unit }: { data: BarDatum[]; title: strin
                 aria-label={`${d.detail}: ${d.value} ${unit}`}
               >
                 <span
-                  className="block w-full max-w-9 rounded-t-[4px] transition-opacity"
+                  className="block w-full max-w-9 rounded-t-[10px] rounded-b-[3px] transition-opacity"
                   style={{
                     height: d.value ? Math.max(3, (d.value / top) * H) : 0,
-                    background: "var(--accent-text)",
-                    opacity: hover === null || hover === i ? 1 : 0.45,
+                    background: i === data.length - 1 ? "var(--primary)" : "color-mix(in srgb, var(--fg) 24%, transparent)",
+                    opacity: hover === null || hover === i ? 1 : 0.5,
                   }}
                 />
                 {hover === i && (

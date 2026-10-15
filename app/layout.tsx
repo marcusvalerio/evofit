@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next"
-import { GeistSans } from "geist/font/sans"
+import "@fontsource-variable/inter/wght.css"
+import "@fontsource-variable/outfit/wght.css"
+import "@fontsource-variable/archivo/wdth.css"
 import { Providers } from "@/components/providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
   title: { default: "EVOFIT — plataforma para personal trainers", template: "%s · EVOFIT" },
-  description: "Gestão de alunos, fichas de treino, execução pelo aluno e diretório de profissionais. Versão de demonstração.",
+  description: "Para personal trainers autônomos: monte fichas, acompanhe a execução série a série pelo celular do aluno e veja quem precisa de atenção. Versão de demonstração.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EVOFIT" },
 }
 
@@ -14,8 +16,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F4F0EC" },
-    { media: "(prefers-color-scheme: dark)", color: "#112244" },
+    { media: "(prefers-color-scheme: light)", color: "#F6F4F5" },
+    { media: "(prefers-color-scheme: dark)", color: "#050B2C" },
   ],
 }
 
@@ -24,7 +26,7 @@ const themeScript = `try{var t=localStorage.getItem("evofit:theme");if(t==="ligh
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={GeistSans.variable} suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
