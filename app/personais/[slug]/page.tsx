@@ -11,14 +11,15 @@ import { directoryList } from "@/lib/directory"
 import { MODALITY_LABEL } from "@/lib/types"
 import { addContactRequest, validateContact, type ContactInput } from "@/lib/actions"
 import { Avatar, Field, LoadingScreen, NotFoundState } from "@/components/ui"
-import { useToast } from "@/components/providers"
+import { useDemoEnabled, useToast } from "@/components/providers"
 
 export default function PerfilPublico() {
   const { slug } = useParams<{ slug: string }>()
   const { data, mode } = useDemoState()
+  const demo = useDemoEnabled()
   const real = useRealProfiles()
   const own = mode === "demo" ? (data?.profile ?? null) : null
-  const profile = directoryList(own, real ?? []).find((p) => p.slug === slug)
+  const profile = directoryList(own, real ?? [], demo).find((p) => p.slug === slug)
   if (!profile && (real === null || mode === "loading")) return <LoadingScreen label="Carregando perfil" />
   // Perfis sem opt-in não são exibidos, mesmo acessando a URL diretamente.
   if (!profile) {

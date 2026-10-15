@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Instagram, MapPin, MessageCircle, Search, SearchX } from "lucide-react"
 import { useDemoState } from "@/lib/store"
+import { useDemoEnabled } from "@/components/providers"
 import { useRealProfiles } from "@/lib/use-directory"
 import { directoryList, filterProfiles, type DirectoryFilters } from "@/lib/directory"
 import { MODALITY_LABEL, SPECIALTIES, type Modality } from "@/lib/types"
@@ -19,6 +20,7 @@ export default function PersonaisPage() {
 
 function Directory() {
   const { data, mode } = useDemoState()
+  const demo = useDemoEnabled()
   const real = useRealProfiles()
   const params = useSearchParams()
   const router = useRouter()
@@ -41,7 +43,7 @@ function Directory() {
 
   // no modo conta o perfil real já vem do banco (se tiver opt-in)
   const own = mode === "demo" ? (data?.profile ?? null) : null
-  const all = useMemo(() => directoryList(own, real ?? []), [own, real])
+  const all = useMemo(() => directoryList(own, real ?? [], demo), [own, real, demo])
   const results = filterProfiles(all, f)
   const states = [...new Set(all.map((p) => p.state))].sort()
   const anyFilter = f.q || f.state || f.modality || f.specialty
@@ -102,7 +104,19 @@ function Directory() {
         )}
       </div>
 
-      {results.length === 0 ? (
+      {all.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="O diretório está começando"
+          action={
+            <Link href="/criar-conta" className="btn btn-primary btn-sm">
+              Sou personal: quero aparecer aqui
+            </Link>
+          }
+        >
+          Os primeiros personais do EVOFIT estão montando seus perfis. Volte em breve.
+        </EmptyState>
+      ) : results.length === 0 ? (
         <EmptyState
           icon={SearchX}
           title="Nenhum profissional com esses filtros"

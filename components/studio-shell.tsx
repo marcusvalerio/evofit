@@ -6,6 +6,7 @@ import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
 import { FirstAccessPassword } from "./first-access"
+import { GateScreen, useLoginGate } from "./login-gate"
 
 const NAV = [
   { href: "/studio", label: "Painel", icon: LayoutDashboard, exact: true },
@@ -24,6 +25,7 @@ function isActive(path: string, href: string, exact?: boolean) {
 export function StudioShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { data, mode, account } = useDemoState()
+  const gated = useLoginGate()
   const isStudent = mode === "account" && account?.role === "student"
   const mustChange = mode === "account" && account?.role === "trainer" && !!account.mustChangePassword
   const isAdmin = mode === "account" && !!account?.isAdmin
@@ -102,7 +104,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           </header>
 
           <main id="conteudo" className="flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
-            {!data ? (
+            {gated ? (
+              <GateScreen />
+            ) : !data ? (
               <LoadingScreen />
             ) : mustChange ? (
               <FirstAccessPassword login={account?.email ?? ""} who="trainer" />

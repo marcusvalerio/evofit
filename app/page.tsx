@@ -6,6 +6,7 @@ import { LandingPreview } from "@/components/landing-preview"
 import { ProductReel } from "@/components/product-reel"
 import { LibraryMarquee, RevealOnScroll } from "@/components/landing-motion"
 import { CATALOG_SIZE } from "@/lib/catalog"
+import { demoEnabled } from "@/lib/demo-mode"
 
 /*
  * Estrutura guiada por Revenue-Centric Design:
@@ -18,7 +19,7 @@ import { CATALOG_SIZE } from "@/lib/catalog"
 /*
  * A landing inteira responde, sem precisar escrevê-la, à pergunta do personal que já viu outros
  * sistemas: "por que este e não outro?". Cada motivo é verificável no próprio produto
- * (vídeo real logo abaixo ou demonstração aberta), sem citar concorrentes nem inventar números.
+ * (vídeo real logo abaixo), sem citar concorrentes nem inventar números.
  */
 const REASONS = [
   { icon: Radar, title: "Ele te avisa quem vai cancelar.", text: "O radar de evasão aponta quem está sumindo, por quê, e quanto isso vale em mensalidades — antes do aluno desistir.", href: "#ver-studio-painel" },
@@ -38,7 +39,7 @@ const CHECKLIST: [string, string][] = [
   ["Os exercícios estão em português, mostrando como fazer?", `Sim — ${CATALOG_SIZE} com animação, passo a passo e músculos.`],
   ["Sei como o aluno se sentiu no treino?", "Sim — check-in de esforço, dor e sono ao concluir."],
   ["Me ajuda a conseguir aluno novo?", "Sim — perfil público com WhatsApp e Instagram."],
-  ["Preciso de cartão para testar?", "Não — a demonstração abre na hora."],
+  ["Preciso de cartão de crédito para começar?", "Não — basta e-mail e senha."],
 ]
 
 const FAQ = [
@@ -47,8 +48,8 @@ const FAQ = [
     a: "Não. Guardar e enviar ficha é o começo. O EVOFIT cuida do que faz você perder dinheiro: aluno que some (radar de evasão em R$), mensalidade esquecida (lembrete com Pix, sem taxa) e treino que não acontece por falta de sinal (funciona offline).",
   },
   {
-    q: "Preciso criar conta ou cadastrar cartão para testar?",
-    a: "Não. A demonstração abre direto, com alunos e treinos fictícios salvos só no seu navegador. Você pode criar uma conta real quando quiser.",
+    q: "Preciso cadastrar cartão para começar?",
+    a: "Não. Você cria a conta com e-mail e senha, cadastra seus alunos e monta a primeira ficha. Seus dados ficam só na sua conta.",
   },
   {
     q: "Meu aluno precisa baixar um aplicativo?",
@@ -79,6 +80,9 @@ const FAQ = [
 const HERO_WORDS = ["Feito", "para", "você", "não", "perder", "aluno."]
 
 export default function Home() {
+  // com contas reais, toda chamada leva a criar a conta; sem banco, abre a demonstração
+  const demo = demoEnabled()
+  const start = demo ? "/studio" : "/criar-conta"
   return (
     <PublicShell>
       {/* Hero */}
@@ -100,22 +104,22 @@ export default function Home() {
             Guardar ficha qualquer sistema guarda. O EVOFIT trabalha por você: avisa quem está sumindo e quanto isso vale em R$, cobra a mensalidade pelo WhatsApp sem taxa e deixa o aluno treinar até sem internet.
           </p>
           <div className="lp-cta-row lp-in" style={{ "--d": "640ms" } as React.CSSProperties}>
-            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
-              Começar pelo Studio <ArrowRight size={18} aria-hidden />
+            <Link href={start} className="btn btn-primary btn-lg btn-pill">
+              {demo ? "Começar pelo Studio" : "Criar minha conta"} <ArrowRight size={18} aria-hidden />
             </Link>
-            <Link href="/aluno" className="btn btn-outline btn-lg btn-pill">
-              <Smartphone size={18} aria-hidden /> Ver o app do aluno
+            <Link href={demo ? "/aluno" : "#como-funciona"} className="btn btn-outline btn-lg btn-pill">
+              <Smartphone size={18} aria-hidden /> {demo ? "Ver o app do aluno" : "Ver funcionando"}
             </Link>
           </div>
           <p className="lp-trigger lp-in" style={{ "--d": "740ms" } as React.CSSProperties}>
             <span>
-              <Check size={14} aria-hidden /> Sem cadastro
+              <Check size={14} aria-hidden /> {demo ? "Sem cadastro" : "Cadastro só com e-mail"}
             </span>
             <span>
               <Check size={14} aria-hidden /> Sem cartão
             </span>
             <span>
-              <Check size={14} aria-hidden /> Abre com dados de demonstração
+              <Check size={14} aria-hidden /> {demo ? "Abre com dados de demonstração" : "Aluno usa no navegador, sem baixar app"}
             </span>
           </p>
           <dl className="lp-proof lp-in" style={{ "--d": "840ms" } as React.CSSProperties}>
@@ -178,12 +182,12 @@ export default function Home() {
           ))}
         </ol>
         <div className="lp-cta-inline" data-reveal>
-          <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
-            Ver isso no meu Studio <ArrowRight size={18} aria-hidden />
+          <Link href={start} className="btn btn-primary btn-lg btn-pill">
+            {demo ? "Ver isso no meu Studio" : "Quero isso no meu dia a dia"} <ArrowRight size={18} aria-hidden />
           </Link>
           <p className="lp-trigger">
             <span>
-              <Check size={14} aria-hidden /> Abre na hora
+              <Check size={14} aria-hidden /> {demo ? "Abre na hora" : "Conta criada com e-mail e senha"}
             </span>
             <span>
               <Check size={14} aria-hidden /> Sem cadastro e sem cartão
@@ -192,7 +196,7 @@ export default function Home() {
         </div>
       </section>
 
-      <ProductReel />
+      <ProductReel demo={demo} />
 
       {/* Checklist */}
       <section className="lp-section" aria-labelledby="ask-title">
@@ -237,8 +241,8 @@ export default function Home() {
               Um ciclo só: o que você prescreve vira dado de evolução.
             </h2>
           </div>
-          <Link href="/studio/treinos" className="btn btn-outline btn-pill shrink-0 self-start md:self-auto">
-            Montar uma ficha <ArrowRight size={16} aria-hidden />
+          <Link href={demo ? "/studio/treinos" : "/criar-conta"} className="btn btn-outline btn-pill shrink-0 self-start md:self-auto">
+            {demo ? "Montar uma ficha" : "Montar minha primeira ficha"} <ArrowRight size={16} aria-hidden />
           </Link>
         </div>
         <ol className="lp-steps lp-stagger" data-reveal>
@@ -325,7 +329,7 @@ export default function Home() {
             Antes de você perguntar.
           </h2>
           <p className="lp-sub text-base">
-            Ainda com dúvida? Abra a demonstração e faça o ciclo completo: atribua uma ficha, treine como aluno e volte ao painel.
+            Ainda com dúvida? Veja as gravações acima: é exatamente o que você e seus alunos vão usar.
           </p>
           <p className="mt-5 inline-flex items-center gap-2 text-sm text-muted">
             <Palette size={16} aria-hidden className="text-accent" /> Seu nome e sua cor no perfil profissional.
@@ -351,10 +355,10 @@ export default function Home() {
           <h2 id="final-title" className="lp-h2 t-athletic !text-[clamp(2.6rem,7vw,5.5rem)]">
             Seu próximo aluno não precisa de mais um PDF.
           </h2>
-          <p className="lp-sub mx-auto text-on-ink-muted">Abra o Studio com dados de demonstração e monte a primeira ficha em poucos minutos.</p>
+          <p className="lp-sub mx-auto text-on-ink-muted">Crie sua conta, cadastre o primeiro aluno e envie o acesso dele hoje mesmo.</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
-              Abrir o Studio agora <ArrowRight size={18} aria-hidden />
+            <Link href={start} className="btn btn-primary btn-lg btn-pill">
+              {demo ? "Abrir o Studio agora" : "Criar minha conta"} <ArrowRight size={18} aria-hidden />
             </Link>
             <Link href="/personais" className="btn btn-lg btn-pill border border-white/20 text-on-ink hover:bg-white/10">
               Procuro um personal

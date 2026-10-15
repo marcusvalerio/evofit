@@ -28,7 +28,8 @@ export type SyncStatus = "idle" | "saving" | "error" | "offline"
 
 interface State {
   data: DemoData | null
-  mode: "loading" | "demo" | "account" | "offline"
+  /** guest = sem login e sem demonstração (app com contas reais). */
+  mode: "loading" | "demo" | "account" | "offline" | "guest"
   account: AccountInfo | null
   /** Mensagem exibida uma vez quando os dados precisaram ser restaurados. */
   notice: string | null
@@ -44,6 +45,12 @@ const initial: State = { data: null, mode: "loading", account: null, notice: nul
 let state: State = initial
 const listeners = new Set<() => void>()
 let started = false
+let demoAllowed = true
+
+/** Definido pelo servidor (Providers): com contas reais não há demonstração. */
+export function configureDemo(on: boolean) {
+  demoAllowed = on
+}
 
 function set(patch: Partial<State>) {
   state = { ...state, ...patch }
@@ -79,6 +86,7 @@ function writeLocal(data: DemoData) {
 }
 
 function startDemo() {
+  if (!demoAllowed) return set({ data: null, notice: null, mode: "guest", account: null })
   const { data, notice } = readLocal()
   const ok = writeLocal(data)
   set({ data, notice, persistError: !ok, mode: "demo", account: null })

@@ -220,6 +220,10 @@ Para quem opera o EVOFIT. Acesso: conta de personal marcada com `users.is_admin 
 
 Privacidade: o papel `admin` do banco só lê (contagens) via RLS e só altera a visibilidade no diretório; nunca vê nomes, medidas, treinos ou valores dos alunos. Migração: `005_admin.sql`.
 
+## Contas reais × demonstração
+
+Com `DATABASE_URL` configurada (produção), não existe modo demonstração: quem não entrou vê só a landing, o diretório e a biblioteca; o Studio e o app do aluno levam ao login (`/entrar?next=…`) e o diretório mostra só personais reais. Sem banco (desenvolvimento) a demonstração continua; os testes e2e a ligam com `DEMO_MODE=on`.
+
 ## Landing: a pergunta que ela responde sem escrever
 
 O personal que chega já viu outros sistemas e pensa “por que este e não outro?”. A página responde isso sem fazer a pergunta: hero (“Feito para você não perder aluno”) → seis coisas que o EVOFIT faz por você, com CTA → **O EVOFIT em movimento** (gravações reais do app no computador e no celular, em `public/media/*.mp4`, com capa `.jpg`) e CTA → “As perguntas que todo personal faz. Já respondidas.” → como funciona → perguntas → CTA final. Sem citar concorrentes e sem números inventados.

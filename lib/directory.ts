@@ -58,8 +58,10 @@ export function filterProfiles(list: DirectoryProfile[], f: DirectoryFilters) {
  * Junta os perfis reais (do banco, com opt-in), o perfil da demonstração (somente com opt-in, no modo
  * demonstração) e os perfis fictícios.
  */
-export function directoryList(own: TrainerProfile | null, real: PublicProfile[] = []): DirectoryProfile[] {
+export function directoryList(own: TrainerProfile | null, real: PublicProfile[] = [], fictional = true): DirectoryProfile[] {
   const list: DirectoryProfile[] = real.map((p) => ({ ...p, fictional: false }))
+  // com contas reais (sem demonstração) o diretório mostra só quem existe de verdade
+  if (!fictional) return list
   if (own && own.directoryVisible) list.push({ ...toPublic(own), fictional: true })
   const taken = new Set(list.map((p) => p.slug))
   return [...list, ...DIRECTORY_PROFILES.filter((p) => !taken.has(p.slug))]

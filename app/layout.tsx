@@ -3,11 +3,12 @@ import "@fontsource-variable/inter/wght.css"
 import "@fontsource-variable/outfit/wght.css"
 import "@fontsource-variable/archivo/wdth.css"
 import { Providers } from "@/components/providers"
+import { demoEnabled } from "@/lib/demo-mode"
 import "./globals.css"
 
 export const metadata: Metadata = {
   title: { default: "EVOFIT — plataforma para personal trainers", template: "%s · EVOFIT" },
-  description: "Para personal trainers autônomos: monte fichas, acompanhe a execução série a série pelo celular do aluno e veja quem precisa de atenção. Versão de demonstração.",
+  description: "Para personal trainers autônomos: monte fichas, acompanhe a execução série a série pelo celular do aluno e veja quem precisa de atenção.",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EVOFIT" },
 }
 
@@ -31,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers demo={demoEnabled()}>{children}</Providers>
       </body>
     </html>
   )

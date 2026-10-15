@@ -5,7 +5,7 @@ import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw,
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
 import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
-import { useToast } from "./providers"
+import { useDemoEnabled, useToast } from "./providers"
 
 /**
  * Símbolo EVOFIT: brasa cristalizada — uma chama facetada que sobe. A face Gravy é a base, a Ōtan é
@@ -79,7 +79,9 @@ export function ThemeToggle({ className }: { className?: string }) {
 /** Faixa superior: identifica o modo demonstração ou a conta logada (com o estado de salvamento). */
 export function DemoBanner() {
   const st = useDemoState()
+  const demo = useDemoEnabled()
   if (st.mode === "account") return <AccountBar />
+  if (st.mode === "guest" || (st.mode === "loading" && !demo)) return null
   if (st.mode === "offline")
     return (
       <div role="alert" className="border-b border-line bg-warning-soft">
