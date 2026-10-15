@@ -8,6 +8,7 @@ import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
 import { useToast } from "./providers"
 import { FirstAccessPassword } from "./first-access"
+import { usePrecacheWorkouts } from "./offline"
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
@@ -18,6 +19,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const role = mode === "account" ? account?.role : null
 
   const mustChange = role === "student" && !!account?.mustChangePassword
+  usePrecacheWorkouts(data, student?.id ?? null)
   let content: React.ReactNode = data ? children : <LoadingScreen />
   if (data && mustChange) content = <FirstAccessPassword login={account?.email ?? ""} />
   else if (data && role === "trainer")

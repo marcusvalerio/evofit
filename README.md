@@ -144,6 +144,15 @@ Contraste (WCAG 2.x):
 
 **Retenção:** meta semanal flexível no app do aluno (um círculo por treino da meta, 1x a 7x, e semanas seguidas batendo a meta); recordes de carga celebrados ao concluir o treino (só quando superam a melhor carga anterior); botão "Chamar no WhatsApp" com mensagem pronta para alunos sem treino recente.
 
+**Receita do personal:**
+- **Caixa** (`/studio/caixa`): mensalidade e vencimento por aluno, situação do mês (paga, a vencer, vencida há N dias), marcar como paga e lembrete no WhatsApp com a chave Pix do personal. O EVOFIT **não processa pagamentos** e a chave Pix nunca aparece no perfil público.
+- **Radar de evasão** (painel): soma sinais dos registros — dias sem treinar vs. meta, queda de frequência, dor relatada no check-in, esforço no limite, mensalidade vencida, falta de ficha — e mostra o R$ em risco. Cada aluno exibe os motivos; nada de previsão opaca (`lib/radar.ts`).
+- **Check-in pós-treino**: esforço (1–10), dor e sono, todos opcionais, visíveis ao personal no histórico e na atividade.
+
+**Sem internet:** o app é instalável (manifesto + `public/sw.js`). Páginas, arquivos e imagens das fichas do aluno ficam no aparelho; no modo conta, a última cópia dos dados abre sem sinal e as alterações entram numa fila persistente, enviada em ordem quando a conexão volta (`lib/store.ts`). Sair da conta apaga a cópia e a fila.
+
+**Acesso do aluno:** o personal gera usuário + senha provisória (troca obrigatória no primeiro acesso), gera nova senha (derruba as sessões) ou revoga. O convite por link continua disponível.
+
 **Assinatura visual:** o gradiente *ember* (Gravy → Ōtan) aparece só onde existe progresso real — barras, anéis, o símbolo da marca e o "pico" do hero (motivo tirado do cartão da paleta MP020).
 
 **Tipografia** (pacotes `@fontsource-variable`, servidos localmente):

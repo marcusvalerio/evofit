@@ -97,9 +97,16 @@ test.describe("conta real", () => {
     wait = saved(st)
     await st.getByRole("button", { name: "Iniciar treino" }).click()
     await wait
-    wait = saved(st)
+    // academia sem sinal: a série marcada fica guardada no aparelho e não é desfeita
+    await ctx.setOffline(true)
     await st.getByRole("button", { name: "Marcar série 1 de Leg press 45°" }).click()
+    await expect(st.getByText(/Sem internet · 1 alteração guardada/)).toBeVisible()
+    await expect(st.getByRole("button", { name: "Desmarcar série 1 de Leg press 45°" })).toBeVisible()
+    // sinal volta: a fila é enviada sozinha
+    wait = saved(st)
+    await ctx.setOffline(false)
     await wait
+    await expect(st.getByText(/Sem internet/)).toHaveCount(0)
     await st.getByRole("button", { name: "Pular" }).click()
     await st.getByRole("button", { name: "Concluir treino" }).click()
     wait = saved(st)

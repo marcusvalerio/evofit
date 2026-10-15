@@ -70,8 +70,16 @@ const FAQ = [
     a: "Não. O EVOFIT mostra o que foi registrado: frequência, aderência às metas, cargas e repetições. Não inventamos resultados físicos que não foram medidos.",
   },
   {
-    q: "Tem pagamento, chat ou dieta?",
-    a: "Ainda não. O foco agora é o ciclo prescrição → execução → acompanhamento. Essas ideias serão avaliadas depois da validação com personais reais.",
+    q: "O EVOFIT cobra meus alunos?",
+    a: "Não. Você registra quem pagou, vê quem está vencido e envia o lembrete pelo WhatsApp com a sua chave Pix. O dinheiro vai direto para você — o EVOFIT não intermedeia nem retém nada.",
+  },
+  {
+    q: "Funciona sem internet na academia?",
+    a: "Sim. Depois de aberta uma vez, a ficha do aluno fica no celular. Sem sinal, ele treina normalmente e as séries são enviadas quando a conexão volta.",
+  },
+  {
+    q: "Tem chat ou dieta?",
+    a: "Ainda não. O foco é o ciclo prescrição → execução → acompanhamento. Essas ideias serão avaliadas depois da validação com personais reais.",
   },
 ]
 
@@ -276,7 +284,10 @@ export default function Home() {
             <p>A primeira coisa que você vê é a lista de ações do dia — calculada a partir do que os alunos registraram.</p>
             <ul>
               <li>
-                <Check size={17} aria-hidden /> Alunos sem treino recente e sem ficha atribuída
+                <Check size={17} aria-hidden /> Radar de evasão: quem pode cancelar, por quê e quanto isso vale em mensalidades
+              </li>
+              <li>
+                <Check size={17} aria-hidden /> Equilíbrio da ficha: mapa de calor das séries por músculo enquanto você monta
               </li>
               <li>
                 <Check size={17} aria-hidden /> Sessões em andamento, ao vivo
@@ -297,7 +308,7 @@ export default function Home() {
               <PlayCircle size={20} aria-hidden />
             </span>
             <h3>Um app que o aluno usa no meio da série.</h3>
-            <p>Botões grandes, números legíveis, cronômetro de descanso com vibração e “Como fazer” em cada exercício.</p>
+            <p>Botões grandes, cronômetro de descanso com vibração, “Como fazer” em cada exercício — e funciona sem internet na academia.</p>
             <Link href="/aluno" className="lp-link">
               Testar como aluno <ArrowRight size={16} aria-hidden />
             </Link>

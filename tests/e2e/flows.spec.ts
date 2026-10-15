@@ -209,7 +209,9 @@ test.describe("Aluno", () => {
     await expect(page.getByText("2/20 séries")).toBeVisible()
 
     await page.getByRole("button", { name: "Concluir treino" }).click()
-    await page.getByRole("dialog").getByLabel(/Como foi o treino/).fill("Treino de teste")
+    await page.getByRole("dialog").getByRole("radio", { name: /^Esforço 7/ }).click()
+    await page.getByRole("dialog").getByRole("radiogroup", { name: "Sentiu dor?" }).getByRole("radio", { name: "Leve" }).click()
+    await page.getByRole("dialog").getByLabel(/Quer contar algo ao seu personal/).fill("Treino de teste")
     await page.getByRole("dialog").getByRole("button", { name: "Concluir" }).click()
     await expect(page.getByText("Treino concluído", { exact: true })).toBeVisible()
 
@@ -220,6 +222,9 @@ test.describe("Aluno", () => {
     await page.goto("/studio")
     await expect(page.getByText(/Ana Ribeiro concluiu Treino A — Superiores/).first()).toBeVisible()
     await expect(page.getByText("hoje ·").first()).toBeVisible()
+    // o check-in chega ao personal
+    await expect(page.getByText("esforço 7/10").first()).toBeVisible()
+    await expect(page.getByText("dor leve").first()).toBeVisible()
   })
 
   test("troca de aluno e treino sem ficha mostra estado vazio", async ({ page }) => {
@@ -280,6 +285,31 @@ test.describe("persistência", () => {
     await page.goto("/studio")
     await expect(page.getByRole("alert").filter({ hasText: "dados salvos" })).toContainText("formato antigo ou inválido")
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Olá/)
+  })
+})
+
+test.describe("sem internet", () => {
+  test("treino atribuído abre e roda offline depois de visto uma vez", async ({ page, context }) => {
+    await page.goto("/aluno")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Bora treinar/)
+    // espera o service worker assumir e guardar as fichas do aluno
+    await page.evaluate(async () => {
+      const reg = await navigator.serviceWorker.ready
+      if (!navigator.serviceWorker.controller) await new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }))
+      void reg
+    })
+    await page.reload()
+    await page.waitForFunction(async () => {
+      const c = await caches.open("evofit-pages-v1")
+      return !!(await c.match("/aluno/treino/tr-a-superiores"))
+    }, undefined, { timeout: 20_000 })
+    await context.setOffline(true)
+    await page.goto("/aluno/treino/tr-a-superiores")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Treino A/)
+    await page.getByRole("button", { name: "Iniciar treino" }).click()
+    await page.getByRole("button", { name: /^Marcar série 1 de/ }).first().click()
+    await expect(page.getByRole("button", { name: /^Desmarcar série 1 de/ }).first()).toBeVisible()
+    await context.setOffline(false)
   })
 })
 

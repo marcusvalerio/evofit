@@ -94,7 +94,7 @@ export function DemoBanner() {
 }
 
 function AccountBar() {
-  const { account, sync, syncError } = useDemoState()
+  const { account, sync, syncError, queued } = useDemoState()
   const [busy, setBusy] = useState(false)
   return (
     <>
@@ -105,8 +105,12 @@ function AccountBar() {
             <strong className="font-semibold">{account?.role === "student" ? "Conta de aluno" : "Conta de personal"}</strong>
             <span className="opacity-80"> · {account?.email}</span>
           </p>
-          <span className="hidden items-center gap-1 opacity-80 sm:inline-flex" aria-live="polite">
-            {sync === "saving" ? (
+          <span className={cx("items-center gap-1 opacity-80", sync === "offline" ? "inline-flex" : "hidden sm:inline-flex")} aria-live="polite">
+            {sync === "offline" ? (
+              <>
+                <CloudOff size={14} aria-hidden /> Sem internet{queued > 0 ? ` · ${queued} ${queued === 1 ? "alteração guardada" : "alterações guardadas"}` : ""}
+              </>
+            ) : sync === "saving" ? (
               <>
                 <span className="spinner" aria-hidden /> Salvando…
               </>

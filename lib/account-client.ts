@@ -1,5 +1,5 @@
 "use client"
-import { flush } from "./store"
+import { clearOffline, flush } from "./store"
 
 /** Chamadas do navegador para as rotas de conta. */
 export async function postJson<T = Record<string, unknown>>(url: string, body: unknown, method = "POST") {
@@ -10,6 +10,7 @@ export async function postJson<T = Record<string, unknown>>(url: string, body: u
 
 export async function logout() {
   await flush().catch(() => {})
+  clearOffline()
   await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" }).catch(() => {})
   hardNavigate("/")
 }
