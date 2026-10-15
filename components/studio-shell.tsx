@@ -1,15 +1,18 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Dumbbell, LayoutDashboard, Search, Smartphone, UserRound, Users } from "lucide-react"
+import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "lucide-react"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
+import { FirstAccessPassword } from "./first-access"
 
 const NAV = [
   { href: "/studio", label: "Painel", icon: LayoutDashboard, exact: true },
   { href: "/studio/alunos", label: "Alunos", icon: Users },
   { href: "/studio/treinos", label: "Treinos", icon: ClipboardList },
+  { href: "/studio/avaliacoes", label: "Avaliações", icon: Ruler },
+  { href: "/studio/caixa", label: "Caixa", icon: Wallet },
   { href: "/studio/exercicios", label: "Exercícios", icon: Dumbbell },
   { href: "/studio/perfil", label: "Perfil", icon: UserRound },
 ]
@@ -22,6 +25,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { data, mode, account } = useDemoState()
   const isStudent = mode === "account" && account?.role === "student"
+  const mustChange = mode === "account" && account?.role === "trainer" && !!account.mustChangePassword
+  const isAdmin = mode === "account" && !!account?.isAdmin
 
   return (
     <div className="min-h-dvh">
@@ -62,6 +67,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             <Link href="/personais" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
               <Search size={17} aria-hidden /> Encontrar personal
             </Link>
+            {isAdmin && (
+              <Link href="/admin" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
+                <ShieldCheck size={17} aria-hidden /> Administração
+              </Link>
+            )}
           </div>
           <div className="mt-auto flex items-center gap-3 rounded-xl px-3 py-2">
             {data && <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" />}
@@ -78,6 +88,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           <header className="glass sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
             <Brand suffix="Studio" />
             <div className="flex items-center gap-1">
+              {isAdmin && (
+                <Link href="/admin" className="btn btn-ghost btn-icon btn-sm" aria-label="Administração">
+                  <ShieldCheck size={17} aria-hidden />
+                </Link>
+              )}
               <Link href="/aluno" className="btn btn-ghost btn-sm" aria-label="Abrir app do aluno">
                 <Smartphone size={17} aria-hidden />
                 <span className="hidden sm:inline">App do aluno</span>
@@ -89,6 +104,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           <main id="conteudo" className="flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
             {!data ? (
               <LoadingScreen />
+            ) : mustChange ? (
+              <FirstAccessPassword login={account?.email ?? ""} who="trainer" />
             ) : isStudent ? (
               <NotFoundState title="Esta é a área do personal" href="/aluno" cta="Ir para meus treinos">
                 Você entrou com uma conta de aluno. Seus treinos estão no app do aluno.
@@ -102,7 +119,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
       {/* Navegação inferior (mobile/tablet) */}
       <nav aria-label="Studio" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
-        <ul className="mx-auto grid max-w-xl grid-cols-5">
+        <ul className="mx-auto grid max-w-2xl grid-cols-7">
           {NAV.map(({ href, label, icon: Icon, exact }) => {
             const on = isActive(path, href, exact)
             return (
@@ -110,9 +127,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 <Link
                   href={href}
                   aria-current={on ? "page" : undefined}
-                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}
+                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.5625rem] font-semibold tracking-tight transition-colors", on ? "text-accent" : "text-muted")}
                 >
-                  <span className={cx("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
+                  <span className={cx("grid h-7 w-10 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
                     <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
                   </span>
                   {label}

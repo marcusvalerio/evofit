@@ -2,7 +2,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, Pencil, Send, Smartphone } from "lucide-react"
+import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, KeyRound, MessageCircle, Pencil, Ruler, Smartphone } from "lucide-react"
+import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { update, useData, useIsDemo } from "@/lib/store"
 import { LEVEL_LABEL } from "@/lib/types"
 import { setStudentStatus, toggleAssignment } from "@/lib/actions"
@@ -13,7 +14,7 @@ import { SessionList } from "@/components/session-list"
 import { StudentFormModal } from "@/components/student-form"
 import { Avatar, ConfirmDialog, EmptyState, Field, NotFoundState, Stat } from "@/components/ui"
 import { useToast } from "@/components/providers"
-import { InviteDialog } from "@/components/invite"
+import { StudentAccessDialog } from "@/components/student-access"
 
 export default function AlunoDetalhe() {
   const { id } = useParams<{ id: string }>()
@@ -76,9 +77,23 @@ export default function AlunoDetalhe() {
           )}
           {!archived && !demo && (
             <button type="button" className="btn btn-primary" onClick={() => setInviting(true)}>
-              <Send size={18} aria-hidden /> Convidar para o app
+              <KeyRound size={18} aria-hidden /> Acesso ao app
             </button>
           )}
+          {!archived && (
+            <a
+              href={whatsappLink(student.phone, comebackMessage(student.name, d.profile.name, since))}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-outline"
+              title={student.phone ? "Mensagem pronta no WhatsApp" : "Sem telefone cadastrado: escolha o contato no WhatsApp"}
+            >
+              <MessageCircle size={18} aria-hidden /> WhatsApp
+            </a>
+          )}
+          <Link href={`/studio/avaliacoes/${student.id}`} className="btn btn-outline">
+            <Ruler size={18} aria-hidden /> Avaliações
+          </Link>
           <button type="button" className="btn btn-outline" onClick={() => setEditing(true)}>
             <Pencil size={18} aria-hidden /> Editar
           </button>
@@ -207,7 +222,7 @@ export default function AlunoDetalhe() {
       </section>
 
       <StudentFormModal open={editing} onClose={() => setEditing(false)} student={student} />
-      {inviting && <InviteDialog studentId={student.id} studentName={student.name} onClose={() => setInviting(false)} />}
+      {inviting && <StudentAccessDialog studentId={student.id} studentName={student.name} phone={student.phone} onClose={() => setInviting(false)} />}
       <ConfirmDialog
         open={archiving}
         onClose={() => setArchiving(false)}

@@ -2,7 +2,7 @@
 import { Suspense, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { MapPin, Search, SearchX } from "lucide-react"
+import { Instagram, MapPin, MessageCircle, Search, SearchX } from "lucide-react"
 import { useDemoState } from "@/lib/store"
 import { useRealProfiles } from "@/lib/use-directory"
 import { directoryList, filterProfiles, type DirectoryFilters } from "@/lib/directory"
@@ -132,6 +132,16 @@ function Directory() {
                 <p className="mt-3 text-[0.9375rem] leading-snug">{p.headline}</p>
                 <div className="mt-auto flex flex-wrap gap-1.5 pt-4">
                   <span className="badge badge-accent">{MODALITY_LABEL[p.modality]}</span>
+                  {p.whatsapp && (
+                    <span className="badge badge-success" title="Atende pelo WhatsApp">
+                      <MessageCircle size={12} aria-hidden /> WhatsApp
+                    </span>
+                  )}
+                  {p.instagram && (
+                    <span className="badge" title={`@${p.instagram}`}>
+                      <Instagram size={12} aria-hidden /> Instagram
+                    </span>
+                  )}
                   {p.specialties.slice(0, 3).map((s) => (
                     <span key={s} className="badge">
                       {s}

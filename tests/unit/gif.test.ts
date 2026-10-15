@@ -34,8 +34,8 @@ describe("GIF da Biblioteca EVOFIT", () => {
 
   it("nomes de arquivo e URLs", () => {
     expect(animFileName("Barbell_Squat", "gif")).toBe("evofit-agachamento-com-barra.gif")
-    expect(animUrl("Barbell_Squat")).toBe("/api/gif/Barbell_Squat")
-    expect(animUrl("Barbell_Squat", "webp")).toBe("/api/gif/Barbell_Squat?f=webp")
-    expect(animUrl("Barbell_Squat", "gif", true)).toBe("/api/gif/Barbell_Squat?download")
+    expect(animUrl("Barbell_Squat")).toBe("/api/gif/Barbell_Squat?v=3")
+    expect(animUrl("Barbell_Squat", "webp")).toBe("/api/gif/Barbell_Squat?v=3&f=webp")
+    expect(animUrl("Barbell_Squat", "gif", true)).toBe("/api/gif/Barbell_Squat?v=3&download")
   })
 })

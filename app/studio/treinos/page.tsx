@@ -9,6 +9,8 @@ import { fmtDate } from "@/lib/date"
 import { Avatar, ConfirmDialog, EmptyState, Field, Modal, PageHeader } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import type { Workout } from "@/lib/types"
+import { getExercise } from "@/lib/catalog"
+import { ExerciseThumb } from "@/components/exercise"
 
 export default function TreinosPage() {
   return (
@@ -62,17 +64,6 @@ function Treinos() {
         }
       />
 
-      <section className="evo-page-campaign evo-page-campaign-workouts mb-5" aria-label="Visão geral das fichas">
-        <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=1400&q=85" alt="" aria-hidden="true" loading="eager" />
-        <div className="evo-page-campaign-overlay" aria-hidden="true" />
-        <div className="evo-page-campaign-content">
-          <p className="evo-page-kicker">EVOFIT / PRESCRIÇÃO</p>
-          <h2>TREINO COM<br/><span>INTENÇÃO.</span></h2>
-          <p>Monte fichas, organize exercícios e acompanhe a evolução de cada plano.</p>
-        </div>
-        <div className="evo-page-campaign-stat"><strong>{d.workouts.length.toString().padStart(2, "0")}</strong><span>FICHAS CRIADAS</span></div>
-      </section>
-
       {d.workouts.length > 0 && (
         <div className="evo-workout-toolbar mb-4">
           <label className="evo-workout-search">
@@ -99,15 +90,17 @@ function Treinos() {
         </EmptyState>
       ) : (
         <ul className="stagger grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {visibleWorkouts.map((w, index) => {
+          {visibleWorkouts.map((w) => {
             const assigned = w.studentIds.map((id) => studentById.get(id)).filter((s) => s && s.status === "ativo")
             return (
               <li key={w.id} className={`evo-workout-card card lift flex flex-col`}>
-                <Link href={`/studio/treinos/${w.id}`} className={`evo-workout-cover evo-workout-cover-${index % 3} block`} aria-label={`Abrir ficha ${w.name}`}>
-                  <span className="evo-workout-cover-index">PROGRAMA / {String(index + 1).padStart(2, "0")}</span>
-                  <span className="evo-workout-cover-mark" aria-hidden="true">{index % 3 === 0 ? "01" : index % 3 === 1 ? "02" : "03"}</span>
-                  <span className="evo-workout-cover-bottom">EVOFIT <span>↗</span></span>
-                </Link>
+                <div className="evo-workout-card-head" aria-hidden>
+                  {w.items.slice(0, 4).map((i) => {
+                    const ex = getExercise(d, i.exerciseId)
+                    return ex ? <ExerciseThumb key={i.id} ex={ex} className="w-14 [&:not(:first-child)]:-ml-2.5 ring-2 ring-[var(--surface)]" /> : null
+                  })}
+                  {w.items.length > 4 && <span className="thumb -ml-2.5 grid w-14 place-items-center bg-surface-2 text-xs font-bold text-muted ring-2 ring-[var(--surface)]">+{w.items.length - 4}</span>}
+                </div>
                 <div className="evo-workout-card-body">
                   <Link href={`/studio/treinos/${w.id}`} className="block rounded-lg">
                     <p className="evo-workout-title">{w.name}</p>

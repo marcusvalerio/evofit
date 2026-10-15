@@ -6,6 +6,7 @@ import { LEVEL_LABEL } from "@/lib/types"
 import { FORCE_LABEL, MECHANIC_LABEL, animUrl, frameUrl, getExercise, libraryUrl, loadDetail, type ExerciseDetail, type ExerciseView } from "@/lib/catalog"
 import { parseVideoUrl } from "@/lib/video"
 import { cx } from "./ui"
+import { BodyMap, exerciseLevels } from "./body-map"
 import { useToast } from "./providers"
 
 /* ---------- Demonstração animada (quadros de início e fim) ---------- */
@@ -270,20 +271,41 @@ export function StepList({ ex }: { ex: ExerciseView }) {
   )
 }
 
+/** Músculos trabalhados: mapa do corpo (frente e costas) + legenda com os nomes. */
 export function MuscleChips({ ex }: { ex: ExerciseView }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {ex.primary.map((m) => (
-        <span key={m} className="badge badge-accent">
-          {m}
-        </span>
-      ))}
-      {ex.secondary.map((m) => (
-        <span key={m} className="badge">
-          {m}
-        </span>
-      ))}
-    </div>
+    <section className="evo-muscles" aria-label="Músculos trabalhados">
+      <BodyMap levels={exerciseLevels(ex.primary, ex.secondary)} compact />
+      <div className="min-w-0 space-y-2.5">
+        <p className="t-eyebrow">Músculos trabalhados</p>
+        <div>
+          <p className="evo-muscles-key">
+            <i data-level="4" aria-hidden /> Principal
+          </p>
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {ex.primary.map((m) => (
+              <span key={m} className="badge badge-accent">
+                {m}
+              </span>
+            ))}
+          </div>
+        </div>
+        {ex.secondary.length > 0 && (
+          <div>
+            <p className="evo-muscles-key">
+              <i data-level="2" aria-hidden /> Também trabalha
+            </p>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {ex.secondary.map((m) => (
+                <span key={m} className="badge">
+                  {m}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
   )
 }
 

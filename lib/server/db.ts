@@ -67,6 +67,7 @@ export type Tenant =
   | { role: "trainer"; trainerId: string }
   | { role: "student"; trainerId: string; studentId: string }
   | { role: "public"; trainerId: string | null }
+  | { role: "admin"; trainerId: null }
 
 /** Transação com o papel restrito `evofit_app` e o contexto de tenant que as políticas de RLS usam. */
 export function withTenant<T>(t: Tenant, fn: (q: Queryable) => Promise<T>, db = getDb()) {

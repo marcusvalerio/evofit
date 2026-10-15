@@ -17,9 +17,18 @@ export interface TrainerProfile {
   /** Registro profissional declarado pelo próprio usuário (opcional). */
   registry: string
   accent: AccentChoice
+  /** Chave Pix do personal, usada só no texto do lembrete de mensalidade. O EVOFIT não processa pagamentos. */
+  pixKey: string
+  /** WhatsApp público do perfil (só dígitos, com DDD). Vazio = não exibido. */
+  whatsapp: string
+  /** Usuário do Instagram, sem @. Vazio = não exibido. */
+  instagram: string
   /** Opt-in explícito para aparecer no diretório público. */
   directoryVisible: boolean
 }
+
+/** O que o diretório público pode mostrar: nunca a chave Pix. */
+export type PublicProfile = Omit<TrainerProfile, "pixKey">
 
 export interface Student {
   id: string
@@ -29,6 +38,12 @@ export interface Student {
   /** Meta de sessões por semana (1–7). */
   weeklyTarget: number
   notes: string
+  /** WhatsApp com DDD, só dígitos (ex.: 5511987654321). Vazio = não informado. */
+  phone: string
+  /** Mensalidade em R$. null = não controlada no EVOFIT. */
+  monthlyFee: number | null
+  /** Dia de vencimento (1–28). */
+  dueDay: number | null
   status: StudentStatus
   createdAt: string
 }
@@ -84,6 +99,17 @@ export interface SetLog {
 
 export type SessionStatus = "em_andamento" | "concluida"
 
+export type Pain = "nenhuma" | "leve" | "forte"
+export type Sleep = "ruim" | "ok" | "bom"
+
+/** Check-in de 5 segundos ao concluir o treino. Cada resposta é opcional; só é salvo se houver alguma. */
+export interface Checkin {
+  /** Esforço percebido (escala de Borg CR-10, 1–10). */
+  effort: number | null
+  pain: Pain | null
+  sleep: Sleep | null
+}
+
 export interface Session {
   id: string
   studentId: string
@@ -94,6 +120,7 @@ export interface Session {
   status: SessionStatus
   sets: SetLog[]
   note: string
+  checkin: Checkin | null
 }
 
 export interface ContactRequest {
@@ -102,6 +129,45 @@ export interface ContactRequest {
   name: string
   contact: string
   message: string
+  createdAt: string
+}
+
+/** Mensalidade marcada como paga pelo personal. Um registro por aluno e mês. */
+export interface Payment {
+  id: string
+  studentId: string
+  /** AAAA-MM */
+  month: string
+  amount: number
+  paidAt: string
+}
+
+export type Sex = "F" | "M"
+
+export const SKINFOLDS = ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"] as const
+export type Skinfold = (typeof SKINFOLDS)[number]
+
+export const CIRCUMFERENCES = ["ombros", "torax", "cintura", "abdomen", "quadril", "bracoD", "bracoE", "coxaD", "coxaE", "panturrilhaD", "panturrilhaE"] as const
+export type Circumference = (typeof CIRCUMFERENCES)[number]
+
+/** Avaliação física registrada pelo personal. Só mostra o que foi medido — nada é estimado sem dado. */
+export interface Assessment {
+  id: string
+  studentId: string
+  /** Data da avaliação (AAAA-MM-DD). */
+  date: string
+  sex: Sex
+  /** Idade na data da avaliação (necessária para as equações de dobras). */
+  age: number | null
+  weightKg: number | null
+  heightCm: number | null
+  /** Dobras cutâneas em mm. */
+  skinfolds: Partial<Record<Skinfold, number>>
+  /** Circunferências em cm. */
+  circumferences: Partial<Record<Circumference, number>>
+  /** % de gordura medido por outro método (ex.: bioimpedância). Usado quando não há dobras completas. */
+  bodyFatPct: number | null
+  notes: string
   createdAt: string
 }
 
@@ -116,6 +182,8 @@ export interface DemoData {
   workouts: Workout[]
   sessions: Session[]
   contactRequests: ContactRequest[]
+  assessments: Assessment[]
+  payments: Payment[]
   /** Aluno que o visitante está "usando" na experiência do aluno. */
   activeStudentId: string | null
 }
@@ -165,3 +233,27 @@ export const MUSCLE_GROUPS = [
   "Corpo inteiro",
   "Cardio",
 ] as const
+
+export const SKINFOLD_LABEL: Record<Skinfold, string> = {
+  peitoral: "Peitoral",
+  axilar: "Axilar média",
+  triceps: "Tríceps",
+  subescapular: "Subescapular",
+  abdominal: "Abdominal",
+  suprailiaca: "Suprailíaca",
+  coxa: "Coxa",
+}
+
+export const CIRCUMFERENCE_LABEL: Record<Circumference, string> = {
+  ombros: "Ombros",
+  torax: "Tórax",
+  cintura: "Cintura",
+  abdomen: "Abdômen",
+  quadril: "Quadril",
+  bracoD: "Braço direito",
+  bracoE: "Braço esquerdo",
+  coxaD: "Coxa direita",
+  coxaE: "Coxa esquerda",
+  panturrilhaD: "Panturrilha direita",
+  panturrilhaE: "Panturrilha esquerda",
+}

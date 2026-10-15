@@ -1,6 +1,7 @@
 "use client"
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react"
 import { CheckCircle2, AlertTriangle, Info, X } from "lucide-react"
+import { ServiceWorker } from "./offline"
 
 type Tone = "success" | "error" | "info"
 interface Toast {
@@ -32,6 +33,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <ToastCtx.Provider value={value}>
+      <ServiceWorker />
       {children}
       <div
         aria-live="polite"

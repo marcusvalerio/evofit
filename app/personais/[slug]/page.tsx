@@ -2,7 +2,8 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, BadgeCheck, MapPin, MessageSquare, ShieldCheck } from "lucide-react"
+import { ArrowLeft, BadgeCheck, Instagram, MapPin, MessageCircle, MessageSquare, ShieldCheck } from "lucide-react"
+import { whatsappLink } from "@/lib/whatsapp"
 import { update, useDemoState } from "@/lib/store"
 import { useRealProfiles } from "@/lib/use-directory"
 import { postJson } from "@/lib/account-client"
@@ -59,6 +60,7 @@ export default function PerfilPublico() {
                 </span>
               )}
             </p>
+            <SocialLinks name={profile.name} whatsapp={profile.whatsapp} instagram={profile.instagram} />
             {profile.bio && (
               <section className="mt-6" aria-labelledby="sobre">
                 <h2 id="sobre" className="t-eyebrow">
@@ -91,6 +93,26 @@ export default function PerfilPublico() {
 
         <ContactForm slug={profile.slug} name={profile.name} kind={kind} />
       </div>
+    </div>
+  )
+}
+
+/** Atalhos de contato que o próprio personal escolheu publicar. */
+function SocialLinks({ name, whatsapp, instagram }: { name: string; whatsapp: string; instagram: string }) {
+  if (!whatsapp && !instagram) return null
+  const first = name.split(" ")[0]
+  return (
+    <div className="mt-5 flex flex-wrap gap-2">
+      {whatsapp && (
+        <a className="btn btn-whatsapp" href={whatsappLink(whatsapp, `Olá, ${first}! Encontrei seu perfil no EVOFIT e quero saber mais sobre o seu acompanhamento.`)} target="_blank" rel="noopener noreferrer">
+          <MessageCircle size={18} aria-hidden /> Chamar no WhatsApp
+        </a>
+      )}
+      {instagram && (
+        <a className="btn btn-instagram" href={`https://instagram.com/${encodeURIComponent(instagram)}`} target="_blank" rel="noopener noreferrer">
+          <Instagram size={18} aria-hidden /> @{instagram}
+        </a>
+      )}
     </div>
   )
 }

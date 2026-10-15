@@ -1,8 +1,8 @@
-import type { DemoData, Exercise, Session, SetLog, Student, Workout, WorkoutItem } from "./types"
+import type { Assessment, Payment, DemoData, Exercise, Session, SetLog, Student, Workout, WorkoutItem } from "./types"
 import { addDays, startOfDay } from "./date"
 import { catalogExercise } from "./catalog"
 
-export const DATA_VERSION = 2
+export const DATA_VERSION = 5
 
 /** PRNG determinístico para que a demonstração seja reprodutível. */
 function mulberry32(seed: number) {
@@ -82,12 +82,12 @@ export function createSeed(now = new Date()): DemoData {
   const created = iso(addDays(startOfDay(now), -70))
 
   const students: Student[] = [
-    { id: "al-ana", name: "Ana Ribeiro", goal: "Hipertrofia de membros inferiores", level: "intermediario", weeklyTarget: 4, notes: "Prefere treinar pela manhã.", status: "ativo", createdAt: created },
-    { id: "al-bruno", name: "Bruno Tavares", goal: "Ganho de força", level: "avancado", weeklyTarget: 4, notes: "", status: "ativo", createdAt: created },
-    { id: "al-carla", name: "Carla Menezes", goal: "Condicionamento e emagrecimento", level: "iniciante", weeklyTarget: 3, notes: "Histórico de dor lombar leve — evitar carga axial alta.", status: "ativo", createdAt: created },
-    { id: "al-diego", name: "Diego Faria", goal: "Retomar a rotina de treinos", level: "iniciante", weeklyTarget: 3, notes: "", status: "ativo", createdAt: created },
-    { id: "al-elisa", name: "Elisa Prado", goal: "Mobilidade e qualidade de vida", level: "intermediario", weeklyTarget: 2, notes: "", status: "ativo", createdAt: created },
-    { id: "al-fabio", name: "Fábio Lins", goal: "Hipertrofia", level: "intermediario", weeklyTarget: 3, notes: "Pausou os treinos por viagem.", status: "arquivado", createdAt: created },
+    { id: "al-ana", monthlyFee: 380, dueDay: 5, phone: "5511900000001", name: "Ana Ribeiro", goal: "Hipertrofia de membros inferiores", level: "intermediario", weeklyTarget: 4, notes: "Prefere treinar pela manhã.", status: "ativo", createdAt: created },
+    { id: "al-bruno", monthlyFee: 450, dueDay: 10, phone: "5511900000002", name: "Bruno Tavares", goal: "Ganho de força", level: "avancado", weeklyTarget: 4, notes: "", status: "ativo", createdAt: created },
+    { id: "al-carla", monthlyFee: 320, dueDay: 15, phone: "5511900000003", name: "Carla Menezes", goal: "Condicionamento e emagrecimento", level: "iniciante", weeklyTarget: 3, notes: "Histórico de dor lombar leve — evitar carga axial alta.", status: "ativo", createdAt: created },
+    { id: "al-diego", monthlyFee: 300, dueDay: 5, phone: "5511900000004", name: "Diego Faria", goal: "Retomar a rotina de treinos", level: "iniciante", weeklyTarget: 3, notes: "", status: "ativo", createdAt: created },
+    { id: "al-elisa", monthlyFee: 280, dueDay: 20, phone: "", name: "Elisa Prado", goal: "Mobilidade e qualidade de vida", level: "intermediario", weeklyTarget: 2, notes: "", status: "ativo", createdAt: created },
+    { id: "al-fabio", monthlyFee: null, dueDay: null, phone: "", name: "Fábio Lins", goal: "Hipertrofia", level: "intermediario", weeklyTarget: 3, notes: "Pausou os treinos por viagem.", status: "arquivado", createdAt: created },
   ]
 
   const workouts: Workout[] = [
@@ -203,11 +203,88 @@ export function createSeed(now = new Date()): DemoData {
         status: "concluida",
         sets,
         note: "",
+        // check-in fictício: Carla relata dor nas últimas sessões; os demais, esforço moderado
+        checkin:
+          rand() < 0.15
+            ? null
+            : {
+                effort: 5 + Math.floor(rand() * 4),
+                pain: st.id === "al-carla" && back <= 12 ? (back <= 5 ? "forte" : "leve") : rand() < 0.1 ? "leve" : "nenhuma",
+                sleep: rand() < 0.2 ? "ruim" : rand() < 0.6 ? "ok" : "bom",
+              },
       })
     }
   }
 
   sessions.sort((a, b) => a.startedAt.localeCompare(b.startedAt))
+
+  // Mensalidades: meses anteriores pagos; no mês atual, Diego está vencido e Carla ainda não pagou.
+  const monthKey = (dt: Date) => `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`
+  const payments: Payment[] = []
+  for (const st of students) {
+    if (st.monthlyFee === null || st.status !== "ativo") continue
+    for (const back of [2, 1, 0]) {
+      const ref = new Date(today.getFullYear(), today.getMonth() - back, 1)
+      if (back === 0 && (st.id === "al-diego" || st.id === "al-carla" || st.id === "al-elisa")) continue
+      if (back === 1 && st.id === "al-diego") continue
+      const paid = new Date(ref.getFullYear(), ref.getMonth(), Math.max(1, (st.dueDay ?? 5) - 1), 10)
+      payments.push({ id: `pg-${st.id}-${monthKey(ref)}`, studentId: st.id, month: monthKey(ref), amount: st.monthlyFee, paidAt: iso(paid < now ? paid : now) })
+    }
+  }
+
+  // Avaliações fictícias a cada ~4 semanas, com variação plausível.
+  const day = (back: number) => iso(addDays(today, -back)).slice(0, 10)
+  const assessments: Assessment[] = [
+    ...[
+      { back: 56, w: 63.4, sf: [13, 18, 24] },
+      { back: 28, w: 63.9, sf: [12, 16.5, 22] },
+      { back: 2, w: 64.6, sf: [11, 15, 20.5] },
+    ].map(({ back, w, sf }, i): Assessment => ({
+      id: `av-ana-${i + 1}`,
+      studentId: "al-ana",
+      date: day(back),
+      sex: "F",
+      age: 29,
+      weightKg: w,
+      heightCm: 165,
+      skinfolds: { triceps: sf[0], suprailiaca: sf[1], coxa: sf[2] },
+      circumferences: { cintura: 68 - i * 0.8, quadril: 99 + i * 0.6, coxaD: 57 + i * 0.7, bracoD: 27.5 + i * 0.3 },
+      bodyFatPct: null,
+      notes: i === 0 ? "Avaliação inicial." : "",
+      createdAt: iso(addDays(today, -back)),
+    })),
+    ...[
+      { back: 49, w: 84.2, sf: [16, 24, 18] },
+      { back: 7, w: 85.1, sf: [14, 21, 17] },
+    ].map(({ back, w, sf }, i): Assessment => ({
+      id: `av-bruno-${i + 1}`,
+      studentId: "al-bruno",
+      date: day(back),
+      sex: "M",
+      age: 34,
+      weightKg: w,
+      heightCm: 180,
+      skinfolds: { peitoral: sf[0], abdominal: sf[1], coxa: sf[2] },
+      circumferences: { torax: 104 + i, cintura: 86 - i, bracoD: 37 + i * 0.5 },
+      bodyFatPct: null,
+      notes: "",
+      createdAt: iso(addDays(today, -back)),
+    })),
+    {
+      id: "av-carla-1",
+      studentId: "al-carla",
+      date: day(20),
+      sex: "F",
+      age: 41,
+      weightKg: 78.5,
+      heightCm: 162,
+      skinfolds: {},
+      circumferences: { cintura: 88, quadril: 108 },
+      bodyFatPct: 36.2,
+      notes: "% de gordura por bioimpedância.",
+      createdAt: iso(addDays(today, -20)),
+    },
+  ]
 
   return {
     version: DATA_VERSION,
@@ -224,6 +301,10 @@ export function createSeed(now = new Date()): DemoData {
       specialties: ["Hipertrofia", "Força", "Emagrecimento"],
       registry: "",
       accent: "otan",
+      pixKey: "camila.rocha@exemplo.com",
+      // perfil fictício: sem contatos reais
+      whatsapp: "",
+      instagram: "",
       directoryVisible: true,
     },
     students,
@@ -236,6 +317,8 @@ export function createSeed(now = new Date()): DemoData {
     workouts,
     sessions,
     contactRequests: [],
+    assessments,
+    payments,
     activeStudentId: "al-ana",
   }
 }

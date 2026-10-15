@@ -83,7 +83,7 @@ const CONFETTI = Array.from({ length: 28 }, (_, i) => {
     x: Math.round(Math.cos(a) * dist),
     y: Math.round(Math.sin(a) * dist * 0.8 - 30),
     r: (i * 47) % 360,
-    c: ["var(--brand-otan)", "var(--brand-gravy)", "var(--fg)", "var(--success)"][i % 4],
+    c: ["var(--mp-otan)", "var(--mp-gravy)", "var(--fg)", "var(--success)"][i % 4],
     d: (i % 5) * 30,
   }
 })

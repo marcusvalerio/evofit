@@ -1,8 +1,8 @@
-import type { ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "../types"
+import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "../types"
 import { SPECIALTIES } from "../types"
 import { DATA_VERSION } from "../seed"
-import { isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
-import { validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
+import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
+import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
 import type { Changes, MediaRow } from "../sync"
 import { affected, type Queryable, type Tenant } from "./db"
@@ -24,6 +24,7 @@ const ID = /^[A-Za-z0-9_-]{1,64}$/
 const iso = (v: unknown) => (v instanceof Date ? v.toISOString() : String(v))
 const isoOrNull = (v: unknown) => (v === null || v === undefined ? null : iso(v))
 const validDate = (s: string) => !Number.isNaN(Date.parse(s))
+const numOrNull = (v: unknown) => (v === null || v === undefined ? null : Number(v))
 
 /* ---------- Leitura ---------- */
 
@@ -41,6 +42,9 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
   const assignments = await rows("select * from workout_assignments")
   const sessions = await rows("select * from sessions order by started_at, id")
   const contacts = await rows("select * from contact_requests order by created_at")
+  const assessments = await rows("select * from assessments order by date, id")
+  // pagamentos e chave Pix são só do personal (RLS também bloqueia o aluno)
+  const payments = ctx.role === "trainer" ? await rows("select * from payments order by month, id") : []
 
   const assigned = new Map<string, string[]>()
   for (const a of assignments) assigned.set(String(a.workout_id), [...(assigned.get(String(a.workout_id)) ?? []), String(a.student_id)])
@@ -60,6 +64,9 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
       specialties: (t.specialties as string[]) ?? [],
       registry: String(t.registry),
       accent: t.accent as TrainerProfile["accent"],
+      pixKey: ctx.role === "trainer" ? String(t.pix_key ?? "") : "",
+      whatsapp: String(t.whatsapp ?? ""),
+      instagram: String(t.instagram ?? ""),
       directoryVisible: Boolean(t.directory_visible),
     },
     students: students.map(
@@ -70,6 +77,9 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
         level: s.level as Student["level"],
         weeklyTarget: Number(s.weekly_target),
         notes: String(s.notes),
+        phone: String(s.phone ?? ""),
+        monthlyFee: ctx.role === "trainer" ? numOrNull(s.monthly_fee) : null,
+        dueDay: ctx.role === "trainer" ? numOrNull(s.due_day) : null,
         status: s.status as Student["status"],
         createdAt: iso(s.created_at),
       }),
@@ -100,10 +110,30 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
         status: s.status as Session["status"],
         sets: s.sets as Session["sets"],
         note: String(s.note),
+        checkin: (s.checkin as Session["checkin"]) ?? null,
       }),
     ),
     contactRequests: contacts.map(
       (c): ContactRequest => ({ id: String(c.id), trainerSlug: String(t.slug), name: String(c.name), contact: String(c.contact), message: String(c.message), createdAt: iso(c.created_at) }),
+    ),
+    assessments: assessments.map(
+      (a): Assessment => ({
+        id: String(a.id),
+        studentId: String(a.student_id),
+        date: a.date instanceof Date ? a.date.toISOString().slice(0, 10) : String(a.date).slice(0, 10),
+        sex: a.sex as Assessment["sex"],
+        age: numOrNull(a.age),
+        weightKg: numOrNull(a.weight_kg),
+        heightCm: numOrNull(a.height_cm),
+        bodyFatPct: numOrNull(a.body_fat_pct),
+        skinfolds: (a.skinfolds as Assessment["skinfolds"]) ?? {},
+        circumferences: (a.circumferences as Assessment["circumferences"]) ?? {},
+        notes: String(a.notes),
+        createdAt: iso(a.created_at),
+      }),
+    ),
+    payments: payments.map(
+      (p): Payment => ({ id: String(p.id), studentId: String(p.student_id), month: String(p.month), amount: Number(p.amount), paidAt: iso(p.paid_at) }),
     ),
     activeStudentId: ctx.role === "student" ? ctx.studentId : null,
   }
@@ -111,7 +141,7 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
 
 /* ---------- Escrita ---------- */
 
-const LIMIT = { students: 300, exercises: 300, workouts: 200, sessions: 100, items: 60, sets: 400 }
+const LIMIT = { payments: 2000, assessments: 300, students: 300, exercises: 300, workouts: 200, sessions: 100, items: 60, sets: 400 }
 
 function checkSize<T>(list: T[] | undefined, max: number, what: string) {
   if (list && list.length > max) throw invalid(`muitos registros em ${what}`)
@@ -120,6 +150,11 @@ function checkSize<T>(list: T[] | undefined, max: number, what: string) {
 function checkStudent(s: unknown): asserts s is Student {
   if (!isStudent(s) || !ID.test(s.id) || !validDate(s.createdAt)) throw invalid("aluno")
   if (Object.keys(validateStudent(s)).length) throw invalid(`aluno “${s.name}”`)
+}
+
+function checkAssessment(a: unknown): asserts a is Assessment {
+  if (!isAssessment(a) || !ID.test(a.id) || !ID.test(a.studentId) || !validDate(a.createdAt)) throw invalid("avaliação")
+  if (Object.keys(validateAssessment(a)).length) throw invalid("medidas da avaliação")
 }
 
 function checkExercise(e: unknown): asserts e is Exercise {
@@ -148,10 +183,10 @@ function checkSession(s: unknown): asserts s is Session {
 
 async function upsertSession(q: Queryable, ctx: Ctx, s: Session) {
   await q.query(
-    `insert into sessions (trainer_id, id, student_id, workout_id, workout_name, started_at, finished_at, status, sets, note)
-     values ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10)
-     on conflict (trainer_id, id) do update set finished_at = excluded.finished_at, status = excluded.status, sets = excluded.sets, note = excluded.note`,
-    [ctx.trainerId, s.id, s.studentId, s.workoutId, s.workoutName, s.startedAt, s.finishedAt, s.status, JSON.stringify(s.sets), s.note],
+    `insert into sessions (trainer_id, id, student_id, workout_id, workout_name, started_at, finished_at, status, sets, note, checkin)
+     values ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11::jsonb)
+     on conflict (trainer_id, id) do update set finished_at = excluded.finished_at, status = excluded.status, sets = excluded.sets, note = excluded.note, checkin = excluded.checkin`,
+    [ctx.trainerId, s.id, s.studentId, s.workoutId, s.workoutName, s.startedAt, s.finishedAt, s.status, JSON.stringify(s.sets), s.note, s.checkin === null ? null : JSON.stringify(s.checkin)],
   )
 }
 
@@ -162,9 +197,11 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
   checkSize(c.workouts?.upsert, LIMIT.workouts, "fichas")
   checkSize(c.sessions?.upsert, LIMIT.sessions, "sessões")
   checkSize(c.media?.upsert, LIMIT.exercises, "vídeos e dicas")
+  checkSize(c.assessments?.upsert, LIMIT.assessments, "avaliações")
+  checkSize(c.payments?.upsert, LIMIT.payments, "pagamentos")
 
   if (ctx.role === "student") {
-    if (c.profile || c.students || c.exercises || c.media || c.workouts || c.contactRequests) throw forbid("alunos só registram os próprios treinos")
+    if (c.profile || c.students || c.exercises || c.media || c.workouts || c.contactRequests || c.assessments || c.payments) throw forbid("alunos só registram os próprios treinos")
     for (const s of c.sessions?.upsert ?? []) {
       checkSession(s)
       if (s.studentId !== ctx.studentId) throw forbid("sessão de outro aluno")
@@ -192,17 +229,17 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
     if (p.specialties.length > SPECIALTIES.length || p.specialties.some((s) => !(SPECIALTIES as readonly string[]).includes(s))) throw invalid("especialidades")
     if (p.name.length > 80 || p.city.length > 80 || p.region.length > 80 || p.registry.length > 40) throw invalid("perfil")
     await q.query(
-      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12 where id = $1`,
-      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible],
+      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12, pix_key = $13, whatsapp = $14, instagram = $15 where id = $1`,
+      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible, p.pixKey.trim(), normalizePhone(p.whatsapp), normalizeInstagram(p.instagram)],
     )
   }
 
   for (const s of c.students?.upsert ?? []) {
     checkStudent(s)
     await q.query(
-      `insert into students (trainer_id, id, name, goal, level, weekly_target, notes, status, created_at) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       on conflict (trainer_id, id) do update set name = excluded.name, goal = excluded.goal, level = excluded.level, weekly_target = excluded.weekly_target, notes = excluded.notes, status = excluded.status`,
-      [ctx.trainerId, s.id, s.name, s.goal, s.level, s.weeklyTarget, s.notes, s.status, s.createdAt],
+      `insert into students (trainer_id, id, name, goal, level, weekly_target, notes, status, created_at, phone, monthly_fee, due_day) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+       on conflict (trainer_id, id) do update set name = excluded.name, goal = excluded.goal, level = excluded.level, weekly_target = excluded.weekly_target, notes = excluded.notes, status = excluded.status, phone = excluded.phone, monthly_fee = excluded.monthly_fee, due_day = excluded.due_day`,
+      [ctx.trainerId, s.id, s.name, s.goal, s.level, s.weeklyTarget, s.notes, s.status, s.createdAt, s.phone, s.monthlyFee, s.dueDay],
     )
   }
 
@@ -243,6 +280,36 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
     )
   }
 
+  for (const a of c.assessments?.upsert ?? []) {
+    checkAssessment(a)
+    await q
+      .query(
+        `insert into assessments (trainer_id, id, student_id, date, sex, age, weight_kg, height_cm, body_fat_pct, skinfolds, circumferences, notes, created_at)
+         values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12, $13)
+         on conflict (trainer_id, id) do update set date = excluded.date, sex = excluded.sex, age = excluded.age, weight_kg = excluded.weight_kg, height_cm = excluded.height_cm,
+           body_fat_pct = excluded.body_fat_pct, skinfolds = excluded.skinfolds, circumferences = excluded.circumferences, notes = excluded.notes`,
+        [ctx.trainerId, a.id, a.studentId, a.date, a.sex, a.age, a.weightKg, a.heightCm, a.bodyFatPct, JSON.stringify(a.skinfolds), JSON.stringify(a.circumferences), a.notes, a.createdAt],
+      )
+      .catch((e) => {
+        throw toHttp(e, "aluno da avaliação não existe")
+      })
+  }
+  for (const id of c.assessments?.delete ?? []) await q.query("delete from assessments where id = $1", [id])
+
+  for (const p of c.payments?.upsert ?? []) {
+    if (!isPayment(p) || !ID.test(p.id) || !ID.test(p.studentId) || !validDate(p.paidAt)) throw invalid("pagamento")
+    await q
+      .query(
+        `insert into payments (trainer_id, id, student_id, month, amount, paid_at) values ($1, $2, $3, $4, $5, $6)
+         on conflict (trainer_id, id) do update set amount = excluded.amount, paid_at = excluded.paid_at`,
+        [ctx.trainerId, p.id, p.studentId, p.month, p.amount, p.paidAt],
+      )
+      .catch((e) => {
+        throw toHttp(e, "pagamento repetido ou aluno inexistente")
+      })
+  }
+  for (const id of c.payments?.delete ?? []) await q.query("delete from payments where id = $1", [id])
+
   for (const id of c.sessions?.delete ?? []) {
     const r = await q.query("delete from sessions where id = $1", [id])
     if (!affected(r)) throw forbid("só treinos em andamento podem ser descartados")
@@ -263,7 +330,10 @@ export function toHttp(e: unknown, message: string) {
   if (e instanceof HttpError) return e
   const code = (e as { code?: string })?.code
   if (code === "42501") return new HttpError(403, `Sem permissão: ${message}.`)
-  if (code === "23505") return new HttpError(409, "Já existe um treino em andamento.")
+  if (code === "23505") {
+    const constraint = (e as { constraint?: string })?.constraint ?? ""
+    return new HttpError(409, constraint === "sessions_one_live" ? "Já existe um treino em andamento." : `Registro repetido: ${message}.`)
+  }
   if (code === "23503" || code === "23514" || code === "22P02" || code === "22007" || code === "22008") return new HttpError(400, `Dados inválidos: ${message}.`)
   return e
 }

@@ -28,7 +28,7 @@ export default defineConfig({
           port: PORT,
           timeout: 180_000,
           reuseExistingServer: !process.env.CI,
-          env: { DATABASE_URL: `postgres://postgres@127.0.0.1:${DB_PORT}/postgres`, DB_POOL_MAX: "1" },
+          env: { DATABASE_URL: `postgres://postgres@127.0.0.1:${DB_PORT}/postgres`, DB_POOL_MAX: "1", ADMIN_EMAILS: "admin-desktop@exemplo.com,admin-mobile@exemplo.com" },
         },
       ],
 })

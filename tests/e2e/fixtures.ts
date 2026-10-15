@@ -7,7 +7,8 @@ export const test = base.extend<{ consoleErrors: string[] }>({
       const errors: string[] = []
       page.on("console", (m) => {
         // respostas 4xx esperadas (404, senha errada, sem login) aparecem como "Failed to load resource"
-        if (m.type() === "error" && !/status of 4\d\d/.test(m.text())) errors.push(m.text())
+        // nos testes sem internet, o navegador registra a falha de rede esperada
+        if (m.type() === "error" && !/status of 4\d\d|ERR_INTERNET_DISCONNECTED/.test(m.text())) errors.push(m.text())
       })
       page.on("pageerror", (e) => errors.push(e.message))
       await use(errors)

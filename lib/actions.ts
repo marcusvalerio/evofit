@@ -1,4 +1,4 @@
-import type { ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
+import type { Assessment, Checkin, Payment, ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CATALOG, exerciseName, fold, getExercise } from "./catalog"
 import { parseVideoUrl, validateVideoUrl } from "./video"
 
@@ -14,7 +14,10 @@ const now = () => new Date().toISOString()
 
 /* ---------- Alunos ---------- */
 
-export type StudentInput = Pick<Student, "name" | "goal" | "level" | "weeklyTarget" | "notes">
+export type StudentInput = Pick<Student, "name" | "goal" | "level" | "weeklyTarget" | "notes"> & { phone?: string; monthlyFee?: number | null; dueDay?: number | null }
+
+/** Mantém só os dígitos do telefone. */
+export const normalizePhone = (p: string) => p.replace(/\D/g, "")
 
 export function validateStudent(s: StudentInput) {
   const errors: Partial<Record<keyof StudentInput, string>> = {}
@@ -23,16 +26,23 @@ export function validateStudent(s: StudentInput) {
   if (!Number.isInteger(s.weeklyTarget) || s.weeklyTarget < 1 || s.weeklyTarget > 7) errors.weeklyTarget = "A meta deve ser de 1 a 7 sessões por semana."
   if (s.goal.length > 120) errors.goal = "Use no máximo 120 caracteres."
   if (s.notes.length > 500) errors.notes = "Use no máximo 500 caracteres."
+  const phone = normalizePhone(s.phone ?? "")
+  if (phone && (phone.length < 10 || phone.length > 13)) errors.phone = "Informe o WhatsApp com DDD (10 a 13 dígitos)."
+  const fee = s.monthlyFee ?? null
+  if (fee !== null && (!Number.isFinite(fee) || fee <= 0 || fee > 100000)) errors.monthlyFee = "Informe um valor entre R$ 1 e R$ 100.000."
+  const due = s.dueDay ?? null
+  if (due !== null && (!Number.isInteger(due) || due < 1 || due > 28)) errors.dueDay = "Use um dia entre 1 e 28."
+  if (fee !== null && due === null && !errors.monthlyFee) errors.dueDay = "Informe o dia de vencimento."
   return errors
 }
 
 export function addStudent(d: DemoData, input: StudentInput, id = uid("al")): DemoData {
-  const st: Student = { ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), id, status: "ativo", createdAt: now() }
+  const st: Student = { ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), phone: normalizePhone(input.phone ?? ""), monthlyFee: input.monthlyFee ?? null, dueDay: input.dueDay ?? null, id, status: "ativo", createdAt: now() }
   return { ...d, students: [...d.students, st] }
 }
 
 export function updateStudent(d: DemoData, id: string, input: StudentInput): DemoData {
-  return { ...d, students: d.students.map((s) => (s.id === id ? { ...s, ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim() } : s)) }
+  return { ...d, students: d.students.map((s) => (s.id === id ? { ...s, ...input, name: input.name.trim(), goal: input.goal.trim(), notes: input.notes.trim(), phone: normalizePhone(input.phone ?? s.phone), monthlyFee: input.monthlyFee === undefined ? s.monthlyFee : input.monthlyFee, dueDay: input.dueDay === undefined ? s.dueDay : input.dueDay } : s)) }
 }
 
 export function setStudentStatus(d: DemoData, id: string, status: Student["status"]): DemoData {
@@ -182,7 +192,7 @@ export function startSession(d: DemoData, studentId: string, workoutId: string, 
       done: false,
     }))
   })
-  const session: Session = { id, studentId, workoutId, workoutName: w.name, startedAt: now(), finishedAt: null, status: "em_andamento", sets, note: "" }
+  const session: Session = { id, studentId, workoutId, workoutName: w.name, startedAt: now(), finishedAt: null, status: "em_andamento", sets, note: "", checkin: null }
   return { ...d, sessions: [...d.sessions, session] }
 }
 
@@ -197,10 +207,10 @@ export function updateSet(d: DemoData, sessionId: string, itemId: string, setInd
   }
 }
 
-export function finishSession(d: DemoData, sessionId: string, note = ""): DemoData {
+export function finishSession(d: DemoData, sessionId: string, note = "", checkin: Checkin | null = null): DemoData {
   return {
     ...d,
-    sessions: d.sessions.map((s) => (s.id === sessionId && s.status === "em_andamento" ? { ...s, status: "concluida", finishedAt: now(), note: note.trim() } : s)),
+    sessions: d.sessions.map((s) => (s.id === sessionId && s.status === "em_andamento" ? { ...s, status: "concluida", finishedAt: now(), note: note.trim(), checkin } : s)),
   }
 }
 
@@ -218,11 +228,27 @@ export function validateProfile(p: TrainerProfile) {
   if (!p.city.trim()) errors.city = "Informe a cidade de atendimento."
   if (!/^[A-Za-z]{2}$/.test(p.state.trim())) errors.state = "Use a sigla do estado (ex.: SP)."
   if (p.specialties.length === 0) errors.specialties = "Selecione pelo menos uma especialidade."
+  if (p.pixKey.length > 140) errors.pixKey = "Use no máximo 140 caracteres."
+  const wa = normalizePhone(p.whatsapp)
+  if (wa && (wa.length < 10 || wa.length > 13)) errors.whatsapp = "Informe o WhatsApp com DDD (10 a 13 dígitos)."
+  if (p.instagram && !INSTAGRAM.test(normalizeInstagram(p.instagram))) errors.instagram = "Use só o usuário (letras, números, ponto e _; até 30)."
   return errors
 }
 
+const INSTAGRAM = /^[A-Za-z0-9._]{1,30}$/
+/** Aceita "@usuario", "usuario" ou o link do perfil e guarda só o usuário. */
+export const normalizeInstagram = (s: string) =>
+  s
+    .trim()
+    .replace(/^(https?:\/\/)?(www\.)?instagram\.com\//i, "")
+    .replace(/^@/, "")
+    .replace(/[/?#].*$/, "")
+
 export function saveProfile(d: DemoData, p: TrainerProfile): DemoData {
-  return { ...d, profile: { ...p, name: p.name.trim(), city: p.city.trim(), state: p.state.trim().toUpperCase(), region: p.region.trim() } }
+  return {
+    ...d,
+    profile: { ...p, name: p.name.trim(), city: p.city.trim(), state: p.state.trim().toUpperCase(), region: p.region.trim(), whatsapp: normalizePhone(p.whatsapp), instagram: normalizeInstagram(p.instagram) },
+  }
 }
 
 export type ContactInput = Pick<ContactRequest, "name" | "contact" | "message">
@@ -242,4 +268,48 @@ export function addContactRequest(d: DemoData, trainerSlug: string, c: ContactIn
 
 export function removeContactRequest(d: DemoData, id: string): DemoData {
   return { ...d, contactRequests: d.contactRequests.filter((c) => c.id !== id) }
+}
+
+/* ---------- Avaliações ---------- */
+
+export type AssessmentInput = Omit<Assessment, "id" | "studentId" | "createdAt">
+
+const inRange = (v: number | null, min: number, max: number) => v === null || (Number.isFinite(v) && v >= min && v <= max)
+
+export function validateAssessment(a: AssessmentInput) {
+  const errors: Partial<Record<"date" | "age" | "weightKg" | "heightCm" | "bodyFatPct" | "measures" | "notes", string>> = {}
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a.date) || Number.isNaN(Date.parse(a.date))) errors.date = "Informe a data da avaliação."
+  else if (Date.parse(a.date) > Date.now() + 86_400_000) errors.date = "A data não pode estar no futuro."
+  if (!inRange(a.age, 5, 110)) errors.age = "Idade entre 5 e 110 anos."
+  if (!inRange(a.weightKg, 20, 350)) errors.weightKg = "Peso entre 20 e 350 kg."
+  if (!inRange(a.heightCm, 100, 250)) errors.heightCm = "Altura entre 100 e 250 cm."
+  if (!inRange(a.bodyFatPct, 2, 70)) errors.bodyFatPct = "Percentual entre 2 e 70%."
+  if (Object.values(a.skinfolds).some((v) => !inRange(v ?? null, 1, 100)) || Object.values(a.circumferences).some((v) => !inRange(v ?? null, 5, 250)))
+    errors.measures = "Confira as medidas: dobras de 1 a 100 mm e circunferências de 5 a 250 cm."
+  if (a.notes.length > 500) errors.notes = "Use no máximo 500 caracteres."
+  const measured = a.weightKg !== null || a.bodyFatPct !== null || Object.keys(a.skinfolds).length > 0 || Object.keys(a.circumferences).length > 0
+  if (!measured && !errors.measures) errors.measures = "Registre pelo menos uma medida."
+  return errors
+}
+
+export function saveAssessment(d: DemoData, studentId: string, input: AssessmentInput, id?: string): DemoData {
+  const existing = id ? d.assessments.find((a) => a.id === id) : undefined
+  const a: Assessment = { ...input, notes: input.notes.trim(), id: existing?.id ?? id ?? uid("av"), studentId, createdAt: existing?.createdAt ?? now() }
+  return { ...d, assessments: existing ? d.assessments.map((x) => (x.id === a.id ? a : x)) : [...d.assessments, a] }
+}
+
+export function deleteAssessment(d: DemoData, id: string): DemoData {
+  return { ...d, assessments: d.assessments.filter((a) => a.id !== id) }
+}
+
+/* ---------- Mensalidades (controle, sem processar pagamento) ---------- */
+
+export function markPaid(d: DemoData, studentId: string, month: string, amount: number, id = uid("pg")): DemoData {
+  if (d.payments.some((p) => p.studentId === studentId && p.month === month)) return d
+  const p: Payment = { id, studentId, month, amount, paidAt: now() }
+  return { ...d, payments: [...d.payments, p] }
+}
+
+export function unmarkPaid(d: DemoData, studentId: string, month: string): DemoData {
+  return { ...d, payments: d.payments.filter((p) => !(p.studentId === studentId && p.month === month)) }
 }

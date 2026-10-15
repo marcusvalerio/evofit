@@ -89,3 +89,28 @@ export function trackedExercises(d: DemoData, studentId: string) {
   for (const s of sessionsOf(d, studentId)) for (const x of s.sets) if (x.load !== null && x.done) ids.set(x.exerciseId, x.exerciseName)
   return [...ids.entries()].map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name))
 }
+
+export interface PersonalRecord {
+  exerciseId: string
+  exerciseName: string
+  load: number
+  previous: number
+}
+
+/**
+ * Recordes de carga de uma sessão: a maior carga concluída supera a maior carga já registrada
+ * pelo aluno naquele exercício em sessões anteriores. Primeira vez não conta (não há base).
+ */
+export function personalRecords(d: DemoData, session: Session): PersonalRecord[] {
+  const before = sessionsOf(d, session.studentId).filter((s) => s.id !== session.id && s.startedAt < session.startedAt)
+  const best = new Map<string, number>()
+  for (const s of before) for (const x of s.sets) if (x.done && x.load !== null && x.load > (best.get(x.exerciseId) ?? 0)) best.set(x.exerciseId, x.load)
+  const out = new Map<string, PersonalRecord>()
+  for (const x of session.sets) {
+    const prev = best.get(x.exerciseId)
+    if (!x.done || x.load === null || prev === undefined || x.load <= prev) continue
+    const cur = out.get(x.exerciseId)
+    if (!cur || x.load > cur.load) out.set(x.exerciseId, { exerciseId: x.exerciseId, exerciseName: x.exerciseName, load: x.load, previous: prev })
+  }
+  return [...out.values()]
+}

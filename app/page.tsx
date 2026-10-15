@@ -1,167 +1,368 @@
+import { Fragment } from "react"
 import Link from "next/link"
-import {
-  ArrowRight,
-  BarChart3,
-  Check,
-  ClipboardList,
-  Dumbbell,
-  Search,
-  Smartphone,
-  Users,
-} from "lucide-react"
+import { Activity, ArrowRight, BellRing, Check, ClipboardList, MapPin, Palette, PersonStanding, Plus, Radar, Smartphone, Timer, Wallet, WifiOff } from "lucide-react"
 import { PublicShell } from "@/components/public-shell"
+import { LandingPreview } from "@/components/landing-preview"
+import { ProductReel } from "@/components/product-reel"
+import { LibraryMarquee, RevealOnScroll } from "@/components/landing-motion"
 import { CATALOG_SIZE } from "@/lib/catalog"
 
-const EXPERIENCES = [
+/*
+ * Estrutura guiada por Revenue-Centric Design:
+ * ICP = personal trainer autônomo, consciente do problema (planilha + WhatsApp).
+ * Hero responde em 5 s: o que é, para quem, por que este. A prova (prévia com dados
+ * da demonstração) chega antes de qualquer pedido. CTA específico + gatilho de clique.
+ * Nada de depoimentos ou números inventados: só fatos verificáveis do produto.
+ */
+
+/*
+ * A landing inteira responde, sem precisar escrevê-la, à pergunta do personal que já viu outros
+ * sistemas: "por que este e não outro?". Cada motivo é verificável no próprio produto
+ * (vídeo real logo abaixo ou demonstração aberta), sem citar concorrentes nem inventar números.
+ */
+const REASONS = [
+  { icon: Radar, title: "Ele te avisa quem vai cancelar.", text: "O radar de evasão aponta quem está sumindo, por quê, e quanto isso vale em mensalidades — antes do aluno desistir.", href: "#ver-studio-painel" },
+  { icon: Wallet, title: "Cobra a mensalidade sem taxa.", text: "Lembrete pronto no WhatsApp com a sua chave Pix. O dinheiro vai direto para você; o EVOFIT não fica com nada.", href: "#ver-studio-caixa" },
+  { icon: WifiOff, title: "Funciona sem sinal na academia.", text: "A ficha fica no celular do aluno. Ele treina no subsolo e as séries sobem quando a internet volta.", href: "#ver-aluno-treino" },
+  { icon: PersonStanding, title: "Explica cada exercício em português.", text: `${CATALOG_SIZE} exercícios com demonstração animada, passo a passo e os músculos no mapa do corpo.`, href: "#ver-biblioteca" },
+  { icon: Activity, title: "Mostra se a ficha está equilibrada.", text: "Enquanto você monta, o mapa de volume por músculo mostra o que ficou de fora ou passou do ponto.", href: "#ver-studio-ficha" },
+  { icon: MapPin, title: "Traz aluno novo até você.", text: "Perfil público em Encontrar personal com botão de WhatsApp e o seu Instagram, para quem procura na sua região.", href: "/personais" },
+]
+
+/** O que perguntar a qualquer sistema antes de assinar — com a resposta do EVOFIT. */
+const CHECKLIST: [string, string][] = [
+  ["Ele me avisa quem está prestes a cancelar?", "Sim — radar de evasão com o valor em risco no mês."],
+  ["Meu aluno treina sem internet na academia?", "Sim — a ficha fica no celular e sincroniza depois."],
+  ["Fica com uma parte da mensalidade dos meus alunos?", "Não — você recebe direto no seu Pix."],
+  ["Eu mesmo crio o acesso do aluno e posso revogar?", "Sim — usuário e senha provisória em um toque."],
+  ["Os exercícios estão em português, mostrando como fazer?", `Sim — ${CATALOG_SIZE} com animação, passo a passo e músculos.`],
+  ["Sei como o aluno se sentiu no treino?", "Sim — check-in de esforço, dor e sono ao concluir."],
+  ["Me ajuda a conseguir aluno novo?", "Sim — perfil público com WhatsApp e Instagram."],
+  ["Preciso de cartão para testar?", "Não — a demonstração abre na hora."],
+]
+
+const FAQ = [
   {
-    href: "/studio",
-    icon: BarChart3,
-    eyebrow: "Gestão do personal",
-    title: "EVOFIT Studio",
-    text: "Organize alunos, monte fichas e acompanhe frequência e evolução sem alternar entre planilhas e mensagens.",
-    cta: "Explorar o Studio",
+    q: "O EVOFIT é só mais um app de ficha?",
+    a: "Não. Guardar e enviar ficha é o começo. O EVOFIT cuida do que faz você perder dinheiro: aluno que some (radar de evasão em R$), mensalidade esquecida (lembrete com Pix, sem taxa) e treino que não acontece por falta de sinal (funciona offline).",
   },
   {
-    href: "/aluno",
-    icon: Smartphone,
-    eyebrow: "Experiência do aluno",
-    title: "EVOFIT Aluno",
-    text: "O treino fica claro no celular: exercícios demonstrados, séries, cargas, descanso e histórico em um só lugar.",
-    cta: "Ver a experiência do aluno",
+    q: "Preciso criar conta ou cadastrar cartão para testar?",
+    a: "Não. A demonstração abre direto, com alunos e treinos fictícios salvos só no seu navegador. Você pode criar uma conta real quando quiser.",
   },
   {
-    href: "/personais",
-    icon: Search,
-    eyebrow: "Descoberta profissional",
-    title: "Encontrar personal",
-    text: "Ajude novos alunos a encontrar profissionais por região, modalidade e especialidade — com publicação opcional do perfil.",
-    cta: "Conhecer o diretório",
+    q: "Meu aluno precisa baixar um aplicativo?",
+    a: "Não. O app do aluno funciona no navegador do celular e pode ser instalado na tela inicial. Você gera o usuário e uma senha provisória (ou envia um link de convite) e ele cria a própria senha no primeiro acesso.",
+  },
+  {
+    q: "De onde vêm os exercícios?",
+    a: `São ${CATALOG_SIZE} exercícios de um catálogo aberto (domínio público), traduzidos para o português, com a posição inicial e final de cada movimento. Você também pode cadastrar exercícios próprios e anexar seu vídeo.`,
+  },
+  {
+    q: "Os indicadores mostram ganho de massa ou perda de gordura?",
+    a: "Não. O EVOFIT mostra o que foi registrado: frequência, aderência às metas, cargas e repetições. Não inventamos resultados físicos que não foram medidos.",
+  },
+  {
+    q: "O EVOFIT cobra meus alunos?",
+    a: "Não. Você registra quem pagou, vê quem está vencido e envia o lembrete pelo WhatsApp com a sua chave Pix. O dinheiro vai direto para você — o EVOFIT não intermedeia nem retém nada.",
+  },
+  {
+    q: "Funciona sem internet na academia?",
+    a: "Sim. Depois de aberta uma vez, a ficha do aluno fica no celular. Sem sinal, ele treina normalmente e as séries são enviadas quando a conexão volta.",
+  },
+  {
+    q: "Tem chat ou dieta?",
+    a: "Ainda não. O foco é o ciclo prescrição → execução → acompanhamento. Essas ideias serão avaliadas depois da validação com personais reais.",
   },
 ]
 
-const FLOW = [
-  { n: "01", icon: Users, title: "Organize", text: "Cadastre seus alunos e entenda quem precisa de atenção." },
-  { n: "02", icon: ClipboardList, title: "Monte os treinos", text: "Monte fichas com exercícios, séries, repetições, carga e descanso." },
-  { n: "03", icon: Dumbbell, title: "Acompanhe", text: "Veja o que foi concluído e acompanhe a evolução registrada." },
-]
+const HERO_WORDS = ["Feito", "para", "você", "não", "perder", "aluno."]
 
 export default function Home() {
   return (
     <PublicShell>
-      <section className="fade-in evo-landing relative overflow-hidden" aria-label="EVOFIT — treino e evolução">
-        <div className="evo-landing-grid" aria-hidden="true" />
-        <div className="evo-landing-wordmark" aria-hidden="true">EVOFIT</div>
-        <div className="evo-landing-layout">
-          <article className="evo-campaign-panel">
-            <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=85" alt="Academia preparada para um treino de força" className="evo-campaign-image" loading="eager" />
-            <div className="evo-campaign-overlay" aria-hidden="true" />
-            <div className="evo-campaign-top"><span>EVOFIT / TRAINING SYSTEM</span><span>01—04</span></div>
-            <div className="evo-campaign-copy">
-              <p>TREINO COM INTENÇÃO</p>
-              <h1>TREINO<br/>INTELIGENTE.<br/><span>RESULTADO REAL.</span></h1>
-              <p className="evo-campaign-description">Planeje os treinos, acompanhe seus alunos e transforme cada sessão em progresso visível.</p>
-              <Link href="/studio" className="evo-lime-button">CONHECER O EVOFIT <ArrowRight size={17} aria-hidden /></Link>
-            </div>
-            <div className="evo-campaign-bottom"><span>FORÇA / FOCO / PROGRESSO</span><span>RIO DE JANEIRO · BR</span></div>
-          </article>
-
-          <div className="evo-phone-stage">
-            <div className="evo-phone-orbit" aria-hidden="true" />
-            <div className="evo-phone" aria-label="Prévia da experiência de treino do aluno">
-              <div className="evo-phone-status"><span>9:41</span><span>● ● ▰</span></div>
-              <div className="evo-phone-header"><div><span>SEU PLANO DE TREINO</span><h2>BORA TREINAR.</h2></div><div className="evo-avatar">E.</div></div>
-              <div className="evo-phone-feature">
-                <img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=700&q=85" alt="" loading="eager" />
-                <div><span>TREINO DE HOJE</span><strong>TREINO DE<br/>MEMBROS SUPERIORES</strong><small>45 MIN · 6 EXERCÍCIOS</small></div>
-              </div>
-              <div className="evo-phone-progress"><div><span>META DA SEMANA</span><strong>03 <small>/ 04 TREINOS</small></strong></div><div className="evo-progress-track"><i /></div></div>
-              <div className="evo-phone-section"><h3>EXERCÍCIOS <span>VER FICHA ↗</span></h3>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1534368270820-9de3d8053204?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>SUPINO RETO</strong><small>Peito · 4 × 10 repetições</small></div><span>↗</span></div>
-                <div className="evo-exercise-row"><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&w=180&q=80" alt="" loading="lazy"/><div><strong>PUXADA ALTA</strong><small>Costas · 3 × 12 repetições</small></div><span>↗</span></div>
-              </div>
-              <Link href="/aluno" className="evo-phone-cta">EXPERIMENTAR O APP DO ALUNO <ArrowRight size={15} aria-hidden /></Link>
-            </div>
-            <p className="evo-phone-caption"><span>02 / 04</span> TREINOS E EVOLUÇÃO CONECTADOS</p>
+      {/* Hero */}
+      <section className="lp-hero fade-in" aria-labelledby="hero-title">
+        <div>
+          <p className="evo-pill lp-in" style={{ "--d": "0ms" } as React.CSSProperties}>
+            <span>Novo</span> Para personal trainers autônomos
+          </p>
+          <h1 id="hero-title" className="lp-title t-athletic mt-6">
+            {HERO_WORDS.map((w, i) => (
+              <Fragment key={i}>
+                <span className="lp-w">
+                  <span style={{ "--i": i } as React.CSSProperties}>{w === "perder" ? <em>perder</em> : w}</span>
+                </span>{" "}
+              </Fragment>
+            ))}
+          </h1>
+          <p className="lp-lead lp-in" style={{ "--d": "520ms" } as React.CSSProperties}>
+            Guardar ficha qualquer sistema guarda. O EVOFIT trabalha por você: avisa quem está sumindo e quanto isso vale em R$, cobra a mensalidade pelo WhatsApp sem taxa e deixa o aluno treinar até sem internet.
+          </p>
+          <div className="lp-cta-row lp-in" style={{ "--d": "640ms" } as React.CSSProperties}>
+            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
+              Começar pelo Studio <ArrowRight size={18} aria-hidden />
+            </Link>
+            <Link href="/aluno" className="btn btn-outline btn-lg btn-pill">
+              <Smartphone size={18} aria-hidden /> Ver o app do aluno
+            </Link>
           </div>
+          <p className="lp-trigger lp-in" style={{ "--d": "740ms" } as React.CSSProperties}>
+            <span>
+              <Check size={14} aria-hidden /> Sem cadastro
+            </span>
+            <span>
+              <Check size={14} aria-hidden /> Sem cartão
+            </span>
+            <span>
+              <Check size={14} aria-hidden /> Abre com dados de demonstração
+            </span>
+          </p>
+          <dl className="lp-proof lp-in" style={{ "--d": "840ms" } as React.CSSProperties}>
+            <div>
+              <dt className="sr-only">Exercícios</dt>
+              <dd>
+                <Link href="/biblioteca" className="lp-proof-link" aria-label={`Biblioteca EVOFIT: ${CATALOG_SIZE} exercícios em GIF`}>
+                  <strong>{CATALOG_SIZE}</strong>
+                  <span>exercícios demonstrados em português →</span>
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt className="sr-only">Registro</dt>
+              <dd>
+                <strong>Série a série</strong>
+                <span>reps, carga e descanso registrados</span>
+              </dd>
+            </div>
+            <div>
+              <dt className="sr-only">Alertas</dt>
+              <dd>
+                <strong>0% de taxa</strong>
+                <span>na mensalidade: recebe direto no seu Pix</span>
+              </dd>
+            </div>
+          </dl>
         </div>
+        <LandingPreview />
       </section>
 
-      <section className="mt-12 sm:mt-16" aria-labelledby="flow-title">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="t-eyebrow">Tudo conectado</p>
-            <h2 id="flow-title" className="t-h1 mt-2">Do planejamento à evolução.</h2>
-          </div>
-          <p className="max-w-md text-sm leading-relaxed text-muted">O que você prescreve no Studio aparece para o aluno executar e registrar.</p>
+      <LibraryMarquee />
+
+      {/* A pergunta */}
+      <section className="lp-section" aria-labelledby="why-title">
+        <div className="lp-why-head" data-reveal>
+          <p className="lp-kicker">Além da ficha</p>
+          <h2 id="why-title" className="lp-h2 t-athletic">
+            Ele trabalha <em>enquanto você treina.</em>
+          </h2>
+          <p className="lp-sub">Seis coisas que o EVOFIT faz por você no dia a dia — cada uma aparece funcionando logo abaixo.</p>
         </div>
-        <ol className="mt-6 grid gap-3 md:grid-cols-3">
-          {FLOW.map(({ n, icon: Icon, title, text }) => (
-            <li key={n} className="card p-5 sm:p-6">
-              <div className="flex items-center justify-between">
-                <span className="grid size-10 place-items-center rounded-2xl bg-inverse text-on-inverse">
-                  <Icon size={19} aria-hidden />
+        <ol className="lp-why lp-stagger" data-reveal>
+          {REASONS.map((r, i) => (
+            <li key={r.title}>
+              <a href={r.href} className="lp-why-card">
+                <span className="lp-why-n" aria-hidden>
+                  {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="text-sm font-semibold tabular text-muted">{n}</span>
-              </div>
-              <h3 className="mt-5 text-lg font-bold tracking-tight">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted">{text}</p>
+                <span className="lp-icon">
+                  <r.icon size={20} aria-hidden />
+                </span>
+                <h3>{r.title}</h3>
+                <p>{r.text}</p>
+                <span className="lp-why-go">
+                  {r.href.startsWith("#") ? "Ver funcionando" : "Ver o diretório"} <ArrowRight size={15} aria-hidden />
+                </span>
+              </a>
             </li>
           ))}
         </ol>
+        <div className="lp-cta-inline" data-reveal>
+          <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
+            Ver isso no meu Studio <ArrowRight size={18} aria-hidden />
+          </Link>
+          <p className="lp-trigger">
+            <span>
+              <Check size={14} aria-hidden /> Abre na hora
+            </span>
+            <span>
+              <Check size={14} aria-hidden /> Sem cadastro e sem cartão
+            </span>
+          </p>
+        </div>
       </section>
 
-      <section className="mt-12 sm:mt-16" aria-labelledby="experiences-title">
-        <div className="max-w-2xl">
-          <p className="t-eyebrow">Entre no EVOFIT</p>
-          <h2 id="experiences-title" className="t-h1 mt-2">Um sistema para quem prescreve. Uma experiência para quem treina.</h2>
+      <ProductReel />
+
+      {/* Checklist */}
+      <section className="lp-section" aria-labelledby="ask-title">
+        <div data-reveal>
+          <p className="lp-kicker">Na ponta do lápis</p>
+          <h2 id="ask-title" className="lp-h2 max-w-[22ch]">
+            As perguntas que todo personal faz. Já respondidas.
+          </h2>
+          <p className="lp-sub">Do primeiro aluno ao vigésimo, o que pesa no dia a dia — e como o EVOFIT resolve cada uma.</p>
         </div>
-        <ul className="mt-6 grid gap-4 md:grid-cols-3">
-          {EXPERIENCES.map(({ href, icon: Icon, eyebrow, title, text, cta }) => (
-            <li key={href}>
-              <Link href={href} className="card evo-experience-card group flex h-full flex-col overflow-hidden p-0 transition-colors hover:border-line-strong">
-                <div className="evo-experience-photo">
-                  <img
-                    src={href === "/studio"
-                      ? "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=900&q=82"
-                      : href === "/aluno"
-                        ? "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?auto=format&fit=crop&w=900&q=82"
-                        : "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=82"}
-                    alt=""
-                    loading="lazy"
-                  />
-                  <span>{href === "/studio" ? "GESTÃO E ACOMPANHAMENTO" : href === "/aluno" ? "TREINE NO SEU RITMO" : "ENCONTRE SEU PERSONAL"}</span>
+        <div className="card lp-ask" data-reveal>
+          <table>
+            <caption className="sr-only">Perguntas frequentes de personal trainers e como o EVOFIT responde</caption>
+            <thead>
+              <tr>
+                <th scope="col">Pergunta</th>
+                <th scope="col">No EVOFIT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {CHECKLIST.map(([q, a]) => (
+                <tr key={q}>
+                  <th scope="row">{q}</th>
+                  <td>
+                    <span className="lp-ask-yes">
+                      <Check size={15} aria-hidden /> {a}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Mecanismo */}
+      <section className="lp-section" aria-labelledby="how-title">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between" data-reveal>
+          <div>
+            <p className="lp-kicker">Como funciona</p>
+            <h2 id="how-title" className="lp-h2 max-w-[18ch]">
+              Um ciclo só: o que você prescreve vira dado de evolução.
+            </h2>
+          </div>
+          <Link href="/studio/treinos" className="btn btn-outline btn-pill shrink-0 self-start md:self-auto">
+            Montar uma ficha <ArrowRight size={16} aria-hidden />
+          </Link>
+        </div>
+        <ol className="lp-steps lp-stagger" data-reveal>
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <ClipboardList size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">01</span>
+            </div>
+            <h3>Você prescreve</h3>
+            <p>Escolhe exercícios da biblioteca, define séries, repetições, carga e descanso, e atribui ao aluno.</p>
+            <div className="lp-step-ui" aria-hidden>
+              <div className="lp-step-ui-row">
+                <b className="flex-1">Agachamento com barra</b>
+                <span className="badge">4 × 8</span>
+              </div>
+              <div className="lp-step-ui-row">
+                <b className="flex-1">Supino inclinado</b>
+                <span className="badge">3 × 12</span>
+              </div>
+              <div className="lp-step-ui-row text-accent">
+                <Plus size={15} /> <span className="font-semibold">Adicionar exercício</span>
+              </div>
+            </div>
+          </li>
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <Timer size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">02</span>
+            </div>
+            <h3>O aluno executa</h3>
+            <p>Vê como fazer cada movimento, marca as séries, ajusta a carga e o descanso começa sozinho.</p>
+            <div className="lp-step-ui" aria-hidden>
+              {[
+                ["1", "8", "50", true],
+                ["2", "8", "50", true],
+                ["3", "7", "52,5", false],
+              ].map(([n, r, kg, on]) => (
+                <div key={String(n)} className="lp-step-ui-row">
+                  <span className="w-4 text-center font-bold tabular">{n}</span>
+                  <span className="lp-mini-num">{r}</span>
+                  <span className="lp-mini-num">{kg} kg</span>
+                  <span className={on ? "lp-mini-check on" : "lp-mini-check"}>
+                    <Check size={13} strokeWidth={3} />
+                  </span>
                 </div>
-                <div className="flex flex-1 flex-col p-5 sm:p-6">
-                <span className="grid size-11 place-items-center rounded-2xl bg-accent-soft text-accent">
-                  <Icon size={20} aria-hidden />
-                </span>
-                <p className="t-eyebrow mt-5">{eyebrow}</p>
-                <h3 className="mt-1 text-xl font-bold tracking-tight">{title}</h3>
-                <p className="mt-2 flex-1 text-[0.9375rem] leading-relaxed text-muted">{text}</p>
-                <span className="mt-5 inline-flex items-center gap-1.5 font-semibold text-accent">
-                  {cta} <ArrowRight size={16} aria-hidden className="transition-transform group-hover:translate-x-1" />
-                </span>
-                </div>
-              </Link>
-            </li>
+              ))}
+            </div>
+          </li>
+          <li className="card lp-step">
+            <div className="lp-step-head">
+              <span className="lp-icon">
+                <BellRing size={20} aria-hidden />
+              </span>
+              <span className="lp-step-n">03</span>
+            </div>
+            <h3>Você acompanha</h3>
+            <p>O painel calcula frequência e aderência e aponta quem precisa de uma mensagem hoje.</p>
+            <div className="lp-step-ui" aria-hidden>
+              <div className="lp-step-ui-row">
+                <span className="flex-1">Meta da semana</span>
+                <b className="tabular">3/4</b>
+              </div>
+              <div className="progress">
+                <span style={{ width: "75%" }} />
+              </div>
+              <div className="lp-step-ui-row mt-1">
+                <span className="flex-1">Sem treinar</span>
+                <span className="badge badge-warning">9 dias</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      {/* Objeções */}
+      <section className="lp-section grid gap-8 lg:grid-cols-[1fr_1.6fr]" aria-labelledby="faq-title" data-reveal>
+        <div>
+          <p className="lp-kicker">Perguntas</p>
+          <h2 id="faq-title" className="lp-h2">
+            Antes de você perguntar.
+          </h2>
+          <p className="lp-sub text-base">
+            Ainda com dúvida? Abra a demonstração e faça o ciclo completo: atribua uma ficha, treine como aluno e volte ao painel.
+          </p>
+          <p className="mt-5 inline-flex items-center gap-2 text-sm text-muted">
+            <Palette size={16} aria-hidden className="text-accent" /> Seu nome e sua cor no perfil profissional.
+          </p>
+        </div>
+        <div className="lp-faq">
+          {FAQ.map((f) => (
+            <details key={f.q}>
+              <summary>
+                {f.q}
+                <Plus size={20} aria-hidden />
+              </summary>
+              <p>{f.a}</p>
+            </details>
           ))}
-        </ul>
+        </div>
       </section>
 
-      <section className="mt-12 grid gap-4 rounded-2xl border border-line p-5 text-sm sm:mt-16 sm:grid-cols-3 sm:p-6" aria-label="Sobre a demonstração">
-        <div>
-          <h2 className="font-semibold">Comece sem barreiras</h2>
-          <p className="mt-1 leading-relaxed text-muted">Explore as telas sem precisar criar uma conta antes.</p>
-        </div>
-        <div>
-          <h2 className="font-semibold">Demonstrações de exercícios</h2>
-          <p className="mt-1 leading-relaxed text-muted">A biblioteca mostra movimentos em animação e orientações em português para ajudar o aluno a executar a ficha.</p>
-        </div>
-        <div>
-          <h2 className="font-semibold">Teste o ciclo completo</h2>
-          <p className="mt-1 leading-relaxed text-muted">Atribua uma ficha no Studio, execute o treino no app do aluno e volte para conferir os indicadores.</p>
+      {/* CTA final */}
+      <section className="lp-section" aria-labelledby="final-title">
+        <div className="lp-band lp-final ink" data-reveal>
+          <p className="lp-kicker justify-center">Comece agora</p>
+          <h2 id="final-title" className="lp-h2 t-athletic !text-[clamp(2.6rem,7vw,5.5rem)]">
+            Seu próximo aluno não precisa de mais um PDF.
+          </h2>
+          <p className="lp-sub mx-auto text-on-ink-muted">Abra o Studio com dados de demonstração e monte a primeira ficha em poucos minutos.</p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link href="/studio" className="btn btn-primary btn-lg btn-pill">
+              Abrir o Studio agora <ArrowRight size={18} aria-hidden />
+            </Link>
+            <Link href="/personais" className="btn btn-lg btn-pill border border-white/20 text-on-ink hover:bg-white/10">
+              Procuro um personal
+            </Link>
+          </div>
         </div>
       </section>
+      <RevealOnScroll />
     </PublicShell>
   )
 }

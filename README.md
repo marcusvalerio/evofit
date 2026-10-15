@@ -7,6 +7,7 @@ Três experiências conectadas, todas acessíveis sem login:
 | Experiência | Rota | O que faz |
 |---|---|---|
 | **EVOFIT Studio** (personal) | `/studio` | Painel com indicadores calculados dos dados, alunos (cadastro, edição, arquivamento, histórico, frequência, evolução de carga), biblioteca com 876 exercícios demonstrados (vídeo e dica próprios por exercício), editor de fichas (séries, repetições, carga, descanso, instruções, ordem) e atribuição a alunos, perfil profissional e caixa de solicitações de contato. |
+| **Avaliações** (no Studio) | `/studio/avaliacoes` | Peso, altura, 7 dobras cutâneas, 11 circunferências e % de gordura informado (bioimpedância). Calcula % de gordura (Jackson & Pollock 3 ou 7 dobras + Siri), massa magra/gorda, IMC e cintura/quadril **só a partir do que foi medido**. Gráficos por medida, comparativo entre duas datas e histórico editável. |
 | **EVOFIT Aluno** | `/aluno` | Mobile-first. Escolha de aluno fictício, treinos atribuídos, execução série a série (reps e kg editáveis, cronômetro de descanso), “Como fazer” em cada exercício (demonstração animada, vídeo do personal, dica e passo a passo com leitura em voz alta), conclusão com observação, histórico e gráficos de frequência e carga. |
 | **Biblioteca EVOFIT** | `/biblioteca` | Pública. 876 exercícios com GIF animado com a marca EVOFIT, busca e filtros, passo a passo em português, baixar GIF, compartilhar (menu do celular/WhatsApp) e copiar link. |
 | **Encontrar personal** | `/personais` | Diretório público com busca (sem acento), filtros por estado, modalidade e especialidade, URL compartilhável, perfil público e formulário de solicitação de contato. |
@@ -36,6 +37,8 @@ Veja `.env.example`. **Sem nenhuma variável o app roda no modo demonstração**
 | Variável | Onde | Para quê |
 |---|---|---|
 | `DATABASE_URL` | servidor (Vercel e `.env.local`) | Conexão com o Neon (URL *pooled*, com `-pooler` no host). Nunca vai para o navegador. |
+| `ADMIN_EMAILS` | servidor (Vercel) | E-mails (separados por vírgula) de contas de personal que veem o painel `/admin`. Sem ela, ninguém é admin. |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | opcional | E-mail de suporte mostrado em “Esqueci minha senha”. |
 | `DATABASE_URL_MIGRATIONS` | opcional, só para `npm run db:migrate` | URL direta (sem `-pooler`). |
 | `DB_POOL_MAX` | opcional | Conexões por instância (padrão 5). |
 
@@ -99,11 +102,11 @@ Pensada para os dias em que o personal não está junto do aluno.
 
 ## Movimento e interface
 
-Entradas em cascata em listas e cards, números que contam até o valor, anéis de progresso (meta semanal e descanso), confirmação animada de série com vibração curta no celular, rolagem automática para o próximo exercício, comemoração ao concluir o treino, cards que elevam no hover e uma prévia animada do app na página inicial. Tudo em CSS/SVG, sem bibliotecas novas, e desligado com `prefers-reduced-motion`.
+Entradas em cascata em listas e cards, números que contam até o valor, anéis de progresso (meta semanal e descanso), confirmação animada de série com vibração curta no celular, rolagem automática para o próximo exercício, comemoração ao concluir o treino e cards que elevam no hover. Tudo em CSS/SVG, sem bibliotecas novas, e desligado com `prefers-reduced-motion`.
 
 ## Arquitetura
 
-- **Next.js 16 (App Router, Turbopack)**, React 19, TypeScript strict, Tailwind CSS 4, `lucide-react`, fonte **Geist** (pacote `geist`, licença OFL, servida localmente — o build não depende da internet).
+- **Next.js 16 (App Router, Turbopack)**, React 19, TypeScript strict, Tailwind CSS 4, `lucide-react`, fontes Inter, Outfit e Archivo (`@fontsource-variable`, licença OFL, servidas localmente — o build não depende da internet).
 - `lib/types.ts` — modelo de dados · `lib/seed.ts` — dados demonstrativos (PRNG determinístico, datas relativas ao primeiro acesso) · `lib/actions.ts` — operações puras e validações · `lib/metrics.ts` — indicadores · `lib/store.ts` — persistência (`useSyncExternalStore` + `localStorage`) · `lib/directory.ts` — perfis fictícios e filtros · `lib/catalog.ts` — catálogo de exercícios, busca e passo a passo sob demanda · `lib/video.ts` — validação de links de vídeo · `lib/migrate.ts` — migração dos dados salvos.
 - `components/exercise.tsx` — demonstração animada, miniatura, player de vídeo, passo a passo e guia completo · `components/motion.tsx` — contagem animada, anel de progresso, confete, vibração.
 - `components/ui.tsx` — primitivas (Field, Modal com `<dialog>` nativo, ConfirmDialog, EmptyState, Stat, Progress, Avatar…) · `components/charts.tsx` — gráficos SVG com tooltip e tabela acessível.
@@ -111,32 +114,67 @@ Entradas em cascata em listas e cards, números que contam até o valor, anéis 
 
 ## Design system
 
-Paleta oficial centralizada em tokens semânticos em `app/globals.css` (componentes não usam hexadecimais). Temas claro/escuro seguem o sistema, com alternância manual (automático → claro → escuro) salva no navegador.
+Paleta **MP020** centralizada em tokens semânticos em `app/globals.css` (componentes não usam hexadecimais). Temas claro/escuro seguem o sistema, com alternância manual salva no navegador.
 
-Contraste (WCAG 2.x) avaliado antes da aplicação:
-
-| Combinação | Razão | Decisão |
+| Cor | Hex | Papel |
 |---|---|---|
-| Cobblestone sobre Bright Sandstone | 10,49 | texto principal (claro) |
-| Midnight Smoke sobre Sandstone | 5,99 | texto secundário (claro) |
-| Branco sobre Ōtan Red | 3,30 ✗ | **rejeitado** |
-| Cobblestone sobre Ōtan Red | 4,54 ✓ | botão primário (claro) |
-| Ōtan Red sobre Sandstone | 2,31 ✗ | Ōtan não é usado como texto no claro |
-| `#9E2B0E` (Red Gravy escurecido) sobre Sandstone | 5,24 | texto/realce de destaque (claro) |
-| Dusty Cotton sobre Cobblestone | 11,65 | texto principal (escuro) |
-| Dusty Cotton sobre Red Gravy | 4,64 ✓ | botão primário (escuro) |
-| Red Gravy sobre Cobblestone | 2,51 ✗ | Red Gravy não é usado como texto no escuro |
-| `#FF7A52` (Ōtan clareado) sobre superfície `#2A343B` | 4,94 | texto/realce de destaque (escuro) |
+| Dusty Cotton | `#E4E3DC` | fundo claro |
+| Bright Sandstone | `#DAD8CF` | superfícies secundárias, trilhos |
+| Ōtan Red | `#FF4E20` | energia: CTA principal (sempre com texto Cobblestone), progresso, sequência semanal |
+| Red Gravy | `#B83312` | texto e realce de marca no claro |
+| Web Cobblestone | `#1F282E` | texto principal, superfícies escuras (`.ink`) |
+| Midnight Smoke | `#414E58` | texto secundário |
 
-No tema escuro, Midnight Smoke é usado em estrutura e campos; os cards usam um tom intermediário (`#2A343B`) para manter o texto de destaque acima de 4,5:1. Botões: Primary, Outline, Inverse, Ghost e Danger, tamanhos sm/md/lg e variação pill, com hover, `focus-visible`, active e disabled. Animações discretas, desligadas com `prefers-reduced-motion`. Translucidez (`.glass`) apenas em barras fixas de navegação.
+Contraste (WCAG 2.x):
 
-Tipografia: Geist (UI). **Switzer não está disponível/licenciada no repositório**; a marca usa Geist Black com itálico sintetizado (Geist não possui itálico real).
+| Combinação | Razão | Uso |
+|---|---|---|
+| Cobblestone sobre Cotton | 11,65 | texto principal (claro) |
+| Smoke sobre Cotton | 6,65 | texto secundário (claro) |
+| Cobblestone sobre Ōtan | 4,54 ✓ | botão primário |
+| Branco sobre Ōtan | 3,30 ✗ | **proibido** |
+| Gravy sobre Cotton | 4,64 ✓ | palavra de destaque, links |
+| Ōtan sobre Cotton | < 3 ✗ | Ōtan nunca é texto no claro |
+| Cotton sobre Cobblestone | 11,65 | texto principal (escuro) |
+| `#FF7A52` sobre `#1F282E` | 5,82 | realce no escuro |
+
+**Símbolo:** pico facetado (face Gravy + face Ōtan), derivado do cartão da paleta MP020; logotipo "evofit" em minúsculas (Outfit 600). Ícones em `app/icon.svg` e `app/apple-icon.png`.
+
+**Acervo de exercícios:** as fotos do catálogo recebem duotone Cobblestone → Cotton — em CSS nas telas (sem arquivos novos) e no servidor nos GIFs de marca (`lib/gif.ts`). A URL das animações leva `?v=` (`ANIM_VERSION` em `lib/catalog.ts`): aumente ao mudar o visual, porque as respostas são imutáveis na CDN.
+
+**Motion (landing):** título palavra por palavra, pico que se ergue, telefone que entra e flutua (com leve inclinação seguindo o mouse), faixa infinita do acervo e revelação das seções na rolagem. Tudo em CSS + um `IntersectionObserver`; com "reduzir movimento" nada se move e nada fica escondido.
+
+**Retenção:** meta semanal flexível no app do aluno (um círculo por treino da meta, 1x a 7x, e semanas seguidas batendo a meta); recordes de carga celebrados ao concluir o treino (só quando superam a melhor carga anterior); botão "Chamar no WhatsApp" com mensagem pronta para alunos sem treino recente.
+
+**Receita do personal:**
+- **Caixa** (`/studio/caixa`): mensalidade e vencimento por aluno, situação do mês (paga, a vencer, vencida há N dias), marcar como paga e lembrete no WhatsApp com a chave Pix do personal. O EVOFIT **não processa pagamentos** e a chave Pix nunca aparece no perfil público.
+- **Radar de evasão** (painel): soma sinais dos registros — dias sem treinar vs. meta, queda de frequência, dor relatada no check-in, esforço no limite, mensalidade vencida, falta de ficha — e mostra o R$ em risco. Cada aluno exibe os motivos; nada de previsão opaca (`lib/radar.ts`).
+- **Check-in pós-treino**: esforço (1–10), dor e sono, todos opcionais, visíveis ao personal no histórico e na atividade.
+
+**Sem internet:** o app é instalável (manifesto + `public/sw.js`). Páginas, arquivos e imagens das fichas do aluno ficam no aparelho; no modo conta, a última cópia dos dados abre sem sinal e as alterações entram numa fila persistente, enviada em ordem quando a conexão volta (`lib/store.ts`). Sair da conta apaga a cópia e a fila.
+
+**Acesso do aluno:** o personal gera usuário + senha provisória (troca obrigatória no primeiro acesso), gera nova senha (derruba as sessões) ou revoga. O convite por link continua disponível.
+
+**Assinatura visual:** o gradiente *ember* (Gravy → Ōtan) aparece só onde existe progresso real — barras, anéis, o símbolo da marca e o "pico" do hero (motivo tirado do cartão da paleta MP020).
+
+**Tipografia** (pacotes `@fontsource-variable`, servidos localmente):
+
+- **Inter** — interface, dados, formulários (400–600).
+- **Outfit** — títulos e métricas (500–600).
+- **Archivo condensado** (`.t-athletic`, 800, caixa alta) — voz atlética, **só** em títulos de marca (landing, capas). Nunca em dados, formulários ou na execução do treino.
+- Geist continua apenas na geração dos GIFs (`lib/gif.ts`).
+
+**Princípios aplicados** ([Revenue-Centric Design](https://github.com/heliocosta-dev/revenue-centric-design)):
+
+- Landing: Hero → Dor → Mecanismo → Experiências → Comparação → Objeções → CTA. O hero responde em 5 s o que é, para quem e por quê; CTA específico com gatilho de clique ("Sem cadastro · Sem cartão"); a prévia usa os **dados reais da demonstração**, não um mockup. Sem depoimentos ou números inventados.
+- Studio: a Central de ações abre o painel (padrão F) e mostra nomes, não só contagens — o painel diz o que fazer.
+- Aluno: sequência semanal (seg–dom) calculada das sessões registradas, próximo treino sugerido e um CTA dominante.
 
 ## Limitações conhecidas
 
 - **Dados não sincronizam entre dispositivos ou navegadores** — cada navegador tem sua própria cópia da demonstração.
 - **Solicitações de contato não são enviadas a ninguém.** Ficam salvas no navegador; as do perfil do próprio Studio aparecem em Studio → Perfil. O formulário avisa isso explicitamente.
-- Sem `DATABASE_URL`, não há contas: tudo fica no navegador. Com ela, ainda não há recuperação de senha, verificação de e-mail, upload de foto, pagamentos ou notificações.
+- Sem `DATABASE_URL`, não há contas: tudo fica no navegador. Com ela, a recuperação de senha do personal é feita pelo admin (senha provisória); ainda não há envio automático por e-mail, verificação de e-mail, upload de foto, pagamentos ou notificações.
 - Exercícios do catálogo são somente leitura (o personal adiciona vídeo/dica); exercícios próprios podem ser editados/excluídos (exclusão bloqueada se estiverem em uso).
 - Os GIFs são feitos a partir de **dois quadros** (posição inicial e final) com transição suave — mostram claramente o início e o fim do movimento, mas não são um vídeo contínuo. Para o movimento completo, use o vídeo próprio do personal.
 - O app não hospeda vídeos: o personal usa um link do YouTube, Vimeo, Google Drive ou um arquivo já publicado. Vídeos privados não tocam para o aluno.
@@ -169,3 +207,25 @@ A demonstração sem login continua igual. Com `DATABASE_URL` configurada, o app
 4. Teste: criar conta, cadastrar aluno, gerar convite, entrar como aluno em outro navegador e registrar um treino.
 
 **Limites atuais:** não há recuperação de senha por e-mail nem verificação de e-mail (exigem um serviço de e-mail); o personal pode gerar um novo convite se o aluno perder o acesso. Não há importação dos dados da demonstração para a conta.
+
+## Administração (`/admin`)
+
+Para quem opera o EVOFIT. Acesso: conta de personal marcada com `users.is_admin = true` no banco (migração 006) ou cujo e-mail está em `ADMIN_EMAILS`; para qualquer outra conta a página e a API (`/api/admin`) respondem como inexistentes (404).
+
+- **Visão geral:** personais (novos em 7/30 dias), ativação (personal com aluno e ficha), alunos ativos e com login, treinos concluídos, personais ativos na semana, perfis no diretório, suspensos e cadastros por semana.
+- **Personais:** busca e filtros (ativos, parados há 14 dias, suspensos) com cadastro, último acesso, alunos, fichas e treinos da semana.
+- **Ações:** gerar senha provisória (o personal cria a nova no próximo acesso — é o “esqueci minha senha”), suspender com motivo (personal e alunos saem na hora e não entram; nada é apagado), reativar e tirar do diretório.
+- **Saúde:** latência do banco, migrações aplicadas/pendentes e sessões abertas.
+- **Registro de ações:** toda ação fica em `admin_audit` com quem fez, quando e o motivo.
+
+Privacidade: o papel `admin` do banco só lê (contagens) via RLS e só altera a visibilidade no diretório; nunca vê nomes, medidas, treinos ou valores dos alunos. Migração: `005_admin.sql`.
+
+## Landing: a pergunta que ela responde sem escrever
+
+O personal que chega já viu outros sistemas e pensa “por que este e não outro?”. A página responde isso sem fazer a pergunta: hero (“Feito para você não perder aluno”) → seis coisas que o EVOFIT faz por você, com CTA → **O EVOFIT em movimento** (gravações reais do app no computador e no celular, em `public/media/*.mp4`, com capa `.jpg`) e CTA → “As perguntas que todo personal faz. Já respondidas.” → como funciona → perguntas → CTA final. Sem citar concorrentes e sem números inventados.
+
+Os vídeos tocam só quando estão na tela; com “reduzir movimento” ficam parados, com controles. Para regravar depois de mudar telas: suba o app em modo demonstração (`npx next start -p 3400`, sem `DATABASE_URL`) e grave com Playwright (`recordVideo`), convertendo com `ffmpeg` para H.264 (`-crf 26–30 -movflags +faststart`).
+
+## Diretório: WhatsApp e Instagram
+
+No Studio → Perfil, o personal pode publicar WhatsApp e Instagram (opcionais). No perfil público aparecem os botões “Chamar no WhatsApp” (mensagem pronta) e “@usuario”. A chave Pix nunca é pública. Dados v5 (migração automática da demonstração) e migração `006_contacts_admin_flag.sql`.

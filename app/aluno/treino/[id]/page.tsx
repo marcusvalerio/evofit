@@ -2,12 +2,14 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Lightbulb, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Lightbulb, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
-import type { DemoData, Session, Workout } from "@/lib/types"
+import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
+import { muscleVolume, volumeLevels } from "@/lib/volume"
+import { BodyMap } from "@/components/body-map"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
-import { inProgressSession, sessionProgress, sessionVolume } from "@/lib/metrics"
+import { inProgressSession, personalRecords, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
@@ -38,7 +40,7 @@ export default function TreinoPage() {
 
   if (finishedId) {
     const s = d.sessions.find((x) => x.id === finishedId)
-    if (s) return <Summary session={s} />
+    if (s) return <Summary session={s} records={personalRecords(d, s)} />
   }
 
   if (!student) {
@@ -82,7 +84,8 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
         <p className="mt-6 rounded-2xl border border-dashed border-line-strong p-6 text-center text-muted">Esta ficha ainda não tem exercícios.</p>
       ) : (
         <>
-          <p className="mt-5 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
+          <TodayMuscles d={d} workout={workout} />
+          <p className="mt-4 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
             <PlayCircle size={18} aria-hidden className="shrink-0 text-accent" />
             Treinando sem o personal hoje? Toque em um exercício para ver como fazer.
           </p>
@@ -165,6 +168,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   const [finishing, setFinishing] = useState(false)
   const [discarding, setDiscarding] = useState(false)
   const [note, setNote] = useState("")
+  const [checkin, setCheckin] = useState<Checkin>({ effort: null, pain: null, sleep: null })
   const [howTo, setHowTo] = useState<string | null>(null)
   const now = useNow(true)
   const alerted = useRef(false)
@@ -377,7 +381,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
               className="btn btn-primary"
               disabled={progress.done === 0}
               onClick={() => {
-                update((x) => finishSession(x, session.id, note))
+                update((x) => finishSession(x, session.id, note, checkin.effort !== null || checkin.pain !== null || checkin.sleep !== null ? checkin : null))
                 setFinishing(false)
                 onFinished(session.id)
                 toast("Treino concluído e registrado no histórico.")
@@ -396,7 +400,8 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
               Você fez <strong className="text-fg">{progress.done}</strong> de {progress.total} séries.
               {progress.done < progress.total && " As séries não marcadas ficam registradas como não feitas."}
             </p>
-            <Field label="Como foi o treino? (opcional)" className="mt-4">
+            <CheckinForm value={checkin} onChange={setCheckin} />
+            <Field label="Quer contar algo ao seu personal? (opcional)" className="mt-4">
               {(p) => <textarea {...p} className="input" rows={3} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ex.: senti o joelho no agachamento" />}
             </Field>
           </>
@@ -424,7 +429,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
 /* ---------- Concluído ---------- */
 
-function Summary({ session }: { session: Session }) {
+function Summary({ session, records }: { session: Session; records: PersonalRecord[] }) {
   const p = sessionProgress(session)
   const vol = sessionVolume(session)
   return (
@@ -451,6 +456,23 @@ function Summary({ session }: { session: Session }) {
           </div>
         ))}
       </dl>
+      {records.length > 0 && (
+        <section className="evo-pr pop mx-auto mt-6 max-w-sm text-left" aria-labelledby="pr-title">
+          <h2 id="pr-title" className="evo-pr-title">
+            <Medal size={18} aria-hidden /> {records.length === 1 ? "Novo recorde pessoal" : `${records.length} recordes pessoais`}
+          </h2>
+          <ul className="mt-2 space-y-1.5">
+            {records.map((r) => (
+              <li key={r.exerciseId} className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate font-medium">{r.exerciseName}</span>
+                <span className="shrink-0 tabular">
+                  <b>{String(r.load).replace(".", ",")} kg</b> <span className="text-muted">antes {String(r.previous).replace(".", ",")}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="mx-auto mt-8 flex max-w-sm flex-col gap-2">
         <Link href="/aluno/historico" className="btn btn-primary btn-lg">
           Ver histórico
@@ -460,5 +482,76 @@ function Summary({ session }: { session: Session }) {
         </Link>
       </div>
     </div>
+  )
+}
+
+/** Músculos de hoje: o mesmo mapa da ficha, para o aluno saber o que vai trabalhar. */
+function TodayMuscles({ d, workout }: { d: DemoData; workout: Workout }) {
+  const vol = muscleVolume(d, workout.items)
+  if (!vol.length) return null
+  return (
+    <section className="evo-muscles mt-5" aria-label="Músculos de hoje">
+      <BodyMap levels={volumeLevels(vol)} compact />
+      <div className="min-w-0">
+        <p className="t-eyebrow">Músculos de hoje</p>
+        <p className="mt-1 text-sm leading-relaxed">
+          <b>{vol.slice(0, 3).map((v) => v.muscle).join(", ")}</b>
+          {vol.length > 3 && <span className="text-muted"> e mais {vol.length - 3}</span>}
+        </p>
+        <p className="mt-1 text-xs text-muted">Quanto mais forte a cor, mais séries para o músculo.</p>
+      </div>
+    </section>
+  )
+}
+
+const EFFORT_HINT: Record<number, string> = { 1: "muito leve", 3: "leve", 5: "moderado", 7: "pesado", 9: "muito pesado", 10: "máximo" }
+
+/** Check-in de 5 segundos: esforço, dor e sono. Tudo opcional; vai para o personal acompanhar. */
+function CheckinForm({ value, onChange }: { value: Checkin; onChange: (c: Checkin) => void }) {
+  const hint = value.effort === null ? "toque de 1 a 10" : (EFFORT_HINT[value.effort] ?? EFFORT_HINT[value.effort - 1] ?? "")
+  return (
+    <div className="evo-checkin mt-4">
+      <fieldset>
+        <legend className="field-label">
+          Quão pesado foi? <span className="font-normal text-muted">· {hint}</span>
+        </legend>
+        <div className="evo-effort" role="radiogroup" aria-label="Esforço de 1 a 10">
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={value.effort === n}
+              aria-label={`Esforço ${n}${EFFORT_HINT[n] ? `, ${EFFORT_HINT[n]}` : ""}`}
+              className="evo-effort-dot"
+              data-on={value.effort !== null && n <= value.effort ? "" : undefined}
+              onClick={() => onChange({ ...value, effort: value.effort === n ? null : n })}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Choice<Pain> legend="Sentiu dor?" options={[["nenhuma", "Não"], ["leve", "Leve"], ["forte", "Forte"]]} value={value.pain} onChange={(pain) => onChange({ ...value, pain })} />
+        <Choice<Sleep> legend="Como dormiu?" options={[["ruim", "Mal"], ["ok", "Ok"], ["bom", "Bem"]]} value={value.sleep} onChange={(sleep) => onChange({ ...value, sleep })} />
+      </div>
+      {value.pain === "forte" && <p className="mt-2 text-sm text-warning">Seu personal vai ver isso. Se a dor continuar, pare e fale com ele antes do próximo treino.</p>}
+    </div>
+  )
+}
+
+function Choice<T extends string>({ legend, options, value, onChange }: { legend: string; options: [T, string][]; value: T | null; onChange: (v: T | null) => void }) {
+  return (
+    <fieldset>
+      <legend className="field-label">{legend}</legend>
+      <div className="flex gap-1.5" role="radiogroup" aria-label={legend}>
+        {options.map(([v, label]) => (
+          <button key={v} type="button" role="radio" aria-checked={value === v} className="chip flex-1 justify-center" onClick={() => onChange(value === v ? null : v)}>
+            {label}
+          </button>
+        ))}
+      </div>
+    </fieldset>
   )
 }

@@ -5,7 +5,7 @@ test.describe("acesso público sem login", () => {
   test("início abre sem login e identifica o modo demonstração", async ({ page }) => {
     await page.goto("/")
     await expect(page).toHaveURL("/")
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("evolua")
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("perder")
     await expect(page.getByText("Modo demonstração")).toBeVisible()
     await expect(page.getByRole("button", { name: /Restaurar/ })).toBeVisible()
   })
@@ -209,7 +209,9 @@ test.describe("Aluno", () => {
     await expect(page.getByText("2/20 séries")).toBeVisible()
 
     await page.getByRole("button", { name: "Concluir treino" }).click()
-    await page.getByRole("dialog").getByLabel(/Como foi o treino/).fill("Treino de teste")
+    await page.getByRole("dialog").getByRole("radio", { name: /^Esforço 7/ }).click()
+    await page.getByRole("dialog").getByRole("radiogroup", { name: "Sentiu dor?" }).getByRole("radio", { name: "Leve" }).click()
+    await page.getByRole("dialog").getByLabel(/Quer contar algo ao seu personal/).fill("Treino de teste")
     await page.getByRole("dialog").getByRole("button", { name: "Concluir" }).click()
     await expect(page.getByText("Treino concluído", { exact: true })).toBeVisible()
 
@@ -220,6 +222,9 @@ test.describe("Aluno", () => {
     await page.goto("/studio")
     await expect(page.getByText(/Ana Ribeiro concluiu Treino A — Superiores/).first()).toBeVisible()
     await expect(page.getByText("hoje ·").first()).toBeVisible()
+    // o check-in chega ao personal
+    await expect(page.getByText("esforço 7/10").first()).toBeVisible()
+    await expect(page.getByText("dor leve").first()).toBeVisible()
   })
 
   test("troca de aluno e treino sem ficha mostra estado vazio", async ({ page }) => {
@@ -274,10 +279,37 @@ test.describe("persistência", () => {
 
   test("dados corrompidos são substituídos com aviso", async ({ page }) => {
     await page.goto("/")
+    // espera a demonstração iniciar nesta página; senão ela mesma detecta e restaura os dados corrompidos
+    await expect(page.getByText("Modo demonstração")).toBeVisible()
     await page.evaluate(() => localStorage.setItem("evofit:demo:v1", '{"version":0,"lixo":true}'))
     await page.goto("/studio")
     await expect(page.getByRole("alert").filter({ hasText: "dados salvos" })).toContainText("formato antigo ou inválido")
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Olá/)
+  })
+})
+
+test.describe("sem internet", () => {
+  test("treino atribuído abre e roda offline depois de visto uma vez", async ({ page, context }) => {
+    await page.goto("/aluno")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Bora treinar/)
+    // espera o service worker assumir e guardar as fichas do aluno
+    await page.evaluate(async () => {
+      const reg = await navigator.serviceWorker.ready
+      if (!navigator.serviceWorker.controller) await new Promise((r) => navigator.serviceWorker.addEventListener("controllerchange", r, { once: true }))
+      void reg
+    })
+    await page.reload()
+    await page.waitForFunction(async () => {
+      const c = await caches.open("evofit-pages-v1")
+      return !!(await c.match("/aluno/treino/tr-a-superiores"))
+    }, undefined, { timeout: 20_000 })
+    await context.setOffline(true)
+    await page.goto("/aluno/treino/tr-a-superiores")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Treino A/)
+    await page.getByRole("button", { name: "Iniciar treino" }).click()
+    await page.getByRole("button", { name: /^Marcar série 1 de/ }).first().click()
+    await expect(page.getByRole("button", { name: /^Desmarcar série 1 de/ }).first()).toBeVisible()
+    await context.setOffline(false)
   })
 })
 
@@ -291,7 +323,7 @@ test.describe("Biblioteca EVOFIT", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()
     const gif = page.getByRole("img", { name: /Animação EVOFIT: Prancha/ })
     await expect.poll(() => gif.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), { timeout: 15_000 }).toBe(480)
-    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?download")
+    await expect(page.getByRole("link", { name: "Baixar GIF" })).toHaveAttribute("href", "/api/gif/Plank?v=3&download")
     await expect(page.locator("ol.steps > li").first()).toBeVisible()
   })
 
@@ -358,6 +390,22 @@ test.describe("diretório", () => {
     await expect(page.getByText("Nenhum profissional com esses filtros")).toBeVisible()
     await page.goto("/personais/camila-rocha-demo")
     await expect(page.getByRole("heading", { name: "Perfil indisponível" })).toBeVisible()
+  })
+
+  test("WhatsApp e Instagram do perfil viram botões no perfil público", async ({ page }) => {
+    await page.goto("/studio/perfil")
+    await page.getByLabel("WhatsApp (opcional)").fill("(11) 9876-5432")
+    await page.getByLabel("Instagram (opcional)").fill("instagram.com/camila.treina")
+    await page.getByRole("button", { name: "Salvar perfil" }).click()
+    await expect(page.getByLabel("Instagram (opcional)")).toHaveValue("camila.treina")
+    await page.goto("/personais/camila-rocha-demo")
+    await expect(page.getByRole("link", { name: "Chamar no WhatsApp" })).toHaveAttribute("href", /^https:\/\/wa\.me\/551198765432\?text=/)
+    await expect(page.getByRole("link", { name: "@camila.treina" })).toHaveAttribute("href", "https://instagram.com/camila.treina")
+    // valor inválido não salva
+    await page.goto("/studio/perfil")
+    await page.getByLabel("WhatsApp (opcional)").fill("123")
+    await page.getByRole("button", { name: "Salvar perfil" }).click()
+    await expect(page.getByText("Informe o WhatsApp com DDD (10 a 13 dígitos).")).toBeVisible()
   })
 })
 

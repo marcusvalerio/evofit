@@ -7,11 +7,27 @@ import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useToast } from "./providers"
 
+/**
+ * Símbolo EVOFIT: brasa cristalizada — uma chama facetada que sobe. A face Gravy é a base, a Ōtan é
+ * o esforço e o facho claro é a evolução registrada. Funciona de 16 px (favicon) ao ícone do app.
+ */
+export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" className={cx("shrink-0", className)} aria-hidden>
+      <path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="var(--mp-gravy)" />
+      <path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="var(--mp-otan)" />
+      <path d="M19.5 11 19 17.5 12 23.5Z" fill="#E2421A" />
+      <path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#FF8A5C" />
+    </svg>
+  )
+}
+
 export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
   return (
-    <Link href="/" className={cx("inline-flex items-baseline gap-1.5 rounded-md", className)} aria-label="EVOFIT — início">
-      <span className="t-brand text-xl leading-none text-fg">EVOFIT</span>
-      {suffix && <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted">{suffix}</span>}
+    <Link href="/" className={cx("inline-flex items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
+      <BrandMark />
+      <span className="t-brand text-[1.4375rem] leading-none text-fg">evofit</span>
+      {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
     </Link>
   )
 }
@@ -80,19 +96,23 @@ export function DemoBanner() {
 }
 
 function AccountBar() {
-  const { account, sync, syncError } = useDemoState()
+  const { account, sync, syncError, queued } = useDemoState()
   const [busy, setBusy] = useState(false)
   return (
     <>
-      <div className="border-b border-line bg-inverse text-on-inverse">
+      <div className="border-b border-line bg-ink text-on-ink">
         <div className="mx-auto flex min-h-10 max-w-7xl items-center gap-2 px-3 py-1 text-xs sm:gap-3 sm:px-4 sm:py-1.5 sm:text-[0.8125rem]">
           <UserRound size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">
             <strong className="font-semibold">{account?.role === "student" ? "Conta de aluno" : "Conta de personal"}</strong>
             <span className="opacity-80"> · {account?.email}</span>
           </p>
-          <span className="hidden items-center gap-1 opacity-80 sm:inline-flex" aria-live="polite">
-            {sync === "saving" ? (
+          <span className={cx("items-center gap-1 opacity-80", sync === "offline" ? "inline-flex" : "hidden sm:inline-flex")} aria-live="polite">
+            {sync === "offline" ? (
+              <>
+                <CloudOff size={14} aria-hidden /> Sem internet{queued > 0 ? ` · ${queued} ${queued === 1 ? "alteração guardada" : "alterações guardadas"}` : ""}
+              </>
+            ) : sync === "saving" ? (
               <>
                 <span className="spinner" aria-hidden /> Salvando…
               </>
@@ -136,7 +156,7 @@ function DemoStrip() {
   const toast = useToast()
   return (
     <>
-      <div className="border-b border-line bg-inverse text-on-inverse">
+      <div data-demo-strip className="border-b border-line bg-ink text-on-ink">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-1.5 text-[0.8125rem]">
           <FlaskConical size={15} aria-hidden className="shrink-0" />
           <p className="min-w-0 flex-1 truncate">

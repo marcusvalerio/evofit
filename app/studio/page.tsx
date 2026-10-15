@@ -1,11 +1,14 @@
 "use client"
 import Link from "next/link"
-import { ArrowRight, CalendarCheck, ClipboardList, Inbox, UserPlus } from "lucide-react"
+import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, UserPlus, type LucideIcon } from "lucide-react"
+import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
+import { CheckinBadges } from "@/components/checkin-badges"
+import { ChurnRadar } from "@/components/churn-radar"
 import { useData, useIsDemo } from "@/lib/store"
 import { completed, needsAttention, sessionProgress, weekAdherence, weekCount, weeklySeries } from "@/lib/metrics"
 import { addDays, fmtDate, fmtDayMonth, fmtTime, relativeDays } from "@/lib/date"
 import { BarChart } from "@/components/charts"
-import { Avatar, EmptyState, PageHeader, Progress, Stat } from "@/components/ui"
+import { Avatar, cx, EmptyState, PageHeader, Progress, Stat } from "@/components/ui"
 
 export default function StudioDashboard() {
   const d = useData()
@@ -22,6 +25,7 @@ export default function StudioDashboard() {
   const studentName = new Map(d.students.map((s) => [s.id, s.name]))
   const inbox = d.contactRequests.filter((c) => c.trainerSlug === d.profile.slug)
   const live = d.sessions.filter((s) => s.status === "em_andamento")
+  const pending = new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length
 
   return (
     <div className="fade-in">
@@ -41,57 +45,32 @@ export default function StudioDashboard() {
         }
       />
 
-      <section className="studio-command studio-command-photo mt-6 mb-5 overflow-hidden rounded-2xl p-5 sm:p-7" aria-label="Resumo do Studio">
-        <img className="studio-command-image" src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1600&q=85" alt="" aria-hidden="true" loading="eager" />
-        <div className="studio-command-shade" aria-hidden="true" />
-        <div className="studio-command-content flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-xl">
-            <p className="studio-command-kicker">EVOFIT / PAINEL DO PERSONAL</p>
-            <h2 className="mt-3 text-2xl font-black tracking-[-0.055em] leading-tight sm:text-4xl">Treino planejado.<br className="hidden sm:block" /> Evolução acompanhada.</h2>
-            <p className="mt-3 max-w-lg text-sm leading-relaxed opacity-75">Uma visão clara da rotina dos seus alunos, das sessões concluídas e de quem precisa de atenção.</p>
-          </div>
-          <div className="studio-command-mark" aria-hidden="true">EF<span>.</span></div>
-        </div>
-      </section>
-
-      <section aria-label="Indicadores" className="stagger grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat label="Alunos ativos" value={String(active.length)} hint={`${d.students.length - active.length} arquivado(s)`} />
-        <Stat label="Treinos · 7 dias" value={String(last7)} hint="sessões concluídas" />
-        <Stat label="Aderência da semana" value={adherence === null ? "—" : String(adherence)} unit={adherence === null ? undefined : "%"} hint="sessões feitas ÷ metas semanais" tone="accent" />
-        <Stat label="Sem treinar 7+ dias" value={String(attention.length)} hint="alunos ativos" tone={attention.length ? "warning" : undefined} />
-      </section>
-
-      <section className="evo-today mt-5" aria-labelledby="evo-today-title">
+      <section className="evo-today ink" aria-labelledby="evo-today-title">
         <div className="evo-today-heading">
-          <div>
-            <p className="evo-today-kicker">CENTRAL DE AÇÕES</p>
-            <h2 id="evo-today-title">O que merece sua atenção</h2>
-            <p>Prioridades calculadas a partir da atividade registrada no EVOFIT.</p>
+          <div className="min-w-0">
+            <p className="evo-today-kicker">Central de ações</p>
+            <h2 id="evo-today-title">{pending ? `${pending} ${pending === 1 ? "item merece" : "itens merecem"} sua atenção` : "Tudo em dia por aqui"}</h2>
+            <p>Calculado a partir dos treinos que seus alunos registraram.</p>
           </div>
-          <span className="evo-today-count">{new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length}</span>
+          <span className="evo-today-count" aria-hidden>{pending}</span>
         </div>
         <div className="evo-today-list">
-          <Link href="/studio/alunos" className="evo-today-item">
-            <span className="evo-today-icon evo-today-icon-mint"><UserPlus size={19} aria-hidden /></span>
-            <span className="evo-today-copy"><strong>Alunos sem ficha atribuída</strong><small>{noWorkout.length ? "Revise os alunos ativos que ainda não têm um plano." : "Todos os alunos ativos têm ficha atribuída."}</small></span>
-            <span className="evo-today-value">{noWorkout.length}</span><ArrowRight size={17} aria-hidden />
-          </Link>
-          <Link href="/studio/alunos" className="evo-today-item">
-            <span className="evo-today-icon evo-today-icon-lilac"><CalendarCheck size={19} aria-hidden /></span>
-            <span className="evo-today-copy"><strong>Alunos sem treino recente</strong><small>{attention.length ? "Confira quem está há 7 dias ou mais sem concluir uma sessão." : "Nenhum aluno ativo está nessa condição."}</small></span>
-            <span className="evo-today-value">{attention.length}</span><ArrowRight size={17} aria-hidden />
-          </Link>
-          <Link href="/studio/perfil#solicitacoes" className="evo-today-item">
-            <span className="evo-today-icon evo-today-icon-neutral"><Inbox size={19} aria-hidden /></span>
-            <span className="evo-today-copy"><strong>Solicitações de contato</strong><small>{inbox.length ? "Há solicitações aguardando sua análise." : "Nenhuma solicitação nova registrada."}</small></span>
-            <span className="evo-today-value">{inbox.length}</span><ArrowRight size={17} aria-hidden />
-          </Link>
-          <Link href="/studio/treinos" className="evo-today-item">
-            <span className="evo-today-icon evo-today-icon-mint"><ClipboardList size={19} aria-hidden /></span>
-            <span className="evo-today-copy"><strong>Sessões em andamento</strong><small>{live.length ? "Acompanhe os alunos que estão treinando agora." : "Nenhuma sessão em andamento neste momento."}</small></span>
-            <span className="evo-today-value">{live.length}</span><ArrowRight size={17} aria-hidden />
-          </Link>
+          <TodayItem href={attention[0] ? `/studio/alunos/${attention[0].student.id}` : "/studio/alunos"} icon={CalendarCheck} tone="warn" title="Sem treino há 7+ dias" value={attention.length} detail={attention.length ? listNames(attention.map((a) => a.student.name)) : "Todos treinaram nos últimos 7 dias."} />
+          <TodayItem href={noWorkout[0] ? `/studio/alunos/${noWorkout[0].id}` : "/studio/alunos"} icon={UserPlus} tone="peach" title="Sem ficha atribuída" value={noWorkout.length} detail={noWorkout.length ? listNames(noWorkout.map((s) => s.name)) : "Todos os alunos ativos têm ficha."} />
+          <TodayItem href="/studio/treinos" icon={ClipboardList} tone="blue" title="Treinando agora" value={live.length} detail={live.length ? listNames(live.map((s) => studentName.get(s.studentId) ?? "Aluno")) : "Nenhuma sessão em andamento."} />
+          <TodayItem href="/studio/perfil#solicitacoes" icon={Inbox} title="Pedidos de contato" value={inbox.length} detail={inbox.length ? "Novos alunos pelo diretório." : "Nenhum pedido novo."} />
         </div>
+      </section>
+
+      <div className="mt-4">
+        <ChurnRadar d={d} now={now} />
+      </div>
+
+      <section aria-label="Indicadores" className="stagger mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Aderência da semana" value={adherence === null ? "—" : String(adherence)} unit={adherence === null ? undefined : "%"} hint="sessões feitas ÷ metas semanais" tone="accent" />
+        <Stat label="Treinos · 7 dias" value={String(last7)} hint="sessões concluídas" />
+        <Stat label="Alunos ativos" value={String(active.length)} hint={`${d.students.length - active.length} arquivado(s)`} />
+        <Stat label="Sem treinar 7+ dias" value={String(attention.length)} hint="alunos ativos" tone={attention.length ? "warning" : undefined} />
       </section>
 
       <div className="stagger mt-6 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
@@ -123,12 +102,22 @@ export default function StudioDashboard() {
           ) : (
             <ul className="mt-4 divide-y divide-line">
               {attention.map(({ student, since }) => (
-                <li key={student.id}>
-                  <Link href={`/studio/alunos/${student.id}`} className="flex items-center gap-3 rounded-lg py-3 hover:bg-line/40">
+                <li key={student.id} className="flex items-center gap-2">
+                  <Link href={`/studio/alunos/${student.id}`} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg py-3 hover:bg-line/40">
                     <Avatar name={student.name} size="sm" />
                     <span className="min-w-0 flex-1 truncate font-medium">{student.name}</span>
                     <span className="badge badge-warning">{since === null ? "nunca treinou" : `${since} dias`}</span>
                   </Link>
+                  <a
+                    href={whatsappLink(student.phone, comebackMessage(student.name, d.profile.name, since))}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline btn-sm shrink-0"
+                    aria-label={`Chamar ${student.name} no WhatsApp`}
+                    title={student.phone ? "Mensagem pronta no WhatsApp" : "Sem telefone cadastrado: escolha o contato no WhatsApp"}
+                  >
+                    <MessageCircle size={16} aria-hidden /> <span className="hidden sm:inline">Chamar</span>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -184,6 +173,11 @@ export default function StudioDashboard() {
                     <p className="text-xs text-muted">
                       {relativeDays(s.startedAt, now)} · {fmtTime(s.startedAt)}
                     </p>
+                    {s.checkin && (
+                      <p className="mt-1">
+                        <CheckinBadges checkin={s.checkin} />
+                      </p>
+                    )}
                   </div>
                 </li>
               ))}
@@ -228,5 +222,26 @@ export default function StudioDashboard() {
         </section>
       </div>
     </div>
+  )
+}
+
+function listNames(names: string[]) {
+  const first = names.slice(0, 2).map((n) => n.split(" ")[0])
+  return names.length > 2 ? `${first.join(", ")} e mais ${names.length - 2}` : first.join(" e ")
+}
+
+function TodayItem({ href, icon: Icon, tone, title, value, detail }: { href: string; icon: LucideIcon; tone?: "warn" | "peach" | "blue"; title: string; value: number; detail: string }) {
+  return (
+    <Link href={href} className={cx("evo-today-item", value === 0 && "is-clear")}>
+      <span className={cx("evo-today-icon", tone && `evo-today-icon-${tone}`)}>
+        <Icon size={19} aria-hidden />
+      </span>
+      <span className="evo-today-copy">
+        <strong>{title}</strong>
+        <small>{detail}</small>
+      </span>
+      <span className="evo-today-value">{value}</span>
+      <ArrowRight size={17} aria-hidden />
+    </Link>
   )
 }
