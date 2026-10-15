@@ -1,11 +1,15 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { LogIn } from "lucide-react"
+import { useDemoState } from "@/lib/store"
+import { homeFor } from "@/lib/account-client"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { cx } from "./ui"
 
 export function PublicShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
+  const { mode, account } = useDemoState()
   const links = [
     { href: "/biblioteca", label: "Biblioteca" },
     { href: "/personais", label: "Encontrar personal" },
@@ -29,13 +33,27 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
                 aria-current={path.startsWith(l.href) ? "page" : undefined}
                 className={cx(
                   "h-9 items-center rounded-full px-3 text-sm font-medium transition-colors",
-                  l.href === "/biblioteca" || l.href === "/studio" ? "inline-flex" : "hidden md:inline-flex",
+                  l.href === "/biblioteca" ? "hidden sm:inline-flex" : l.href === "/studio" ? "inline-flex" : "hidden md:inline-flex",
                   path.startsWith(l.href) ? "bg-surface text-fg shadow-[var(--shadow)]" : "text-muted hover:text-fg",
                 )}
               >
                 {l.label}
               </Link>
             ))}
+            {mode === "account" && account ? (
+              <Link href={homeFor(account.role)} className="btn btn-primary btn-sm ml-1">
+                {account.role === "student" ? "Meus treinos" : "Meu Studio"}
+              </Link>
+            ) : (
+              <>
+                <Link href="/entrar" aria-current={path === "/entrar" ? "page" : undefined} className="btn btn-ghost btn-sm">
+                  <LogIn size={15} aria-hidden /> Entrar
+                </Link>
+                <Link href="/criar-conta" className="btn btn-primary btn-sm hidden sm:inline-flex">
+                  Criar conta
+                </Link>
+              </>
+            )}
             <ThemeToggle />
           </nav>
         </div>

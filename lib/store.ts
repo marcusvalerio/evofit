@@ -20,6 +20,8 @@ export interface AccountInfo {
   role: "trainer" | "student"
   /** Acesso com senha provisória: precisa criar a própria senha antes de usar o app. */
   mustChangePassword?: boolean
+  /** E-mail em ADMIN_EMAILS: vê o painel de administração. */
+  isAdmin?: boolean
 }
 
 export type SyncStatus = "idle" | "saving" | "error" | "offline"

@@ -90,7 +90,7 @@ export async function accountFromToken(token: string | undefined, db: Db = getDb
   return db.tx(async (q) => {
     const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean }>(
       `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password from auth_sessions s join users u on u.id = s.user_id
-       where s.token_hash = $1 and s.expires_at > now()`,
+       where s.token_hash = $1 and s.expires_at > now() and u.disabled_at is null`,
       [hashToken(token)],
     )
     const u = r.rows[0]
@@ -141,10 +141,12 @@ export async function login(input: { email: unknown; password: unknown }, db: Db
   const column = id.includes("@") ? "email" : "username"
   const u = await db.tx(
     async (q) =>
-      (await q.query<{ id: string; password_hash: string; role: Account["role"]; must_change_password: boolean }>(`select id, password_hash, role, must_change_password from users where lower(${column}) = $1`, [id])).rows[0],
+      (await q.query<{ id: string; password_hash: string; role: Account["role"]; must_change_password: boolean; disabled_at: unknown }>(`select id, password_hash, role, must_change_password, disabled_at from users where lower(${column}) = $1`, [id])).rows[0],
   )
   const ok = await verifyPassword(input.password, u?.password_hash ?? DUMMY)
   if (!u || !ok) return null
+  // conta suspensa: só avisa depois de a senha conferir (não revela quais contas existem)
+  if (u.disabled_at) throw new HttpError(403, "Conta suspensa. Fale com o suporte do EVOFIT.")
   const token = await db.tx(async (q) => {
     await q.query("update users set last_login_at = now() where id = $1", [u.id])
     return createSession(q, u.id)

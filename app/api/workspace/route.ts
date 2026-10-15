@@ -1,4 +1,5 @@
 import { withTenant } from "@/lib/server/db"
+import { isAdmin } from "@/lib/server/admin"
 import { assertSameOrigin, handle, json, readJson, requireAccount } from "@/lib/server/http"
 import { applyChanges, loadWorkspace } from "@/lib/server/workspace"
 import type { Account } from "@/lib/server/auth"
@@ -11,7 +12,7 @@ const tenant = (a: Account) => (a.role === "trainer" ? { role: "trainer" as cons
 export const GET = handle(async () => {
   const a = await requireAccount()
   const data = await withTenant(tenant(a), (q) => loadWorkspace(q, tenant(a)))
-  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword }, data })
+  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword, isAdmin: isAdmin(a) }, data })
 })
 
 /** Recebe só o que mudou; o servidor revalida e grava numa transação. */

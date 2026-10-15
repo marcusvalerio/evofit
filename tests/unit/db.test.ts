@@ -4,6 +4,7 @@ import type { Db } from "@/lib/server/db"
 import { withTenant } from "@/lib/server/db"
 import { migrate } from "@/lib/server/migrate"
 import * as Auth from "@/lib/server/auth"
+import * as Admin from "@/lib/server/admin"
 import { applyChanges, loadWorkspace } from "@/lib/server/workspace"
 import { diff } from "@/lib/sync"
 import { publicProfiles, sendContact } from "@/lib/server/directory"
@@ -54,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -332,5 +333,128 @@ describe("aluno com convite", () => {
     expect(left).toBe(0)
     // os dados da outra personal continuam
     expect((await load(bia)).students).toHaveLength(2)
+  })
+})
+
+describe("administração", () => {
+  const ENV = " Bia@Exemplo.com , outra@exemplo.com"
+  let caio: Acc
+
+  beforeAll(async () => {
+    caio = await signup("Caio Personal", "caio@exemplo.com")
+    await act(caio, (x) =>
+      A.addStudent(
+        x,
+        {
+          name: "Aluna Secreta",
+          goal: "",
+          level: "iniciante",
+          weeklyTarget: 3,
+          notes: "",
+        },
+        "al-secreta",
+      ),
+    )
+    await act(caio, (x) =>
+      A.saveProfile(x, {
+        ...x.profile,
+        city: "Natal",
+        state: "RN",
+        specialties: ["Força"],
+        directoryVisible: true,
+      }),
+    )
+  })
+
+  it("só e-mails em ADMIN_EMAILS (contas de personal) são admin", async () => {
+    expect(Admin.isAdmin(bia, ENV)).toBe(true)
+    expect(Admin.isAdmin(caio, ENV)).toBe(false)
+    expect(Admin.isAdmin(null, ENV)).toBe(false)
+    expect(Admin.isAdmin(bia, "")).toBe(false)
+    expect(Admin.isAdmin({ ...bia, role: "student" }, ENV)).toBe(false)
+    expect(() => Admin.assertAdmin(caio, ENV)).toThrow(expect.objectContaining({ status: 404 }))
+  })
+
+  it("visão geral e lista mostram números, nunca dados de alunos", async () => {
+    const o = await Admin.overview(db)
+    expect(o.trainers).toBeGreaterThanOrEqual(2)
+    expect(o.students).toBeGreaterThanOrEqual(3)
+    expect(o.listed).toBeGreaterThanOrEqual(1)
+    expect(o.signups).toHaveLength(8)
+    expect(o.signups.at(-1)!.count).toBeGreaterThanOrEqual(2)
+    const list = await Admin.listTrainers(db)
+    const c = list.find((t) => t.id === caio.trainerId)!
+    expect(c).toMatchObject({
+      email: "caio@exemplo.com",
+      students: 1,
+      directoryVisible: true,
+      suspended: false,
+    })
+    expect(JSON.stringify({ o, list })).not.toContain("Aluna Secreta")
+  })
+
+  it("o papel admin não altera dados dos personais", async () => {
+    const r = await withTenant({ role: "admin", trainerId: null }, (q) => q.query("update students set name = 'Invasão' where trainer_id = $1", [caio.trainerId]), db)
+    expect(r.affectedRows ?? r.rowCount).toBe(0)
+    await expect(withTenant({ role: "admin", trainerId: null }, (q) => q.query("delete from sessions"), db)).resolves.toBeDefined()
+    expect((await load(caio)).students[0].name).toBe("Aluna Secreta")
+  })
+
+  it("senha provisória para o personal: derruba sessões e exige troca", async () => {
+    const before = await Auth.login({ email: "caio@exemplo.com", password: "senha-segura-1" }, db)
+    const { login, password } = await Admin.resetTrainerPassword(bia, caio.trainerId, db)
+    expect(login).toBe("caio@exemplo.com")
+    expect(await Auth.accountFromToken(before!.token, db)).toBeNull()
+    expect(await Auth.login({ email: "caio@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
+    const r = await Auth.login({ email: "caio@exemplo.com", password }, db)
+    expect(r).toMatchObject({ role: "trainer", mustChangePassword: true })
+    const acc = (await Auth.accountFromToken(r!.token, db))!
+    await Auth.changePassword(acc, { password: "nova-senha-caio" }, r!.token, db)
+    expect(await Auth.login({ email: "caio@exemplo.com", password: "nova-senha-caio" }, db)).toMatchObject({ mustChangePassword: false })
+    await expectStatus(Admin.resetTrainerPassword(bia, "nao-e-uuid", db), 400)
+  })
+
+  it("suspender bloqueia o personal e os alunos; reativar devolve o acesso", async () => {
+    const student = await Auth.createStudentAccess({ ...caio, mustChangePassword: false }, "al-secreta", db)
+    const live = await Auth.login({ email: "caio@exemplo.com", password: "nova-senha-caio" }, db)
+    await expectStatus(Admin.suspendTrainer(bia, bia.trainerId, "teste", db), 409)
+    await expectStatus(Admin.suspendTrainer(bia, caio.trainerId, "", db), 400)
+    await Admin.suspendTrainer(bia, caio.trainerId, "Cobrança indevida", db)
+    expect(await Auth.accountFromToken(live!.token, db)).toBeNull()
+    await expectStatus(Auth.login({ email: "caio@exemplo.com", password: "nova-senha-caio" }, db), 403)
+    await expectStatus(Auth.login({ email: student.login, password: student.password }, db), 403)
+    // senha errada continua só "incorreta": não revela a suspensão
+    expect(await Auth.login({ email: "caio@exemplo.com", password: "errada-123" }, db)).toBeNull()
+    const c = (await Admin.listTrainers(db)).find((t) => t.id === caio.trainerId)!
+    expect(c).toMatchObject({ suspended: true, directoryVisible: false })
+    expect((await Admin.overview(db)).suspended).toBe(1)
+
+    await Admin.reactivateTrainer(bia, caio.trainerId, db)
+    expect(await Auth.login({ email: "caio@exemplo.com", password: "nova-senha-caio" }, db)).toMatchObject({ role: "trainer" })
+    expect(await Auth.login({ email: student.login, password: student.password }, db)).toMatchObject({ role: "student" })
+  })
+
+  it("tirar do diretório, saúde e registro de ações", async () => {
+    await act(caio, (x) =>
+      A.saveProfile(x, {
+        ...x.profile,
+        city: "Natal",
+        state: "RN",
+        specialties: ["Força"],
+        directoryVisible: true,
+      }),
+    )
+    await Admin.hideFromDirectory(bia, caio.trainerId, db)
+    expect((await load(caio)).profile.directoryVisible).toBe(false)
+    const h = await Admin.health(db)
+    expect(h.applied).toContain("005_admin.sql")
+    expect(h.pending).toEqual([])
+    const log = await Admin.auditLog(10, db)
+    expect(log.map((e) => e.action)).toEqual(["tirar_do_diretorio", "reativar", "suspender", "senha_provisoria"])
+    expect(log[2]).toMatchObject({
+      admin: "bia@exemplo.com",
+      detail: "Cobrança indevida",
+    })
+    expect(log[0].target).toContain("Caio Personal")
   })
 })

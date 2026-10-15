@@ -199,3 +199,82 @@ test.describe("conta real", () => {
     expect((await request.get("/api/invites/codigo-falso")).status()).toBe(404)
   })
 })
+
+test.describe("administração", () => {
+  test("admin acompanha a plataforma, gera senha provisória para o personal e suspende a conta", async ({ page, browser }, info) => {
+    const adminEmail = `admin-${info.project.name}@exemplo.com`
+    // em nova tentativa a conta já existe: entra em vez de criar
+    await page.goto("/entrar")
+    await page.getByLabel("E-mail ou usuário").fill(adminEmail)
+    await page.getByLabel("Senha", { exact: true }).fill(PASSWORD)
+    await page.getByRole("button", { name: "Entrar" }).click()
+    if (
+      !(await page.waitForURL("/studio", { timeout: 4000 }).then(
+        () => true,
+        () => false,
+      ))
+    )
+      await signup(page, "Equipe EVOFIT", adminEmail)
+
+    // personal comum: não vê a área
+    const id = unique("t", info.project.name)
+    const email = `${id}@exemplo.com`
+    const ctx = await browser.newContext({
+      viewport: { width: 375, height: 812 },
+    })
+    const tr = await ctx.newPage()
+    await signup(tr, "Tiago Personal", email)
+    await expect(tr.getByRole("link", { name: "Administração" })).toHaveCount(0)
+    await tr.goto("/admin")
+    await expect(tr.getByRole("heading", { name: "Área restrita" })).toBeVisible()
+    expect((await tr.request.get("/api/admin")).status()).toBe(404)
+
+    // admin
+    await page.getByRole("link", { name: "Administração" }).filter({ visible: true }).first().click()
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Como está o EVOFIT")
+    await page.getByLabel("Buscar personal").fill(email)
+    const row = page.locator(".evo-admin-row").filter({ hasText: email })
+    await expect(row).toHaveCount(1)
+    await row.getByLabel("Ações para Tiago Personal").click()
+    await row.getByRole("menuitem", { name: "Gerar senha provisória" }).click()
+    await page.getByRole("dialog", { name: "Gerar senha provisória?" }).getByRole("button", { name: "Gerar senha" }).click()
+    const issued = page.getByRole("dialog", {
+      name: /Senha provisória de Tiago/,
+    })
+    const temp = (await issued.locator(".evo-access-cred dd").nth(1).textContent())!.trim()
+    expect(temp).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/)
+    await page.keyboard.press("Escape")
+
+    // o personal saiu de todos os aparelhos e entra com a senha provisória
+    await tr.goto("/studio")
+    await expect(tr.getByText("Modo demonstração").first()).toBeVisible()
+    await tr.goto("/entrar")
+    await tr.getByText("Esqueci minha senha").click()
+    await expect(tr.getByText(/fale com o suporte do EVOFIT/)).toBeVisible()
+    await tr.getByLabel("E-mail ou usuário").fill(email)
+    await tr.getByLabel("Senha", { exact: true }).fill(temp)
+    await tr.getByRole("button", { name: "Entrar" }).click()
+    await expect(tr.getByRole("heading", { level: 1 })).toHaveText("Crie sua senha")
+    await tr.getByLabel("Nova senha", { exact: true }).fill("nova-senha-tiago")
+    await tr.getByLabel("Repita a nova senha").fill("nova-senha-tiago")
+    await tr.getByRole("button", { name: "Salvar senha e entrar" }).click()
+    await expect(tr.getByRole("heading", { level: 1 })).toHaveText(/Olá, Tiago/)
+
+    // suspensão com motivo: sai na hora e não entra mais
+    await page.reload()
+    await page.getByLabel("Buscar personal").fill(email)
+    await row.getByLabel("Ações para Tiago Personal").click()
+    await row.getByRole("menuitem", { name: "Suspender conta" }).click()
+    const suspend = page.getByRole("dialog", { name: /Suspender Tiago/ })
+    await suspend.getByLabel("Motivo").fill(`Pedido do próprio personal ${id}`)
+    await suspend.getByRole("button", { name: "Suspender" }).click()
+    await expect(row.getByText("Suspenso")).toBeVisible()
+    await expect(page.getByText(`“Pedido do próprio personal ${id}”`)).toBeVisible()
+    await tr.goto("/entrar")
+    await tr.getByLabel("E-mail ou usuário").fill(email)
+    await tr.getByLabel("Senha", { exact: true }).fill("nova-senha-tiago")
+    await tr.getByRole("button", { name: "Entrar" }).click()
+    await expect(tr.getByText("Conta suspensa. Fale com o suporte do EVOFIT.")).toBeVisible()
+    await ctx.close()
+  })
+})

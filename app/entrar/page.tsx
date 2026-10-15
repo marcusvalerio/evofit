@@ -6,6 +6,9 @@ import { postJson, homeFor, hardNavigate } from "@/lib/account-client"
 import { Field } from "@/components/ui"
 import { AuthCard, FormError, PasswordField } from "@/components/auth-form"
 
+/** Contato do suporte (opcional), configurado no deploy. */
+const SUPPORT = process.env.NEXT_PUBLIC_SUPPORT_EMAIL ?? ""
+
 export default function EntrarPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -55,6 +58,27 @@ export default function EntrarPage() {
           {busy ? <span className="spinner" aria-hidden /> : <LogIn size={18} aria-hidden />} Entrar
         </button>
       </form>
+      <details className="evo-forgot mt-4">
+        <summary>Esqueci minha senha</summary>
+        <div className="space-y-2 pt-2 text-sm text-muted">
+          <p>
+            <b className="text-fg">Aluno:</b> peça ao seu personal para gerar uma nova senha provisória — ele faz isso na sua ficha, em “Acesso ao app”.
+          </p>
+          <p>
+            <b className="text-fg">Personal:</b> fale com o suporte do EVOFIT
+            {SUPPORT ? (
+              <>
+                {" "}
+                em{" "}
+                <a className="font-semibold text-accent hover:underline" href={`mailto:${SUPPORT}?subject=${encodeURIComponent("Nova senha do EVOFIT")}`}>
+                  {SUPPORT}
+                </a>
+              </>
+            ) : null}{" "}
+            usando o e-mail da sua conta. Você recebe uma senha provisória e cria uma nova no primeiro acesso.
+          </p>
+        </div>
+      </details>
     </AuthCard>
   )
 }

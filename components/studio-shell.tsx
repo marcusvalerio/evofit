@@ -1,10 +1,11 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, Smartphone, UserRound, Users, Wallet } from "lucide-react"
+import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "lucide-react"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
+import { FirstAccessPassword } from "./first-access"
 
 const NAV = [
   { href: "/studio", label: "Painel", icon: LayoutDashboard, exact: true },
@@ -24,6 +25,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
   const { data, mode, account } = useDemoState()
   const isStudent = mode === "account" && account?.role === "student"
+  const mustChange = mode === "account" && account?.role === "trainer" && !!account.mustChangePassword
+  const isAdmin = mode === "account" && !!account?.isAdmin
 
   return (
     <div className="min-h-dvh">
@@ -64,6 +67,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             <Link href="/personais" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
               <Search size={17} aria-hidden /> Encontrar personal
             </Link>
+            {isAdmin && (
+              <Link href="/admin" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
+                <ShieldCheck size={17} aria-hidden /> Administração
+              </Link>
+            )}
           </div>
           <div className="mt-auto flex items-center gap-3 rounded-xl px-3 py-2">
             {data && <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" />}
@@ -80,6 +88,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           <header className="glass sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
             <Brand suffix="Studio" />
             <div className="flex items-center gap-1">
+              {isAdmin && (
+                <Link href="/admin" className="btn btn-ghost btn-icon btn-sm" aria-label="Administração">
+                  <ShieldCheck size={17} aria-hidden />
+                </Link>
+              )}
               <Link href="/aluno" className="btn btn-ghost btn-sm" aria-label="Abrir app do aluno">
                 <Smartphone size={17} aria-hidden />
                 <span className="hidden sm:inline">App do aluno</span>
@@ -91,6 +104,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           <main id="conteudo" className="flex-1 px-4 pb-28 pt-6 sm:px-6 lg:px-10 lg:pb-12 lg:pt-10">
             {!data ? (
               <LoadingScreen />
+            ) : mustChange ? (
+              <FirstAccessPassword login={account?.email ?? ""} who="trainer" />
             ) : isStudent ? (
               <NotFoundState title="Esta é a área do personal" href="/aluno" cta="Ir para meus treinos">
                 Você entrou com uma conta de aluno. Seus treinos estão no app do aluno.

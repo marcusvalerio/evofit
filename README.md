@@ -37,6 +37,8 @@ Veja `.env.example`. **Sem nenhuma variável o app roda no modo demonstração**
 | Variável | Onde | Para quê |
 |---|---|---|
 | `DATABASE_URL` | servidor (Vercel e `.env.local`) | Conexão com o Neon (URL *pooled*, com `-pooler` no host). Nunca vai para o navegador. |
+| `ADMIN_EMAILS` | servidor (Vercel) | E-mails (separados por vírgula) de contas de personal que veem o painel `/admin`. Sem ela, ninguém é admin. |
+| `NEXT_PUBLIC_SUPPORT_EMAIL` | opcional | E-mail de suporte mostrado em “Esqueci minha senha”. |
 | `DATABASE_URL_MIGRATIONS` | opcional, só para `npm run db:migrate` | URL direta (sem `-pooler`). |
 | `DB_POOL_MAX` | opcional | Conexões por instância (padrão 5). |
 
@@ -172,7 +174,7 @@ Contraste (WCAG 2.x):
 
 - **Dados não sincronizam entre dispositivos ou navegadores** — cada navegador tem sua própria cópia da demonstração.
 - **Solicitações de contato não são enviadas a ninguém.** Ficam salvas no navegador; as do perfil do próprio Studio aparecem em Studio → Perfil. O formulário avisa isso explicitamente.
-- Sem `DATABASE_URL`, não há contas: tudo fica no navegador. Com ela, ainda não há recuperação de senha, verificação de e-mail, upload de foto, pagamentos ou notificações.
+- Sem `DATABASE_URL`, não há contas: tudo fica no navegador. Com ela, a recuperação de senha do personal é feita pelo admin (senha provisória); ainda não há envio automático por e-mail, verificação de e-mail, upload de foto, pagamentos ou notificações.
 - Exercícios do catálogo são somente leitura (o personal adiciona vídeo/dica); exercícios próprios podem ser editados/excluídos (exclusão bloqueada se estiverem em uso).
 - Os GIFs são feitos a partir de **dois quadros** (posição inicial e final) com transição suave — mostram claramente o início e o fim do movimento, mas não são um vídeo contínuo. Para o movimento completo, use o vídeo próprio do personal.
 - O app não hospeda vídeos: o personal usa um link do YouTube, Vimeo, Google Drive ou um arquivo já publicado. Vídeos privados não tocam para o aluno.
@@ -205,3 +207,15 @@ A demonstração sem login continua igual. Com `DATABASE_URL` configurada, o app
 4. Teste: criar conta, cadastrar aluno, gerar convite, entrar como aluno em outro navegador e registrar um treino.
 
 **Limites atuais:** não há recuperação de senha por e-mail nem verificação de e-mail (exigem um serviço de e-mail); o personal pode gerar um novo convite se o aluno perder o acesso. Não há importação dos dados da demonstração para a conta.
+
+## Administração (`/admin`)
+
+Para quem opera o EVOFIT. Acesso: conta de personal cujo e-mail está em `ADMIN_EMAILS`; para qualquer outra conta a página e a API (`/api/admin`) respondem como inexistentes (404).
+
+- **Visão geral:** personais (novos em 7/30 dias), ativação (personal com aluno e ficha), alunos ativos e com login, treinos concluídos, personais ativos na semana, perfis no diretório, suspensos e cadastros por semana.
+- **Personais:** busca e filtros (ativos, parados há 14 dias, suspensos) com cadastro, último acesso, alunos, fichas e treinos da semana.
+- **Ações:** gerar senha provisória (o personal cria a nova no próximo acesso — é o “esqueci minha senha”), suspender com motivo (personal e alunos saem na hora e não entram; nada é apagado), reativar e tirar do diretório.
+- **Saúde:** latência do banco, migrações aplicadas/pendentes e sessões abertas.
+- **Registro de ações:** toda ação fica em `admin_audit` com quem fez, quando e o motivo.
+
+Privacidade: o papel `admin` do banco só lê (contagens) via RLS e só altera a visibilidade no diretório; nunca vê nomes, medidas, treinos ou valores dos alunos. Migração: `005_admin.sql`.
