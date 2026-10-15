@@ -7,6 +7,7 @@ import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
 import { useToast } from "./providers"
+import { FirstAccessPassword } from "./first-access"
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
@@ -16,8 +17,10 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const inWorkout = path.startsWith("/aluno/treino/")
   const role = mode === "account" ? account?.role : null
 
+  const mustChange = role === "student" && !!account?.mustChangePassword
   let content: React.ReactNode = data ? children : <LoadingScreen />
-  if (data && role === "trainer")
+  if (data && mustChange) content = <FirstAccessPassword login={account?.email ?? ""} />
+  else if (data && role === "trainer")
     content = (
       <NotFoundState title="Esta é a área do aluno" href="/studio/alunos" cta="Ir para meus alunos">
         Você entrou como personal. Seus alunos acessam o app pelo link de convite que você gera na página de cada aluno.
@@ -56,7 +59,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
       <main className={cx("mx-auto max-w-xl px-4 pt-5", inWorkout ? "pb-40" : "pb-28")}>{content}</main>
 
-      {!inWorkout && (
+      {!inWorkout && !mustChange && (
         <nav aria-label="Aluno" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
           <ul className={cx("mx-auto grid max-w-xl", role ? "grid-cols-2" : "grid-cols-3")}>
             {[

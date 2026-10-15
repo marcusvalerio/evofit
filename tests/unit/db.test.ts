@@ -54,7 +54,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "0042_exercise_illustrations.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -243,6 +243,55 @@ describe("aluno com convite", () => {
     expect(d.assessments.map((a) => a.id)).toEqual(["av-c1"])
   })
 
+  it("acesso gerado pelo personal: senha provisória, troca obrigatória, nova senha e revogação", async () => {
+    await expectStatus(Auth.createStudentAccess(ana, "al-carlos", db), 409) // já tem login (convite)
+    await expectStatus(Auth.createStudentAccess(bia, "al-duda", db), 404) // aluno de outro personal
+    await expectStatus(Auth.createStudentAccess(carlos, "al-duda", db), 403) // aluno não gerencia acesso
+    expect(await Auth.studentAccess(ana, "al-duda", db)).toEqual({ status: "none", login: null, lastLoginAt: null })
+
+    const { login, password } = await Auth.createStudentAccess(ana, "al-duda", db)
+    expect(login).toBe("duda.aluna")
+    expect(password).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/)
+    expect((await Auth.studentAccess(ana, "al-duda", db)).status).toBe("pending")
+
+    // entra com o usuário (sem diferenciar maiúsculas) e precisa trocar a senha
+    const first = await Auth.login({ email: "DUDA.Aluna", password }, db)
+    expect(first).toMatchObject({ role: "student", mustChangePassword: true })
+    const second = await Auth.login({ email: "duda.aluna", password }, db)
+    let duda = (await Auth.accountFromToken(first!.token, db))!
+    expect(duda).toMatchObject({ studentId: "al-duda", mustChangePassword: true, email: "duda.aluna" })
+    await expectStatus(Auth.changePassword(duda, { password: "curta" }, first!.token, db), 400)
+    await expectStatus(Auth.changePassword(duda, { password }, first!.token, db), 400) // igual à provisória
+    await Auth.changePassword(duda, { password: "minha-senha-nova" }, first!.token, db)
+    duda = (await Auth.accountFromToken(first!.token, db))!
+    expect(duda.mustChangePassword).toBe(false)
+    expect(await Auth.accountFromToken(second!.token, db)).toBeNull() // outras sessões encerradas
+    expect(await Auth.login({ email: "duda.aluna", password }, db)).toBeNull()
+    expect(await Auth.login({ email: "duda.aluna", password: "minha-senha-nova" }, db)).toMatchObject({ mustChangePassword: false })
+    const st = await Auth.studentAccess(ana, "al-duda", db)
+    expect(st.status).toBe("active")
+    expect(st.lastLoginAt).not.toBeNull()
+    // fora do primeiro acesso, trocar a senha exige a atual
+    await expectStatus(Auth.changePassword(duda, { password: "outra-senha-123" }, first!.token, db), 400)
+
+    // nova senha: a anterior para de funcionar e todas as sessões caem
+    const reset = await Auth.resetStudentPassword(ana, "al-duda", db)
+    expect(reset.login).toBe("duda.aluna")
+    expect(await Auth.accountFromToken(first!.token, db)).toBeNull()
+    expect(await Auth.login({ email: "duda.aluna", password: "minha-senha-nova" }, db)).toBeNull()
+    expect(await Auth.login({ email: "duda.aluna", password: reset.password }, db)).toMatchObject({ mustChangePassword: true })
+
+    // nome repetido em outro personal ganha um sufixo
+    await act(bia, (x) => A.addStudent(x, { name: "Duda Aluna", goal: "", level: "iniciante", weeklyTarget: 2, notes: "" }, "al-duda-b"))
+    expect((await Auth.createStudentAccess(bia, "al-duda-b", db)).login).toMatch(/^duda\.aluna\.\d{3}$/)
+
+    // revogar: login removido, dados continuam com o personal
+    await Auth.revokeStudentAccess(ana, "al-duda", db)
+    expect(await Auth.login({ email: "duda.aluna", password: reset.password }, db)).toBeNull()
+    expect((await Auth.studentAccess(ana, "al-duda", db)).status).toBe("none")
+    expect((await load(ana)).students.some((s) => s.id === "al-duda")).toBe(true)
+  })
+
   it("excluir conta do personal apaga tudo, inclusive o login do aluno", async () => {
     await Auth.deleteAccount(ana, db)
     expect(await Auth.login({ email: "ana@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
@@ -253,6 +302,6 @@ describe("aluno com convite", () => {
     })
     expect(left).toBe(0)
     // os dados da outra personal continuam
-    expect((await load(bia)).students).toHaveLength(1)
+    expect((await load(bia)).students).toHaveLength(2)
   })
 })

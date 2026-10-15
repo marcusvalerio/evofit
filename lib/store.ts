@@ -18,6 +18,8 @@ const HINT_COOKIE = "evofit_auth"
 export interface AccountInfo {
   email: string
   role: "trainer" | "student"
+  /** Acesso com senha provisória: precisa criar a própria senha antes de usar o app. */
+  mustChangePassword?: boolean
 }
 
 export type SyncStatus = "idle" | "saving" | "error"

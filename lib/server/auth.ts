@@ -7,10 +7,13 @@ const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, op
 
 export interface Account {
   userId: string
+  /** E-mail ou, para acessos gerados pelo personal, o nome de usuário. */
   email: string
   role: "trainer" | "student"
   trainerId: string
   studentId: string | null
+  /** Senha provisória: o aluno precisa criar a própria antes de usar o app. */
+  mustChangePassword: boolean
 }
 
 export const SESSION_DAYS = 30
@@ -85,13 +88,15 @@ async function createSession(q: Queryable, userId: string) {
 export async function accountFromToken(token: string | undefined, db: Db = getDb()): Promise<Account | null> {
   if (!token || token.length > 100) return null
   return db.tx(async (q) => {
-    const r = await q.query<{ id: string; email: string; role: Account["role"]; trainer_id: string; student_id: string | null }>(
-      `select u.id, u.email, u.role, u.trainer_id, u.student_id from auth_sessions s join users u on u.id = s.user_id
+    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean }>(
+      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password from auth_sessions s join users u on u.id = s.user_id
        where s.token_hash = $1 and s.expires_at > now()`,
       [hashToken(token)],
     )
     const u = r.rows[0]
-    return u ? { userId: u.id, email: u.email, role: u.role, trainerId: u.trainer_id, studentId: u.student_id } : null
+    return u
+      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password }
+      : null
   })
 }
 
@@ -129,14 +134,139 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
 // hash fixo para gastar o mesmo tempo quando o e-mail não existe
 const DUMMY = "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
+/** Entra com e-mail ou, para acessos gerados pelo personal, com o nome de usuário. */
 export async function login(input: { email: unknown; password: unknown }, db: Db = getDb()) {
   if (typeof input.email !== "string" || typeof input.password !== "string" || input.password.length > 128) return null
-  const email = input.email.trim().toLowerCase()
-  const u = await db.tx(async (q) => (await q.query<{ id: string; password_hash: string; role: Account["role"] }>("select id, password_hash, role from users where lower(email) = $1", [email])).rows[0])
+  const id = input.email.trim().toLowerCase()
+  const column = id.includes("@") ? "email" : "username"
+  const u = await db.tx(
+    async (q) =>
+      (await q.query<{ id: string; password_hash: string; role: Account["role"]; must_change_password: boolean }>(`select id, password_hash, role, must_change_password from users where lower(${column}) = $1`, [id])).rows[0],
+  )
   const ok = await verifyPassword(input.password, u?.password_hash ?? DUMMY)
   if (!u || !ok) return null
-  const token = await db.tx((q) => createSession(q, u.id))
-  return { token, role: u.role }
+  const token = await db.tx(async (q) => {
+    await q.query("update users set last_login_at = now() where id = $1", [u.id])
+    return createSession(q, u.id)
+  })
+  return { token, role: u.role, mustChangePassword: u.must_change_password }
+}
+
+/* ---------- Acesso do aluno gerado pelo personal ---------- */
+
+// sem caracteres ambíguos (0/O, 1/I/L) para ditar ou digitar no celular
+const ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"
+/** Senha provisória legível: XXXX-XXXX-XXXX (~60 bits). */
+export function temporaryPassword() {
+  const bytes = randomBytes(12)
+  const chars = [...bytes].map((b) => ALPHABET[b % ALPHABET.length])
+  return `${chars.slice(0, 4).join("")}-${chars.slice(4, 8).join("")}-${chars.slice(8).join("")}`
+}
+
+export interface StudentAccess {
+  status: "none" | "pending" | "active"
+  login: string | null
+  lastLoginAt: string | null
+}
+
+async function trainerStudent(account: Account, studentId: unknown, db: Db) {
+  if (account.role !== "trainer") throw new HttpError(403, "Somente o personal gerencia o acesso dos alunos.")
+  if (typeof studentId !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(studentId)) throw new HttpError(400, "Aluno inválido.")
+  const r = await withTenant({ role: "trainer", trainerId: account.trainerId }, (q) => q.query<{ id: string; name: string; status: string }>("select id, name, status from students where id = $1", [studentId]), db)
+  const s = r.rows[0]
+  if (!s) throw new HttpError(404, "Aluno não encontrado.")
+  return s
+}
+
+export async function studentAccess(account: Account, studentId: unknown, db: Db = getDb()): Promise<StudentAccess> {
+  const s = await trainerStudent(account, studentId, db)
+  const u = (
+    await db.tx((q) =>
+      q.query<{ email: string | null; username: string | null; must_change_password: boolean; last_login_at: Date | string | null }>(
+        "select email, username, must_change_password, last_login_at from users where trainer_id = $1 and student_id = $2",
+        [account.trainerId, s.id],
+      ),
+    )
+  ).rows[0]
+  if (!u) return { status: "none", login: null, lastLoginAt: null }
+  const last = u.last_login_at ? new Date(u.last_login_at).toISOString() : null
+  return { status: u.must_change_password ? "pending" : "active", login: u.username ?? u.email, lastLoginAt: last }
+}
+
+const usernameBase = (name: string) => {
+  const parts = slugify(name).split("-").filter(Boolean)
+  const base = (parts.length > 1 ? `${parts[0]}.${parts[parts.length - 1]}` : (parts[0] ?? "aluno")).slice(0, 32)
+  return base.length >= 3 ? base : `${base}.aluno`
+}
+
+/** Cria usuário + senha provisória para o aluno. A senha só é mostrada nesta resposta. */
+export async function createStudentAccess(account: Account, studentId: unknown, db: Db = getDb()) {
+  const s = await trainerStudent(account, studentId, db)
+  if (s.status !== "ativo") throw new HttpError(409, "Reative o aluno antes de liberar o acesso.")
+  const password = temporaryPassword()
+  const hash = await hashPassword(password)
+  const base = usernameBase(s.name)
+  return db.tx(async (q) => {
+    const has = await q.query("select 1 from users where trainer_id = $1 and student_id = $2", [account.trainerId, s.id])
+    if (has.rows.length) throw new HttpError(409, "Este aluno já tem acesso. Gere uma nova senha ou revogue o acesso.")
+    let username = base
+    for (let i = 0; (await q.query("select 1 from users where lower(username) = $1", [username])).rows.length; i++) {
+      if (i > 20) throw new HttpError(500, "Não foi possível gerar um usuário. Tente de novo.")
+      username = `${base}.${randomBytes(2).readUInt16BE() % 900 + 100}`
+    }
+    await q.query("delete from invites where trainer_id = $1 and student_id = $2 and used_at is null", [account.trainerId, s.id])
+    await q.query("insert into users (id, username, password_hash, role, trainer_id, student_id, must_change_password) values ($1, $2, $3, 'student', $4, $5, true)", [
+      randomUUID(),
+      username,
+      hash,
+      account.trainerId,
+      s.id,
+    ])
+    return { login: username, password }
+  })
+}
+
+/** Nova senha provisória: encerra todas as sessões do aluno e exige troca no próximo acesso. */
+export async function resetStudentPassword(account: Account, studentId: unknown, db: Db = getDb()) {
+  const s = await trainerStudent(account, studentId, db)
+  const password = temporaryPassword()
+  const hash = await hashPassword(password)
+  return db.tx(async (q) => {
+    const u = (await q.query<{ id: string; username: string | null; email: string | null }>("select id, username, email from users where trainer_id = $1 and student_id = $2", [account.trainerId, s.id])).rows[0]
+    if (!u) throw new HttpError(404, "Este aluno ainda não tem acesso.")
+    await q.query("update users set password_hash = $2, must_change_password = true where id = $1", [u.id, hash])
+    await q.query("delete from auth_sessions where user_id = $1", [u.id])
+    return { login: u.username ?? u.email, password }
+  })
+}
+
+/** Remove o login do aluno (e todas as sessões). Os treinos e o histórico continuam com o personal. */
+export async function revokeStudentAccess(account: Account, studentId: unknown, db: Db = getDb()) {
+  const s = await trainerStudent(account, studentId, db)
+  await db.tx(async (q) => {
+    await q.query("delete from users where trainer_id = $1 and student_id = $2 and role = 'student'", [account.trainerId, s.id])
+    await q.query("delete from invites where trainer_id = $1 and student_id = $2", [account.trainerId, s.id])
+  })
+}
+
+/**
+ * Troca de senha pelo próprio usuário. Com senha provisória (primeiro acesso), basta a sessão;
+ * fora disso, exige a senha atual. Encerra as outras sessões.
+ */
+export async function changePassword(account: Account, input: { current?: unknown; password: unknown }, token: string, db: Db = getDb()) {
+  const pw = input.password
+  if (typeof pw !== "string" || pw.length < 8) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { password: "A senha precisa ter pelo menos 8 caracteres." } })
+  if (pw.length > 128) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { password: "Use no máximo 128 caracteres." } })
+  const u = (await db.tx((q) => q.query<{ password_hash: string }>("select password_hash from users where id = $1", [account.userId]))).rows[0]
+  if (!u) throw new HttpError(401, "Faça login para continuar.")
+  if (await verifyPassword(pw, u.password_hash)) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { password: "Escolha uma senha diferente da atual." } })
+  if (!account.mustChangePassword && !(typeof input.current === "string" && (await verifyPassword(input.current, u.password_hash))))
+    throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { current: "Senha atual incorreta." } })
+  const hash = await hashPassword(pw)
+  await db.tx(async (q) => {
+    await q.query("update users set password_hash = $2, must_change_password = false where id = $1", [account.userId, hash])
+    await q.query("delete from auth_sessions where user_id = $1 and token_hash <> $2", [account.userId, hashToken(token)])
+  })
 }
 
 /* ---------- Convites de aluno ---------- */

@@ -59,28 +59,38 @@ test.describe("conta real", () => {
     await page.reload()
     await expect(page.getByText("Leg press 45°", { exact: true })).toBeVisible()
 
-    // convite
+    // acesso gerado pelo personal: usuário + senha provisória
     await page.goto(studentUrl)
-    await page.getByRole("button", { name: "Convidar para o app" }).click()
-    const link = await page.getByLabel("Link de convite").inputValue()
-    expect(link).toMatch(/\/convite\/[\w-]{20,}$/)
+    await page.getByRole("button", { name: "Acesso ao app" }).click()
+    const access = page.getByRole("dialog", { name: /Acesso de Rafa/ })
+    await expect(access.getByText("Sem acesso ao app")).toBeVisible()
+    await access.getByRole("button", { name: "Gerar acesso" }).click()
+    const creds = access.locator(".evo-access-cred dd")
+    const login = (await creds.nth(0).textContent())!.trim()
+    const temp = (await creds.nth(1).textContent())!.trim()
+    expect(login).toMatch(/^rafa\.aluno/)
+    expect(temp).toMatch(/^[A-Z2-9]{4}-[A-Z2-9]{4}-[A-Z2-9]{4}$/)
+    await expect(access.getByText("Aguardando o primeiro acesso")).toBeVisible()
 
-    // aluno aceita em outro navegador
+    // aluno entra em outro navegador e é obrigado a criar a própria senha
     const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } })
     const st = await ctx.newPage()
-    await st.goto(link)
-    await expect(st.getByRole("heading", { level: 1 })).toHaveText("Oi, Rafa! Crie seu acesso")
-    await st.getByLabel("E-mail").fill(`aluno-${email}`)
-    await st.getByLabel("Senha", { exact: true }).fill(PASSWORD)
-    await st.getByRole("button", { name: "Criar acesso e ver meus treinos" }).click()
-    await expect(st).toHaveURL("/aluno")
+    await st.goto("/entrar")
+    await st.getByLabel("E-mail ou usuário").fill(login.toUpperCase())
+    await st.getByLabel("Senha", { exact: true }).fill(temp)
+    await st.getByRole("button", { name: "Entrar" }).click()
+    await expect(st.getByRole("heading", { level: 1 })).toHaveText("Crie sua senha")
+    await expect(st.getByRole("navigation", { name: "Aluno" })).toHaveCount(0)
+    await st.getByLabel("Nova senha", { exact: true }).fill(PASSWORD)
+    await st.getByLabel("Repita a nova senha").fill(PASSWORD)
+    await st.getByRole("button", { name: "Salvar senha e entrar" }).click()
     await expect(st.getByRole("heading", { level: 1 })).toHaveText("Bora treinar, Rafa")
     await expect(st.getByText("Conta de aluno")).toBeVisible()
-    // convite não pode ser reutilizado
-    const again = await ctx.newPage()
-    await again.goto(link)
-    await expect(again.getByRole("heading", { name: "Convite indisponível" })).toBeVisible()
-    await again.close()
+    // o personal vê o acesso como ativo
+    await page.reload()
+    await page.getByRole("button", { name: "Acesso ao app" }).click()
+    await expect(page.getByRole("dialog", { name: /Acesso de Rafa/ }).getByText("Acesso ativo")).toBeVisible()
+    await page.keyboard.press("Escape")
 
     // aluno treina
     await st.getByRole("link", { name: /Treino Real/ }).click()
@@ -133,7 +143,7 @@ test.describe("conta real", () => {
     await page.getByLabel("E-mail").fill(email)
     await page.getByLabel("Senha", { exact: true }).fill("senha-errada-000")
     await page.getByRole("button", { name: "Entrar" }).click()
-    await expect(page.getByRole("alert").filter({ hasText: "E-mail ou senha incorretos." })).toBeVisible()
+    await expect(page.getByRole("alert").filter({ hasText: "Usuário, e-mail ou senha incorretos." })).toBeVisible()
     await page.getByLabel("Senha", { exact: true }).fill(PASSWORD)
     await page.getByRole("button", { name: "Entrar" }).click()
     await expect(page).toHaveURL("/studio")

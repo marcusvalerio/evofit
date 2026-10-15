@@ -1492,3 +1492,14 @@
 @keyframes lp-pop { from { opacity: 0; transform: scale(0.4); } }
 @keyframes lp-glow { 50% { box-shadow: 0 0 0 6px rgb(255 78 32 / 0.18); } }
 @keyframes lp-marquee { to { transform: translateX(calc(-50% - 0.5rem)); } }
+
+/* Acesso do aluno ao app */
+.evo-access-status { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.9rem; border-radius: 1rem; background: var(--surface-2); }
+.evo-access-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; flex-shrink: 0; border-radius: 0.8rem; background: var(--line); color: var(--fg-muted); }
+.evo-access-status[data-status="pending"] .evo-access-icon { background: var(--warning-soft); color: var(--warning); }
+.evo-access-status[data-status="active"] .evo-access-icon { background: var(--success-soft); color: var(--success); }
+.evo-access-issued { padding: 1rem; border-radius: 1rem; border: 1.5px dashed color-mix(in srgb, var(--primary) 55%, transparent); background: var(--accent-soft); }
+.evo-access-cred { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.4rem 0.55rem 0.85rem; border-radius: 0.75rem; background: var(--surface); }
+.evo-access-cred dt { width: 8.5rem; flex-shrink: 0; font-size: 0.8125rem; color: var(--fg-muted); }
+.evo-access-cred dd { flex: 1; min-width: 0; font-size: 1rem; font-weight: 600; letter-spacing: 0.04em; overflow-wrap: anywhere; }
+@media (max-width: 420px) { .evo-access-cred dt { width: 6.5rem; } }
