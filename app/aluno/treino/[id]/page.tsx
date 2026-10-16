@@ -203,7 +203,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
   return (
     <div>
-      <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-[calc(var(--safe-top)+3.5rem)] z-20 -mx-4 mb-4 border-b border-line bg-bg px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-bold">{workout.name}</p>

@@ -883,6 +883,12 @@
   min-width: 0;
 }
 
+/* App instalado (tela cheia no iPhone): a barra de status fica por cima da página.
+   Reservamos a área dela com a cor do fundo e os cabeçalhos grudam logo abaixo. */
+:root { --safe-top: env(safe-area-inset-top, 0px); }
+body { padding-top: var(--safe-top); }
+body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; height: var(--safe-top); background: var(--bg); pointer-events: none; }
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
