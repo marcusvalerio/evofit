@@ -55,3 +55,17 @@ export function feeMessage(row: FeeRow, trainerName: string, pixKey: string, mon
   const pix = pixKey.trim() ? `\n\nChave Pix: ${pixKey.trim()}` : ""
   return `Oi, ${first}! Aqui é ${trainerName.split(" ")[0]}, ${lead}${pix}\n\nQualquer coisa, me chama. 💪`
 }
+
+/**
+ * Lê um valor em reais digitado de qualquer jeito: "350", "350,00", "R$ 1.250,50", "350.00".
+ * Vírgula é sempre o decimal; sem vírgula, um ponto seguido de 1–2 dígitos no fim também é.
+ * Retorna null para vazio e NaN para algo que não é número.
+ */
+export function parseMoney(raw: string): number | null {
+  const t = raw.replace(/[^\d.,]/g, "")
+  if (!raw.trim()) return null
+  if (!t) return NaN
+  const normalized = t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : /\.\d{1,2}$/.test(t) ? t.replace(/\.(?=.*\.)/g, "") : t.replace(/\./g, "")
+  const n = Number(normalized)
+  return Number.isFinite(n) ? n : NaN
+}

@@ -4,7 +4,7 @@ import { update, useData } from "@/lib/store"
 import type { Exercise } from "@/lib/types"
 import { MUSCLE_GROUPS } from "@/lib/types"
 import { addExercise, uid, updateExercise, validateExercise, type ExerciseInput } from "@/lib/actions"
-import { Field, Modal } from "@/components/ui"
+import { Field, Modal, revealFirstError } from "@/components/ui"
 import { useToast } from "@/components/providers"
 
 export function ExerciseForm({ exercise, onClose, onCreated }: { exercise?: Exercise; onClose: () => void; onCreated?: (id: string) => void }) {
@@ -21,7 +21,7 @@ export function ExerciseForm({ exercise, onClose, onCreated }: { exercise?: Exer
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTouched(true)
-    if (Object.keys(errors).length) return
+    if (Object.keys(errors).length) return revealFirstError()
     if (exercise) {
       update((x) => updateExercise(x, exercise.id, v))
       toast("Exercício atualizado.")

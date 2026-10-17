@@ -5,7 +5,7 @@ import { CIRCUMFERENCE_LABEL, CIRCUMFERENCES, SKINFOLD_LABEL, SKINFOLDS } from "
 import { saveAssessment, validateAssessment, type AssessmentInput } from "@/lib/actions"
 import { bmi, bodyFat, FAT_SOURCE_LABEL, PROTOCOL_SITES, waistHip } from "@/lib/assessment"
 import { update } from "@/lib/store"
-import { Field, Modal, cx } from "./ui"
+import { Field, Modal, cx, revealFirstError } from "./ui"
 import { useToast } from "./providers"
 
 type Draft = {
@@ -80,7 +80,7 @@ function AssessmentForm({ onClose, studentId, studentName, editing, previous }: 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTouched(true)
-    if (Object.keys(errors).length) return
+    if (Object.keys(errors).length) return revealFirstError()
     update((d) => saveAssessment(d, studentId, input, editing?.id))
     toast(editing ? "Avaliação atualizada." : `Avaliação de ${studentName.split(" ")[0]} registrada.`)
     onClose()

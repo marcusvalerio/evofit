@@ -10,7 +10,7 @@ import { postJson } from "@/lib/account-client"
 import { directoryList } from "@/lib/directory"
 import { MODALITY_LABEL } from "@/lib/types"
 import { addContactRequest, validateContact, type ContactInput } from "@/lib/actions"
-import { Avatar, Field, LoadingScreen, NotFoundState } from "@/components/ui"
+import { Avatar, Field, LoadingScreen, NotFoundState, revealFirstError } from "@/components/ui"
 import { useDemoEnabled, useToast } from "@/components/providers"
 
 export default function PerfilPublico() {
@@ -187,7 +187,7 @@ function ContactForm({ slug, name, kind }: { slug: string; name: string; kind: C
         onSubmit={async (e) => {
           e.preventDefault()
           setTried(true)
-          if (Object.keys(errors).length || !consent) return
+          if (Object.keys(errors).length || !consent) return revealFirstError()
           if (isReal) {
             setBusy(true)
             setSendError(null)

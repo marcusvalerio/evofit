@@ -4,7 +4,8 @@ import type { Level, Student } from "@/lib/types"
 import { LEVEL_LABEL } from "@/lib/types"
 import { addStudent, updateStudent, validateStudent, type StudentInput } from "@/lib/actions"
 import { update, useIsDemo } from "@/lib/store"
-import { Field, Modal } from "./ui"
+import { Field, Modal, revealFirstError } from "./ui"
+import { parseMoney } from "@/lib/finance"
 import { useToast } from "./providers"
 
 const EMPTY: StudentInput = { name: "", goal: "", level: "iniciante", weeklyTarget: 3, notes: "", phone: "", monthlyFee: null, dueDay: null }
@@ -26,14 +27,19 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTouched(true)
-    if (Object.keys(errors).length) return
+    // Mensalidade sem vencimento: assume o dia de hoje. Dias 29–31 viram 28 (existem em todo mês).
+    let input = v
+    if (input.monthlyFee != null && input.dueDay == null) input = { ...input, dueDay: Math.min(new Date().getDate(), 28) }
+    if (input.dueDay != null && input.dueDay > 28 && input.dueDay <= 31) input = { ...input, dueDay: 28 }
+    if (input !== v) setV(input)
+    if (Object.keys(validateStudent(input)).length) return revealFirstError(e.currentTarget as HTMLFormElement)
     if (student) {
-      update((d) => updateStudent(d, student.id, v))
+      update((d) => updateStudent(d, student.id, input))
       toast("Dados do aluno atualizados.")
     } else {
       const id = `al-${Date.now().toString(36)}`
-      update((d) => addStudent(d, v, id))
-      toast(`${v.name.trim()} foi adicionado(a).`)
+      update((d) => addStudent(d, input, id))
+      toast(`${input.name.trim()} foi adicionado(a).`)
       onClose()
       onCreated?.(id)
       return
@@ -94,13 +100,12 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
               value={fee}
               onChange={(e) => {
                 setFee(e.target.value)
-                const n = parseFloat(e.target.value.replace(/\./g, "").replace(",", "."))
-                set("monthlyFee", e.target.value.trim() === "" ? null : Number.isFinite(n) ? n : NaN)
+                set("monthlyFee", parseMoney(e.target.value))
               }}
             />
           )}
         </Field>
-        <Field label="Dia de vencimento" error={show.dueDay}>
+        <Field label="Dia de vencimento" error={show.dueDay} hint="De 1 a 28. Em branco, usamos o dia de hoje.">
           {(p) => (
             <input
               {...p}
