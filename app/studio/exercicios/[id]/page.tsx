@@ -7,7 +7,7 @@ import { update, useData } from "@/lib/store"
 import { getExercise } from "@/lib/catalog"
 import { deleteExercise, exerciseUsage, setExerciseMedia, validateMedia } from "@/lib/actions"
 import { VIDEO_PROVIDERS, parseVideoUrl } from "@/lib/video"
-import { ConfirmDialog, Field, NotFoundState } from "@/components/ui"
+import { ConfirmDialog, Field, NotFoundState, revealFirstError } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { ExerciseGuide } from "@/components/exercise"
 import { ExerciseForm } from "@/components/exercise-form"
@@ -126,7 +126,7 @@ function MediaEditor({ id }: { id: string }) {
   const save = (e: React.FormEvent) => {
     e.preventDefault()
     setTried(true)
-    if (Object.keys(errors).length) return
+    if (Object.keys(errors).length) return revealFirstError()
     update((x) => setExerciseMedia(x, id, v))
     toast(v.videoUrl.trim() || v.tip.trim() ? "Material salvo. Seus alunos já veem no treino." : "Material removido.")
   }

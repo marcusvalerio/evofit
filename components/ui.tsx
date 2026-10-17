@@ -41,6 +41,19 @@ export function Field({ label, error, hint, children, className }: FieldProps) {
   )
 }
 
+/**
+ * Depois de um envio com erro, leva a tela até o primeiro campo inválido e o foca. Sem isso, no
+ * celular o erro pode ficar fora da tela e parece que o botão "não fez nada".
+ */
+export function revealFirstError(root: ParentNode = document) {
+  requestAnimationFrame(() => {
+    const el = root.querySelector<HTMLElement>('[aria-invalid="true"]')
+    if (!el) return
+    el.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })
+    el.focus({ preventScroll: true })
+  })
+}
+
 /* ---------- Modal ---------- */
 
 interface ModalProps {

@@ -7,7 +7,7 @@ import type { AccentChoice, Modality, TrainerProfile } from "@/lib/types"
 import { MODALITY_LABEL, SPECIALTIES } from "@/lib/types"
 import { removeContactRequest, saveProfile, validateProfile } from "@/lib/actions"
 import { fmtDate, fmtTime } from "@/lib/date"
-import { Avatar, ConfirmDialog, Field, PageHeader, cx } from "@/components/ui"
+import { Avatar, ConfirmDialog, Field, PageHeader, cx, revealFirstError } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { AccountSection } from "@/components/account-section"
 
@@ -39,7 +39,7 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTried(true)
-    if (Object.keys(errors).length) return toast("Revise os campos destacados.", "error")
+    if (Object.keys(errors).length) return (revealFirstError(), toast("Revise os campos destacados.", "error"))
     update((x) => saveProfile(x, v))
     toast(v.directoryVisible ? "Perfil salvo e visível no diretório." : "Perfil salvo. Ele não aparece no diretório.")
   }

@@ -9,7 +9,7 @@ import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"
 import { BodyMap } from "@/components/body-map"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
 import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
-import { ConfirmDialog, Field, Modal, NotFoundState, cx } from "@/components/ui"
+import { ConfirmDialog, Field, Modal, NotFoundState, cx, revealFirstError } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { ExerciseThumb } from "@/components/exercise"
 
@@ -78,6 +78,7 @@ function Editor({ workout }: { workout: Workout }) {
   const save = () => {
     setTried(true)
     if (!valid) {
+      revealFirstError()
       toast("Corrija os campos destacados antes de salvar.", "error")
       return
     }

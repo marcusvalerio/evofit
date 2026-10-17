@@ -61,6 +61,25 @@ test.describe("acesso público sem login", () => {
 })
 
 test.describe("Studio", () => {
+  test("cadastro de aluno aceita mensalidade digitada de qualquer jeito e mostra o erro na tela", async ({ page }) => {
+    await page.goto("/studio/alunos")
+    await page.getByRole("button", { name: "Novo aluno" }).click()
+    const dialog = page.getByRole("dialog", { name: "Novo aluno" })
+    await dialog.getByLabel("Nome").fill("Rita Valor")
+    // erro em campo lá embaixo: a tela vai até ele e o foca
+    await dialog.getByLabel("WhatsApp (opcional)").fill("98765")
+    await dialog.getByRole("button", { name: "Adicionar aluno" }).click()
+    await expect(dialog.getByLabel("WhatsApp (opcional)")).toBeFocused()
+    await expect(dialog.getByText("Informe o WhatsApp com DDD (10 a 13 dígitos).")).toBeInViewport()
+    await dialog.getByLabel("WhatsApp (opcional)").fill("(11) 98765-4321")
+    // "R$ 300" sem vencimento: aceito, vencimento assume o dia de hoje
+    await dialog.getByLabel("Mensalidade (R$, opcional)").fill("R$ 300")
+    await dialog.getByRole("button", { name: "Adicionar aluno" }).click()
+    await expect(page.getByRole("heading", { level: 1, name: "Rita Valor" })).toBeVisible()
+    await page.goto("/studio/caixa")
+    await expect(page.getByText("Rita Valor").first()).toBeVisible()
+  })
+
   test("cria aluno com validação e persiste após recarregar", async ({ page }) => {
     await page.goto("/studio/alunos")
     await page.getByRole("button", { name: "Novo aluno" }).click()
