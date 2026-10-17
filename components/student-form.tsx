@@ -4,7 +4,7 @@ import type { Level, Student } from "@/lib/types"
 import { LEVEL_LABEL } from "@/lib/types"
 import { addStudent, updateStudent, validateStudent, type StudentInput } from "@/lib/actions"
 import { update, useIsDemo } from "@/lib/store"
-import { Field, Modal, revealFirstError } from "./ui"
+import { Field, Modal, revealFirstError, autoFocusOk } from "./ui"
 import { parseMoney } from "@/lib/finance"
 import { useToast } from "./providers"
 
@@ -66,7 +66,7 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
     >
       <form id="student-form" onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <Field label="Nome" error={show.name} className="sm:col-span-2">
-          {(p) => <input {...p} className="input" value={v.name} onChange={(e) => set("name", e.target.value)} autoComplete="off" maxLength={80} autoFocus />}
+          {(p) => <input {...p} className="input" value={v.name} onChange={(e) => set("name", e.target.value)} autoComplete="off" maxLength={80} autoFocus={autoFocusOk()} />}
         </Field>
         <Field label="Objetivo" error={show.goal} className="sm:col-span-2" hint="Ex.: hipertrofia, condicionamento, voltar a treinar.">
           {(p) => <input {...p} className="input" value={v.goal} onChange={(e) => set("goal", e.target.value)} maxLength={120} />}

@@ -516,7 +516,7 @@
   .dialog {
     margin: auto;
     width: min(100% - 2rem, 34rem);
-    max-height: min(90dvh, 48rem);
+    max-height: min(var(--sheet-max, 90vh), 48rem);
     padding: 0;
     border: 1px solid var(--line);
     border-radius: 1.25rem;
@@ -539,6 +539,7 @@
       width: 100%;
       max-width: 100%;
       margin: auto 0 0;
+      max-height: var(--sheet-max, 88vh);
       border-radius: 1.25rem 1.25rem 0 0;
       padding-bottom: env(safe-area-inset-bottom);
     }

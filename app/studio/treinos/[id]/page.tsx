@@ -9,7 +9,7 @@ import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"
 import { BodyMap } from "@/components/body-map"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
 import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
-import { ConfirmDialog, Field, Modal, NotFoundState, cx, revealFirstError } from "@/components/ui"
+import { ConfirmDialog, Field, Modal, NotFoundState, cx, revealFirstError, autoFocusOk } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { ExerciseThumb } from "@/components/exercise"
 
@@ -391,7 +391,7 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
             <label htmlFor="pick-q" className="sr-only">
               Buscar exercício
             </label>
-            <input id="pick-q" type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus />
+            <input id="pick-q" type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus={autoFocusOk()} />
           </div>
           <label htmlFor="pick-eq" className="sr-only">
             Equipamento

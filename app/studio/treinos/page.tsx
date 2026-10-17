@@ -6,7 +6,7 @@ import { ClipboardList, Copy, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import { createWorkout, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
 import { fmtDate } from "@/lib/date"
-import { Avatar, ConfirmDialog, EmptyState, Field, Modal, PageHeader } from "@/components/ui"
+import { Avatar, ConfirmDialog, EmptyState, Field, Modal, PageHeader, autoFocusOk } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import type { Workout } from "@/lib/types"
 import { getExercise } from "@/lib/catalog"
@@ -174,7 +174,7 @@ function Treinos() {
                 className="input"
                 value={name}
                 maxLength={80}
-                autoFocus
+                autoFocus={autoFocusOk()}
                 onChange={(e) => {
                   setName(e.target.value)
                   setErr("")

@@ -4,7 +4,7 @@ import { update, useData } from "@/lib/store"
 import type { Exercise } from "@/lib/types"
 import { MUSCLE_GROUPS } from "@/lib/types"
 import { addExercise, uid, updateExercise, validateExercise, type ExerciseInput } from "@/lib/actions"
-import { Field, Modal, revealFirstError } from "@/components/ui"
+import { Field, Modal, revealFirstError, autoFocusOk } from "@/components/ui"
 import { useToast } from "@/components/providers"
 
 export function ExerciseForm({ exercise, onClose, onCreated }: { exercise?: Exercise; onClose: () => void; onCreated?: (id: string) => void }) {
@@ -53,7 +53,7 @@ export function ExerciseForm({ exercise, onClose, onCreated }: { exercise?: Exer
     >
       <form id="ex-form" onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <Field label="Nome" error={show.name} className="sm:col-span-2">
-          {(p) => <input {...p} className="input" value={v.name} onChange={(e) => set("name", e.target.value)} maxLength={80} autoFocus />}
+          {(p) => <input {...p} className="input" value={v.name} onChange={(e) => set("name", e.target.value)} maxLength={80} autoFocus={autoFocusOk()} />}
         </Field>
         <Field label="Grupo muscular" error={show.muscleGroup}>
           {(p) => (
