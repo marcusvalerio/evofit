@@ -42,6 +42,14 @@ export function Field({ label, error, hint, children, className }: FieldProps) {
 }
 
 /**
+ * Foco automático só com teclado físico/mouse. No celular, abrir o teclado sozinho ao mostrar uma
+ * janela empurra a tela e, em alguns iPhones, deixa a janela achatada.
+ */
+export function autoFocusOk() {
+  return typeof window !== "undefined" && window.matchMedia("(pointer: fine)").matches
+}
+
+/**
  * Depois de um envio com erro, leva a tela até o primeiro campo inválido e o foca. Sem isso, no
  * celular o erro pode ficar fora da tela e parece que o botão "não fez nada".
  */
@@ -74,6 +82,22 @@ export function Modal({ open, onClose, title, description, children, footer, wid
     if (!d) return
     if (open && !d.open) d.showModal()
     if (!open && d.open) d.close()
+  }, [open])
+  // Altura máxima pela área realmente visível. No iPhone, as unidades de viewport (dvh) podem
+  // ficar presas no tamanho com teclado aberto e a janela "não sobe"; o visualViewport é atualizado
+  // sempre que o teclado abre/fecha ou a barra do navegador muda.
+  useEffect(() => {
+    const d = ref.current
+    const vv = typeof window !== "undefined" ? window.visualViewport : null
+    if (!open || !d || !vv) return
+    const sync = () => d.style.setProperty("--sheet-max", `${Math.round(vv.height * 0.92)}px`)
+    sync()
+    vv.addEventListener("resize", sync)
+    window.addEventListener("orientationchange", sync)
+    return () => {
+      vv.removeEventListener("resize", sync)
+      window.removeEventListener("orientationchange", sync)
+    }
   }, [open])
   return (
     <dialog
