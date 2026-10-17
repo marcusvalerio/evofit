@@ -114,3 +114,16 @@ export function personalRecords(d: DemoData, session: Session): PersonalRecord[]
   }
   return [...out.values()]
 }
+
+/**
+ * Coluna "Anterior" do treino (como no Hevy): o que o aluno fez em cada série deste exercício
+ * na última sessão concluída em que ele apareceu. Índice = número da série.
+ */
+export function previousSets(d: DemoData, studentId: string, exerciseId: string, beforeIso: string): ({ load: number | null; reps: number | null } | null)[] {
+  const list = sessionsOf(d, studentId).filter((s) => s.startedAt < beforeIso && s.sets.some((x) => x.exerciseId === exerciseId && x.done))
+  const last = list.sort((a, b) => a.startedAt.localeCompare(b.startedAt)).at(-1)
+  if (!last) return []
+  const out: ({ load: number | null; reps: number | null } | null)[] = []
+  for (const x of last.sets) if (x.exerciseId === exerciseId) out[x.setIndex] = x.done ? { load: x.load, reps: x.reps } : null
+  return out
+}

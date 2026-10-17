@@ -883,6 +883,12 @@
   min-width: 0;
 }
 
+/* App instalado (tela cheia no iPhone): a barra de status fica por cima da página.
+   Reservamos a área dela com a cor do fundo e os cabeçalhos grudam logo abaixo. */
+:root { --safe-top: env(safe-area-inset-top, 0px); }
+body { padding-top: var(--safe-top); }
+body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; height: var(--safe-top); background: var(--bg); pointer-events: none; }
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -1496,6 +1502,52 @@
 .evo-student-primary-action:active { transform: scale(0.99); }
 
 /* ---------- Aluno: execução do treino ---------- */
+/* Semana do aluno: um ponto por dia, sem cartão extra */
+.evo-week { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.evo-week-days { display: flex; gap: 0.35rem; }
+.evo-week-days li { display: grid; justify-items: center; gap: 0.25rem; }
+.evo-week-dot { display: grid; place-items: center; width: 1.6rem; height: 1.6rem; border-radius: 999px; background: var(--surface-2); color: var(--mp-cobblestone); }
+.evo-week-days li.is-done .evo-week-dot { background: var(--mp-otan); }
+.evo-week-days li.is-today .evo-week-dot { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg-muted); }
+.evo-week-label { font-size: 0.6875rem; text-transform: capitalize; color: var(--fg-muted); }
+.evo-week-goal { display: grid; justify-items: end; line-height: 1.15; text-align: right; }
+.evo-week-goal b { font-size: 1.25rem; }
+.evo-week-goal span { font-size: 0.75rem; color: var(--fg-muted); }
+.evo-week-goal .evo-week-streak { color: var(--accent-text); font-weight: 600; }
+
+/* Treino em andamento, no padrão Hevy: cabeçalho curto e tabela de séries compacta */
+.evo-lift { padding: 0.9rem 0.85rem 0.6rem; border-radius: 1.1rem; background: var(--surface); border: 1px solid var(--line); transition: border-color 0.4s ease; }
+.evo-lift.is-done { border-color: color-mix(in srgb, var(--success) 40%, var(--line)); }
+.evo-lift-head { display: flex; align-items: center; gap: 0.7rem; }
+.evo-lift-thumb { position: relative; flex-shrink: 0; border-radius: 0.6rem; }
+.evo-lift-check { position: absolute; right: -0.3rem; bottom: -0.3rem; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border-radius: 999px; background: var(--success); color: var(--bg); box-shadow: 0 0 0 2px var(--surface); }
+.evo-lift-name { font-size: 1rem; font-weight: 700; line-height: 1.2; }
+.evo-lift-meta { margin-top: 0.15rem; font-size: 0.8125rem; color: var(--fg-muted); }
+.evo-lift-note { margin-top: 0.6rem; padding-left: 0.6rem; border-left: 2px solid var(--mp-otan); font-size: 0.875rem; color: var(--fg); }
+.evo-sets { margin-top: 0.6rem; display: grid; gap: 0.15rem; }
+.evo-sets-row { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 4.25rem 4.25rem 2.5rem; align-items: center; gap: 0.4rem; padding: 0.2rem 0.15rem; border-radius: 0.6rem; transition: background-color 0.3s ease; }
+.evo-sets-row.is-done { background: var(--success-soft); }
+.evo-sets-head { padding-block: 0.1rem; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); }
+.evo-sets-head > *:nth-child(n + 3) { text-align: center; }
+.evo-sets-head svg { justify-self: center; }
+.evo-sets-n { text-align: center; font-weight: 700; }
+.evo-sets-prev { justify-self: start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.25rem 0.3rem; border-radius: 0.4rem; font-size: 0.875rem; color: var(--fg-muted); }
+button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var(--line); color: var(--fg); }
+.evo-sets-prev.is-empty { opacity: 0.5; }
+.evo-sets-input { width: 100%; height: 2.4rem; border: 0; border-radius: 0.55rem; background: var(--surface-2); text-align: center; font-size: 1rem; font-weight: 650; color: var(--fg); -moz-appearance: textfield; }
+.evo-sets-input::-webkit-outer-spin-button, .evo-sets-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.evo-sets-input::placeholder { color: var(--fg-muted); opacity: 0.6; }
+.evo-sets-input:focus-visible { outline: 2px solid var(--mp-otan); outline-offset: 0; }
+.evo-sets-row.is-done .evo-sets-input { background: transparent; }
+.evo-sets-check { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 0.6rem; background: var(--surface-2); color: var(--fg-muted); transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
+.evo-sets-check:active { transform: scale(0.9); }
+.evo-sets-check[aria-pressed="true"] { background: var(--success); color: var(--bg); }
+
+/* Ficha antes de iniciar: lista limpa */
+.evo-plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.15rem; border-radius: 1.1rem; background: var(--surface); border: 1px solid var(--line); padding: 0.35rem; }
+.evo-plan-row { display: flex; width: 100%; align-items: center; gap: 0.75rem; padding: 0.55rem; border-radius: 0.8rem; text-align: left; transition: background-color 0.2s ease; }
+.evo-plan-row:hover, .evo-plan-row:focus-visible { background: var(--line); }
+
 .evo-session-nav { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0.1rem 0 0.35rem; scrollbar-width: none; overscroll-behavior-x: contain; }
 .evo-session-nav::-webkit-scrollbar { display: none; }
 .evo-session-nav-item { display: flex; max-width: 10rem; min-width: 3.2rem; flex-shrink: 0; align-items: center; gap: 0.45rem; min-height: 2.25rem; padding: 0.3rem 0.65rem 0.3rem 0.3rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--fg); transition: background-color 0.2s ease, border-color 0.2s ease; }

@@ -87,7 +87,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Topo (mobile/tablet) */}
-          <header className="glass sticky top-0 z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
+          <header className="glass sticky top-[var(--safe-top)] z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
             <Brand suffix="Studio" />
             <div className="flex items-center gap-1">
               {isAdmin && (

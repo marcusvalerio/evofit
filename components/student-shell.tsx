@@ -40,7 +40,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-dvh">
       <DemoBanner />
-      <header className="glass sticky top-0 z-30 border-b border-line">
+      <header className="sticky top-[var(--safe-top)] z-30 border-b border-line bg-bg">
         <div className="mx-auto flex h-14 max-w-xl items-center justify-between gap-2 px-4">
           <Brand suffix="Aluno" />
           <div className="flex items-center gap-1">

@@ -2,14 +2,13 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Lightbulb, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
-import { muscleVolume, volumeLevels } from "@/lib/volume"
-import { BodyMap } from "@/components/body-map"
+import { muscleVolume } from "@/lib/volume"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
-import { inProgressSession, personalRecords, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
+import { inProgressSession, personalRecords, previousSets, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
@@ -67,8 +66,9 @@ export default function TreinoPage() {
 /* ---------- Não iniciado ---------- */
 
 function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Workout; studentId: string; other?: Session }) {
-  const toast = useToast()
   const [howTo, setHowTo] = useState<string | null>(null)
+  // grupos mais trabalhados primeiro (o mapa completo fica no Studio)
+  const muscles = muscleVolume(d, workout.items).map((v) => v.muscle)
   return (
     <div className="fade-in">
       <Link href="/aluno" className="btn btn-ghost btn-sm -ml-3 mb-3">
@@ -78,44 +78,36 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
       {workout.description && <p className="mt-1 text-muted">{workout.description}</p>}
       <p className="mt-3 text-sm text-muted">
         {workout.items.length} exercícios · {workout.items.reduce((a, i) => a + i.sets, 0)} séries
+        {muscles.length > 0 && ` · ${muscles.slice(0, 3).join(", ")}${muscles.length > 3 ? ` +${muscles.length - 3}` : ""}`}
       </p>
 
       {workout.items.length === 0 ? (
         <p className="mt-6 rounded-2xl border border-dashed border-line-strong p-6 text-center text-muted">Esta ficha ainda não tem exercícios.</p>
       ) : (
-        <>
-          <TodayMuscles d={d} workout={workout} />
-          <p className="mt-4 flex items-center gap-2 rounded-xl bg-accent-soft px-3 py-2.5 text-sm">
-            <PlayCircle size={18} aria-hidden className="shrink-0 text-accent" />
-            Treinando sem o personal hoje? Toque em um exercício para ver como fazer.
-          </p>
-          <ol className="stagger mt-3 space-y-2">
-            {workout.items.map((it, i) => {
-              const ex = getExercise(d, it.exerciseId)
-              return (
-                <li key={it.id}>
-                  <button type="button" className="card lift group flex w-full items-center gap-3 p-2.5 pr-3.5 text-left" onClick={() => setHowTo(it.exerciseId)} aria-label={`Como fazer: ${ex?.name ?? "exercício"}`}>
-                    <span className="relative shrink-0">
-                      {ex ? <ExerciseThumb ex={ex} className="w-20" /> : <span className="thumb w-20" />}
-                      <span className="absolute -left-1 -top-1 grid size-6 place-items-center rounded-full bg-inverse text-xs font-bold text-on-inverse tabular">{i + 1}</span>
+        <ol className="evo-plan mt-5">
+          {workout.items.map((it, i) => {
+            const ex = getExercise(d, it.exerciseId)
+            return (
+              <li key={it.id}>
+                <button type="button" className="evo-plan-row" onClick={() => setHowTo(it.exerciseId)} aria-label={`Como fazer: ${ex?.name ?? "exercício"}`}>
+                  {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold leading-snug">
+                      <span className="tabular text-muted">{i + 1}.</span> {ex?.name ?? "Exercício"}
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold leading-snug">{ex?.name ?? "Exercício"}</span>
-                      <span className="block text-sm text-muted tabular">
-                        {it.sets} × {it.reps}
-                        {it.load !== null && ` · ${it.load} kg`}
-                        {it.restSec > 0 && ` · ${it.restSec}s descanso`}
-                      </span>
-                      {hasOwnVideo(d, it.exerciseId) && <span className="badge badge-success mt-1">Vídeo do personal</span>}
+                    <span className="block text-sm text-muted tabular">
+                      {it.sets} séries · {it.reps} reps
+                      {hasOwnVideo(d, it.exerciseId) && " · vídeo do personal"}
                     </span>
-                    <PlayCircle size={22} aria-hidden className="shrink-0 text-muted transition-all group-hover:scale-110 group-hover:text-accent" />
-                  </button>
-                </li>
-              )
-            })}
-          </ol>
-        </>
+                  </span>
+                  <PlayCircle size={20} aria-hidden className="shrink-0 text-muted" />
+                </button>
+              </li>
+            )
+          })}
+        </ol>
       )}
+      <div className="h-24" aria-hidden />
       <HowTo d={d} exerciseId={howTo} onClose={() => setHowTo(null)} />
 
       <div className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
@@ -134,7 +126,6 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
               disabled={workout.items.length === 0}
               onClick={() => {
                 update((x) => startSession(x, studentId, workout.id, uid("se")))
-                toast("Treino iniciado. Bom treino!", "info")
               }}
             >
               <Play size={20} aria-hidden fill="currentColor" /> Iniciar treino
@@ -212,7 +203,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
   return (
     <div>
-      <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur">
+      <div className="sticky top-[calc(var(--safe-top)+3.5rem)] z-20 -mx-4 mb-4 border-b border-line bg-bg px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="truncate font-bold">{workout.name}</p>
@@ -228,112 +219,115 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
         <div className="mt-2">
           <Progress value={progress.pct} label={`${progress.done} de ${progress.total} séries concluídas`} />
         </div>
-        <nav className="evo-session-nav mt-3" aria-label="Ir para exercício">
-          {order.map((itemId, idx) => {
-            const sets = session.sets.filter((s) => s.itemId === itemId)
-            const complete = sets.every((s) => s.done)
-            const name = sets[0]?.exerciseName ?? `Exercício ${idx + 1}`
-            return (
-              <button key={itemId} type="button" className={cx("evo-session-nav-item", complete && "is-complete")} onClick={() => document.getElementById(`item-${itemId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={`Ir para exercício ${idx + 1}: ${name}`}>
-                <span>{complete ? <Check size={12} aria-hidden /> : idx + 1}</span>
-                <small>{name}</small>
-              </button>
-            )
-          })}
-        </nav>
       </div>
 
-      <ol className="space-y-4">
+      <ol className="space-y-3">
         {order.map((itemId, idx) => {
           const sets = session.sets.filter((s) => s.itemId === itemId)
           const item = itemById.get(itemId)
           const ex = getExercise(d, sets[0].exerciseId)
-          const tip = d.exerciseMedia[sets[0].exerciseId]?.tip
           const allDone = sets.every((s) => s.done)
           const restSec = item?.restSec ?? 60
+          const prev = previousSets(d, session.studentId, sets[0].exerciseId, session.startedAt)
           return (
-            <li key={itemId} id={`item-${itemId}`} className={cx("card scroll-mt-36 overflow-hidden transition-[opacity,border-color] duration-500", allDone && "border-success/40 opacity-80")}>
-              <div className="evo-session-exercise-heading flex items-start gap-3 p-4 pb-3">
-                <button type="button" className="group relative shrink-0" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Como fazer: ${sets[0].exerciseName}`}>
-                  {ex ? <ExerciseThumb ex={ex} className="w-20" /> : <span className="thumb w-20" />}
-                  <span key={String(allDone)} className={cx("pop absolute -left-1.5 -top-1.5 grid size-7 place-items-center rounded-full text-xs font-bold tabular", allDone ? "bg-success text-bg" : "bg-inverse text-on-inverse")}>
-                    {allDone ? <Check size={15} strokeWidth={3} aria-label="concluído" /> : idx + 1}
-                  </span>
+            <li key={itemId} id={`item-${itemId}`} className={cx("evo-lift scroll-mt-28", allDone && "is-done")}>
+              <div className="evo-lift-head">
+                <button type="button" className="evo-lift-thumb" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Como fazer: ${sets[0].exerciseName}`}>
+                  {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
+                  {allDone && (
+                    <span className="evo-lift-check pop">
+                      <Check size={12} strokeWidth={3.5} aria-label="concluído" />
+                    </span>
+                  )}
                 </button>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg font-bold leading-tight">{sets[0].exerciseName}</h2>
-                  <div className="evo-exercise-status mt-1"><span>{sets.filter((s) => s.done).length} de {sets.length} séries concluídas</span>{allDone && <span className="evo-exercise-complete"><Check size={12} aria-hidden /> Concluído</span>}</div>
-                  <p className="mt-1 text-sm text-muted tabular">
+                  <h2 className="evo-lift-name">
+                    <span className="tabular text-muted">{idx + 1}.</span> {sets[0].exerciseName}
+                  </h2>
+                  <p className="evo-lift-meta tabular">
                     {item ? `${item.sets} × ${item.reps}` : `${sets.length} séries`}
-                    {item?.load !== null && item?.load !== undefined && ` · ${item.load} kg prescrito`}
-                    {restSec > 0 && ` · ${restSec}s`}
+                    {restSec > 0 && (
+                      <>
+                        {" · "}
+                        <Timer size={12} aria-hidden className="inline" /> {mmss(restSec)}
+                      </>
+                    )}
+                    {hasOwnVideo(d, sets[0].exerciseId) && " · vídeo do personal"}
                   </p>
-                  <button type="button" className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-sm font-semibold text-accent transition-transform active:scale-95" onClick={() => setHowTo(sets[0].exerciseId)}>
-                    <PlayCircle size={16} aria-hidden /> Como fazer
-                    {hasOwnVideo(d, sets[0].exerciseId) && <span className="text-xs font-medium opacity-80">· vídeo</span>}
-                  </button>
                 </div>
+                <button type="button" className="btn btn-ghost btn-icon btn-sm text-muted" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Ver como fazer ${sets[0].exerciseName}`}>
+                  <PlayCircle size={20} aria-hidden />
+                </button>
               </div>
-              {item?.notes && <p className="mx-4 mb-3 rounded-lg bg-accent-soft px-3 py-2 text-sm font-medium">{item.notes}</p>}
-              {tip && (
-                <p className="mx-4 mb-3 flex gap-2 text-sm leading-relaxed text-muted">
-                  <Lightbulb size={15} aria-hidden className="mt-0.5 shrink-0 text-accent" />
-                  {tip}
-                </p>
-              )}
+              {item?.notes && <p className="evo-lift-note">{item.notes}</p>}
 
-              <div className="border-t border-line">
-                <div className="grid grid-cols-[2rem_1fr_1fr_3.25rem] items-center gap-2 px-4 pt-2 text-xs font-semibold uppercase tracking-wide text-muted" aria-hidden>
+              <div className="evo-sets" role="group" aria-label={`Séries de ${sets[0].exerciseName}`}>
+                <div className="evo-sets-row evo-sets-head" aria-hidden>
                   <span>Série</span>
-                  <span>Reps</span>
+                  <span>Anterior</span>
                   <span>Kg</span>
-                  <span className="text-center">Feito</span>
+                  <span>Reps</span>
+                  <span className="sr-only">Feito</span>
+                  <Check size={14} strokeWidth={3} />
                 </div>
-                {sets.map((s) => (
-                  <div key={s.setIndex} className={cx("grid grid-cols-[2rem_1fr_1fr_3.25rem] items-center gap-2 px-4 py-1.5 transition-colors duration-300", s.done && "bg-success-soft")}>
-                    <span className="text-center font-bold tabular">{s.setIndex + 1}</span>
-                    <label className="sr-only" htmlFor={`r-${itemId}-${s.setIndex}`}>
-                      Repetições da série {s.setIndex + 1} de {s.exerciseName}
-                    </label>
-                    <input
-                      id={`r-${itemId}-${s.setIndex}`}
-                      className="input h-12 text-center text-lg font-semibold tabular"
-                      type="number"
-                      inputMode="numeric"
-                      min={0}
-                      value={s.reps ?? ""}
-                      placeholder="—"
-                      onChange={(e) => update((x) => updateSet(x, session.id, itemId, s.setIndex, { reps: e.target.value === "" ? null : Math.max(0, parseInt(e.target.value, 10) || 0) }))}
-                    />
-                    <label className="sr-only" htmlFor={`l-${itemId}-${s.setIndex}`}>
-                      Carga em kg da série {s.setIndex + 1} de {s.exerciseName}
-                    </label>
-                    <input
-                      id={`l-${itemId}-${s.setIndex}`}
-                      className="input h-12 text-center text-lg font-semibold tabular"
-                      type="number"
-                      inputMode="decimal"
-                      step="0.5"
-                      min={0}
-                      value={s.load ?? ""}
-                      placeholder="livre"
-                      onChange={(e) => update((x) => updateSet(x, session.id, itemId, s.setIndex, { load: e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value) || 0) }))}
-                    />
-                    <button
-                      type="button"
-                      aria-pressed={s.done}
-                      aria-label={`${s.done ? "Desmarcar" : "Marcar"} série ${s.setIndex + 1} de ${s.exerciseName}`}
-                      onClick={() => toggleSet(itemId, s.setIndex, !s.done, restSec)}
-                      className={cx(
-                        "grid size-12 place-items-center rounded-xl border-2 transition-[background-color,border-color,color,transform] duration-200 active:scale-90",
-                        s.done ? "border-success bg-success text-bg" : "border-line-strong text-muted hover:border-fg",
+                {sets.map((s) => {
+                  const p = prev[s.setIndex]
+                  const prevText = p ? `${p.load ?? "—"} × ${p.reps ?? "—"}` : "—"
+                  return (
+                    <div key={s.setIndex} className={cx("evo-sets-row", s.done && "is-done")}>
+                      <span className="evo-sets-n tabular">{s.setIndex + 1}</span>
+                      {p ? (
+                        <button
+                          type="button"
+                          className="evo-sets-prev tabular"
+                          title="Usar o que você fez da última vez"
+                          aria-label={`Anterior: ${prevText}. Usar nesta série`}
+                          onClick={() => update((x) => updateSet(x, session.id, itemId, s.setIndex, { load: p.load, reps: p.reps }))}
+                        >
+                          {prevText}
+                        </button>
+                      ) : (
+                        <span className="evo-sets-prev is-empty">—</span>
                       )}
-                    >
-                      <Check key={String(s.done)} size={22} strokeWidth={3} aria-hidden className={s.done ? "pop" : undefined} />
-                    </button>
-                  </div>
-                ))}
-                <div className="h-2" />
+                      <label className="sr-only" htmlFor={`l-${itemId}-${s.setIndex}`}>
+                        Carga em kg da série {s.setIndex + 1} de {s.exerciseName}
+                      </label>
+                      <input
+                        id={`l-${itemId}-${s.setIndex}`}
+                        className="evo-sets-input tabular"
+                        type="number"
+                        inputMode="decimal"
+                        step="0.5"
+                        min={0}
+                        value={s.load ?? ""}
+                        placeholder="—"
+                        onChange={(e) => update((x) => updateSet(x, session.id, itemId, s.setIndex, { load: e.target.value === "" ? null : Math.max(0, parseFloat(e.target.value) || 0) }))}
+                      />
+                      <label className="sr-only" htmlFor={`r-${itemId}-${s.setIndex}`}>
+                        Repetições da série {s.setIndex + 1} de {s.exerciseName}
+                      </label>
+                      <input
+                        id={`r-${itemId}-${s.setIndex}`}
+                        className="evo-sets-input tabular"
+                        type="number"
+                        inputMode="numeric"
+                        min={0}
+                        value={s.reps ?? ""}
+                        placeholder="—"
+                        onChange={(e) => update((x) => updateSet(x, session.id, itemId, s.setIndex, { reps: e.target.value === "" ? null : Math.max(0, parseInt(e.target.value, 10) || 0) }))}
+                      />
+                      <button
+                        type="button"
+                        aria-pressed={s.done}
+                        aria-label={`${s.done ? "Desmarcar" : "Marcar"} série ${s.setIndex + 1} de ${s.exerciseName}`}
+                        onClick={() => toggleSet(itemId, s.setIndex, !s.done, restSec)}
+                        className="evo-sets-check"
+                      >
+                        <Check key={String(s.done)} size={18} strokeWidth={3} aria-hidden className={s.done ? "pop" : undefined} />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             </li>
           )
@@ -486,24 +480,6 @@ function Summary({ session, records }: { session: Session; records: PersonalReco
 }
 
 /** Músculos de hoje: o mesmo mapa da ficha, para o aluno saber o que vai trabalhar. */
-function TodayMuscles({ d, workout }: { d: DemoData; workout: Workout }) {
-  const vol = muscleVolume(d, workout.items)
-  if (!vol.length) return null
-  return (
-    <section className="evo-muscles mt-5" aria-label="Músculos de hoje">
-      <BodyMap levels={volumeLevels(vol)} compact />
-      <div className="min-w-0">
-        <p className="t-eyebrow">Músculos de hoje</p>
-        <p className="mt-1 text-sm leading-relaxed">
-          <b>{vol.slice(0, 3).map((v) => v.muscle).join(", ")}</b>
-          {vol.length > 3 && <span className="text-muted"> e mais {vol.length - 3}</span>}
-        </p>
-        <p className="mt-1 text-xs text-muted">Quanto mais forte a cor, mais séries para o músculo.</p>
-      </div>
-    </section>
-  )
-}
-
 const EFFORT_HINT: Record<number, string> = { 1: "muito leve", 3: "leve", 5: "moderado", 7: "pesado", 9: "muito pesado", 10: "máximo" }
 
 /** Check-in de 5 segundos: esforço, dor e sono. Tudo opcional; vai para o personal acompanhar. */
