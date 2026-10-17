@@ -514,6 +514,10 @@
 
   /* ---------- Modal (dialog nativo) ---------- */
   .dialog {
+    /* posição explícita também para navegadores sem <dialog> (iOS antigo) */
+    position: fixed;
+    inset: 0;
+    z-index: 80;
     margin: auto;
     width: min(100% - 2rem, 34rem);
     max-height: min(var(--sheet-max, 90vh), 48rem);
@@ -546,6 +550,22 @@
     .dialog[open] {
       animation: sheet 0.22s ease-out;
     }
+    /* Formulários no celular: tela cheia, como uma página (cabeçalho, campos com rolagem, botões). */
+    .dialog.dialog-page {
+      margin: 0;
+      inset: 0;
+      height: var(--sheet-full, 100%);
+      max-height: var(--sheet-full, 100%);
+      border: 0;
+      border-radius: 0;
+      padding-top: env(safe-area-inset-top);
+    }
+    .dialog.dialog-page[open] {
+      animation: page-in 0.2s ease-out;
+    }
+  }
+  @keyframes page-in {
+    from { opacity: 0; transform: translateY(12px); }
   }
 
   .skeleton {

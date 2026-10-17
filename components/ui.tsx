@@ -72,16 +72,25 @@ interface ModalProps {
   children: React.ReactNode
   footer?: React.ReactNode
   wide?: boolean
+  /** Janela pequena (confirmação). As demais viram tela cheia no celular, como uma página. */
+  compact?: boolean
 }
 
-export function Modal({ open, onClose, title, description, children, footer, wide }: ModalProps) {
+export function Modal({ open, onClose, title, description, children, footer, wide, compact }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
     const d = ref.current
     if (!d) return
-    if (open && !d.open) d.showModal()
-    if (!open && d.open) d.close()
+    // iOS anterior ao 15.4 não tem <dialog>: abre como bloco fixo na tela, sem quebrar
+    if (open && !d.open) {
+      if (typeof d.showModal === "function") d.showModal()
+      else d.setAttribute("open", "")
+    }
+    if (!open && d.open) {
+      if (typeof d.close === "function") d.close()
+      else d.removeAttribute("open")
+    }
   }, [open])
   // Altura máxima pela área realmente visível. No iPhone, as unidades de viewport (dvh) podem
   // ficar presas no tamanho com teclado aberto e a janela "não sobe"; o visualViewport é atualizado
@@ -90,7 +99,10 @@ export function Modal({ open, onClose, title, description, children, footer, wid
     const d = ref.current
     const vv = typeof window !== "undefined" ? window.visualViewport : null
     if (!open || !d || !vv) return
-    const sync = () => d.style.setProperty("--sheet-max", `${Math.round(vv.height * 0.92)}px`)
+    const sync = () => {
+      d.style.setProperty("--sheet-max", `${Math.round(vv.height * 0.92)}px`)
+      d.style.setProperty("--sheet-full", `${Math.round(vv.height)}px`)
+    }
     sync()
     vv.addEventListener("resize", sync)
     window.addEventListener("orientationchange", sync)
@@ -102,7 +114,7 @@ export function Modal({ open, onClose, title, description, children, footer, wid
   return (
     <dialog
       ref={ref}
-      className={cx("dialog", wide && "sm:!w-[min(100%-2rem,46rem)]")}
+      className={cx("dialog", !compact && "dialog-page", wide && "sm:!w-[min(100%-2rem,46rem)]")}
       aria-labelledby={titleId}
       onCancel={(e) => {
         e.preventDefault()
@@ -125,7 +137,7 @@ export function Modal({ open, onClose, title, description, children, footer, wid
               <X size={18} />
             </button>
           </header>
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{children}</div>
+          <div className="min-h-0 flex-auto overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
           {footer && <footer className="flex flex-col-reverse gap-2 border-t border-line px-5 py-4 sm:flex-row sm:justify-end">{footer}</footer>}
         </>
       )}
@@ -146,6 +158,7 @@ interface ConfirmProps {
 export function ConfirmDialog({ open, title, message, confirmLabel, danger, onConfirm, onClose }: ConfirmProps) {
   return (
     <Modal
+      compact
       open={open}
       onClose={onClose}
       title={title}
