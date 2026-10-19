@@ -22,7 +22,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   const mustChange = role === "student" && !!account?.mustChangePassword
   usePrecacheWorkouts(data, student?.id ?? null)
-  let content: React.ReactNode = gated ? <GateScreen /> : data ? children : <LoadingScreen />
+  let content: React.ReactNode = gated ? <GateScreen /> : data ? children : <LoadingScreen action={false} />
   if (data && mustChange) content = <FirstAccessPassword login={account?.email ?? ""} />
   else if (data && role === "trainer")
     content = (

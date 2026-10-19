@@ -543,6 +543,9 @@
       width: 100%;
       max-width: 100%;
       margin: auto 0 0;
+      /* caixa = área visível (com teclado aberto, o iOS desloca e encolhe a área visível) */
+      top: var(--sheet-top, 0px);
+      bottom: var(--sheet-bottom, 0px);
       max-height: var(--sheet-max, 88vh);
       border-radius: 1.25rem 1.25rem 0 0;
       padding-bottom: env(safe-area-inset-bottom);
@@ -554,6 +557,8 @@
     .dialog.dialog-page {
       margin: 0;
       inset: 0;
+      top: var(--sheet-top, 0px);
+      bottom: var(--sheet-bottom, 0px);
       height: var(--sheet-full, 100%);
       max-height: var(--sheet-full, 100%);
       border: 0;

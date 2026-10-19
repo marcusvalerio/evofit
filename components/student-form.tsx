@@ -104,7 +104,7 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
             />
           )}
         </Field>
-        <Field label="Dia de vencimento da mensalidade" error={show.dueDay} hint="De 1 a 31. Em meses mais curtos, vence no último dia. Em branco, usamos o dia de hoje.">
+        <Field label="Dia de vencimento da mensalidade" error={show.dueDay}>
           {(p) => (
             <input
               {...p}
