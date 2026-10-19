@@ -124,9 +124,25 @@ test.describe("Studio", () => {
     await expect(page.getByLabel("Elisa Prado")).toBeChecked()
 
     // validação: séries inválidas bloqueiam o salvamento
-    await page.getByLabel("Séries").first().fill("0")
+    // (o primeiro "Séries" é o do ajuste em lote; o do exercício fica no card da lista)
+    await page.locator("li.card").first().getByLabel("Séries").fill("0")
     await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
     await expect(page.getByText("Séries devem ficar entre 1 e 20.")).toBeVisible()
+  })
+
+  test("datas da ficha: início sugere a troca em 3 meses respeitando o mês e persiste", async ({ page }) => {
+    await page.goto("/studio/treinos/tr-full-body")
+    await page.getByLabel("Início do treino").fill("2026-11-30")
+    await expect(page.getByLabel("Troca prevista")).toHaveValue("2027-02-28")
+    await page.getByLabel("Troca prevista").fill("2026-11-01")
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("A troca deve ser depois do início.")).toBeVisible()
+    await page.getByLabel("Troca prevista").fill("2027-03-10")
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByLabel("Início do treino")).toHaveValue("2026-11-30")
+    await expect(page.getByLabel("Troca prevista")).toHaveValue("2027-03-10")
   })
 
   test("cria nova ficha a partir da lista", async ({ page }) => {

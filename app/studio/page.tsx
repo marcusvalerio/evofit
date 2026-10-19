@@ -1,10 +1,11 @@
 "use client"
 import Link from "next/link"
-import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, UserPlus, type LucideIcon } from "lucide-react"
+import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, RefreshCw, UserPlus, type LucideIcon } from "lucide-react"
 import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { CheckinBadges } from "@/components/checkin-badges"
 import { ChurnRadar } from "@/components/churn-radar"
 import { useData, useIsDemo } from "@/lib/store"
+import { daysToChange } from "@/lib/actions"
 import { completed, needsAttention, sessionProgress, weekAdherence, weekCount, weeklySeries } from "@/lib/metrics"
 import { addDays, fmtDate, fmtDayMonth, fmtTime, relativeDays } from "@/lib/date"
 import { BarChart } from "@/components/charts"
@@ -25,7 +26,13 @@ export default function StudioDashboard() {
   const studentName = new Map(d.students.map((s) => [s.id, s.name]))
   const inbox = d.contactRequests.filter((c) => c.trainerSlug === d.profile.slug)
   const live = d.sessions.filter((s) => s.status === "em_andamento")
-  const pending = new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length
+  // Fichas em uso com troca nos próximos 7 dias ou atrasada
+  const toChange = d.workouts
+    .filter((w) => w.studentIds.length > 0)
+    .map((w) => ({ w, days: daysToChange(w, now) }))
+    .filter((x): x is { w: typeof x.w; days: number } => x.days !== null && x.days <= 7)
+    .sort((a, b) => a.days - b.days)
+  const pending = new Set([...attention.map(({ student }) => student.id), ...noWorkout.map((student) => student.id)]).size + inbox.length + live.length + toChange.length
 
   return (
     <div className="fade-in">
@@ -58,6 +65,18 @@ export default function StudioDashboard() {
           <TodayItem href={attention[0] ? `/studio/alunos/${attention[0].student.id}` : "/studio/alunos"} icon={CalendarCheck} tone="warn" title="Sem treino há 7+ dias" value={attention.length} detail={attention.length ? listNames(attention.map((a) => a.student.name)) : "Todos treinaram nos últimos 7 dias."} />
           <TodayItem href={noWorkout[0] ? `/studio/alunos/${noWorkout[0].id}` : "/studio/alunos"} icon={UserPlus} tone="peach" title="Sem ficha atribuída" value={noWorkout.length} detail={noWorkout.length ? listNames(noWorkout.map((s) => s.name)) : "Todos os alunos ativos têm ficha."} />
           <TodayItem href="/studio/treinos" icon={ClipboardList} tone="blue" title="Treinando agora" value={live.length} detail={live.length ? listNames(live.map((s) => studentName.get(s.studentId) ?? "Aluno")) : "Nenhuma sessão em andamento."} />
+          <TodayItem
+            href={toChange[0] ? `/studio/treinos/${toChange[0].w.id}` : "/studio/treinos"}
+            icon={RefreshCw}
+            tone="warn"
+            title="Fichas para trocar"
+            value={toChange.length}
+            detail={
+              toChange.length
+                ? toChange.slice(0, 2).map(({ w, days }) => `${w.name} (${days < 0 ? "atrasada" : days === 0 ? "hoje" : `em ${days} ${days === 1 ? "dia" : "dias"}`})`).join(", ") + (toChange.length > 2 ? ` e mais ${toChange.length - 2}` : "")
+                : "Nenhuma troca nos próximos 7 dias."
+            }
+          />
           <TodayItem href="/studio/perfil#solicitacoes" icon={Inbox} title="Pedidos de contato" value={inbox.length} detail={inbox.length ? "Novos alunos pelo diretório." : "Nenhum pedido novo."} />
         </div>
       </section>

@@ -100,9 +100,9 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
               Prescrição, execução e evolução em um só sistema para personal trainers autônomos.{demo ? " Versão de demonstração — perfis exibidos são fictícios." : ""}
             </p>
           </div>
-          <nav aria-label="Rodapé" className="flex flex-wrap gap-x-5 gap-y-2 sm:justify-end">
+          <nav aria-label="Rodapé" className="flex flex-wrap gap-x-5 sm:justify-end">
             {links.map((l) => (
-              <Link key={l.href} href={l.href} className="text-muted hover:text-fg">
+              <Link key={l.href} href={l.href} className="inline-flex min-h-11 items-center text-muted hover:text-fg">
                 {l.label}
               </Link>
             ))}

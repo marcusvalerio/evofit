@@ -17,18 +17,14 @@ import { useToast } from "./providers"
  */
 export function ExerciseDemo({ ex, className, compact }: { ex: ExerciseView; className?: string; compact?: boolean }) {
   const [paused, setPaused] = useState(false)
-  const [phase, setPhase] = useState(0)
-  useEffect(() => {
-    if (paused || ex.frames < 2 || ex.custom) return
-    const timer = window.setInterval(() => setPhase((p) => (p === 0 ? 1 : 0)), 900)
-    return () => window.clearInterval(timer)
-  }, [paused, ex.frames, ex.custom])
   if (ex.custom || ex.frames < 2) return <DemoPlaceholder ex={ex} className={className} />
   return (
     <figure className={cx("demo", paused && "demo-paused", className)} aria-label={`Demonstração do exercício: ${ex.name}`}>
       <div className="demo-stage">
         {/* eslint-disable-next-line @next/next/no-img-element -- imagens originais do catálogo */}
-        <img src={frameUrl(ex.id, phase)} alt={ex.name} className="size-full object-contain" width={480} height={320} decoding="async" />
+        <img src={frameUrl(ex.id, 0)} alt={`${ex.name}: posição inicial`} className="demo-frame demo-a" width={480} height={320} decoding="async" />
+        {/* eslint-disable-next-line @next/next/no-img-element -- imagens originais do catálogo */}
+        <img src={frameUrl(ex.id, 1)} alt={`${ex.name}: posição final`} className="demo-frame demo-b" width={480} height={320} decoding="async" />
       </div>
       {!compact && (
         <button type="button" className="demo-toggle btn btn-sm btn-icon btn-pill glass" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Retomar animação" : "Pausar animação"} aria-pressed={paused}>

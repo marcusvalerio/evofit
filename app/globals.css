@@ -1435,6 +1435,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 .evo-today-item { display: flex; min-width: 0; align-items: center; gap: 0.85rem; padding: 0.9rem; border-radius: 1rem; background: rgb(228 227 220 / 0.04); border: 1px solid rgb(228 227 220 / 0.07); transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s ease; }
 .evo-today-item:hover { background: rgb(228 227 220 / 0.08); border-color: rgb(228 227 220 / 0.16); }
 .evo-today-item.is-clear { opacity: 0.62; }
+.evo-today-item:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .evo-today-icon { display: grid; place-items: center; width: 2.6rem; height: 2.6rem; flex-shrink: 0; border-radius: 0.8rem; background: rgb(228 227 220 / 0.08); color: var(--mp-cotton); }
 .evo-today-icon-warn { background: rgb(255 78 32 / 0.18); color: var(--mp-otan); }
 .evo-today-icon-peach { background: rgb(255 122 82 / 0.16); color: #ff7a52; }
