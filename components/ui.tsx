@@ -99,15 +99,21 @@ export function Modal({ open, onClose, title, description, children, footer, wid
     const d = ref.current
     const vv = typeof window !== "undefined" ? window.visualViewport : null
     if (!open || !d || !vv) return
+    // Com o teclado aberto o iOS também rola a área visível (offsetTop > 0): sem acompanhar esse
+    // deslocamento, a janela fica alta demais e sobra um vão entre os botões e o teclado.
     const sync = () => {
       d.style.setProperty("--sheet-max", `${Math.round(vv.height * 0.92)}px`)
       d.style.setProperty("--sheet-full", `${Math.round(vv.height)}px`)
+      d.style.setProperty("--sheet-top", `${Math.round(vv.offsetTop)}px`)
+      d.style.setProperty("--sheet-bottom", `${Math.max(0, Math.round(window.innerHeight - vv.offsetTop - vv.height))}px`)
     }
     sync()
     vv.addEventListener("resize", sync)
+    vv.addEventListener("scroll", sync)
     window.addEventListener("orientationchange", sync)
     return () => {
       vv.removeEventListener("resize", sync)
+      vv.removeEventListener("scroll", sync)
       window.removeEventListener("orientationchange", sync)
     }
   }, [open])
@@ -200,16 +206,37 @@ export function EmptyState({ icon: Icon, title, children, action }: { icon: Reac
   )
 }
 
-export function LoadingScreen({ label = "Carregando" }: { label?: string }) {
+/**
+ * Esqueleto de carregamento. Fica dentro do <main> já com padding (sem padding próprio) e copia
+ * as medidas do PageHeader — título na altura de linha do t-h1, descrição, botão de ação —, para
+ * que o conteúdo real entre no mesmo lugar, sem pulo de layout.
+ */
+export function LoadingScreen({ label = "Carregando", action = true }: { label?: string; action?: boolean }) {
+  const line = "flex h-[1.5em] items-center"
   return (
-    <div className="space-y-4 p-4 sm:p-6" role="status" aria-label={label}>
-      <div className="skeleton h-8 w-48" />
+    <div role="status" aria-label={label}>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="t-h1">
+            <div className="skeleton h-[1.1em] w-48 max-w-full" />
+          </div>
+          <div className="mt-1 text-[0.9375rem]">
+            <div className={line}>
+              <div className="skeleton h-[0.9em] w-full max-w-md" />
+            </div>
+            <div className={cx(line, "sm:hidden")}>
+              <div className="skeleton h-[0.9em] w-2/3" />
+            </div>
+          </div>
+        </div>
+        {action && <div className="skeleton h-11 w-40 shrink-0" />}
+      </div>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="skeleton h-28" />
         <div className="skeleton h-28" />
         <div className="skeleton h-28" />
       </div>
-      <div className="skeleton h-64" />
+      <div className="skeleton mt-4 h-64" />
       <span className="sr-only">{label}…</span>
     </div>
   )
