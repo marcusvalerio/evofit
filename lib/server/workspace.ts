@@ -1,6 +1,7 @@
 import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "../types"
 import { SPECIALTIES } from "../types"
 import { DATA_VERSION } from "../seed"
+import { isoDayOf } from "../date"
 import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
 import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
@@ -24,6 +25,8 @@ const ID = /^[A-Za-z0-9_-]{1,64}$/
 const iso = (v: unknown) => (v instanceof Date ? v.toISOString() : String(v))
 const isoOrNull = (v: unknown) => (v === null || v === undefined ? null : iso(v))
 const validDate = (s: string) => !Number.isNaN(Date.parse(s))
+/** Coluna date → AAAA-MM-DD. O driver entrega meia-noite local, então os campos locais são os do dia. */
+const dayOrNull = (v: unknown) => (v === null || v === undefined ? null : v instanceof Date ? isoDayOf(v) : String(v).slice(0, 10))
 const numOrNull = (v: unknown) => (v === null || v === undefined ? null : Number(v))
 
 /* ---------- Leitura ---------- */
@@ -95,6 +98,8 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
         description: String(w.description),
         items: w.items as WorkoutItem[],
         studentIds: assigned.get(String(w.id)) ?? [],
+        startDate: dayOrNull(w.start_date),
+        changeDate: dayOrNull(w.change_date),
         createdAt: iso(w.created_at),
         updatedAt: iso(w.updated_at),
       }),
@@ -255,9 +260,10 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
   for (const w of c.workouts?.upsert ?? []) {
     checkWorkout(w)
     await q.query(
-      `insert into workouts (trainer_id, id, name, description, items, created_at, updated_at) values ($1, $2, $3, $4, $5::jsonb, $6, $7)
-       on conflict (trainer_id, id) do update set name = excluded.name, description = excluded.description, items = excluded.items, updated_at = excluded.updated_at`,
-      [ctx.trainerId, w.id, w.name.trim(), w.description, JSON.stringify(w.items), w.createdAt, w.updatedAt],
+      `insert into workouts (trainer_id, id, name, description, items, created_at, updated_at, start_date, change_date) values ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9)
+       on conflict (trainer_id, id) do update set name = excluded.name, description = excluded.description, items = excluded.items, updated_at = excluded.updated_at,
+         start_date = excluded.start_date, change_date = excluded.change_date`,
+      [ctx.trainerId, w.id, w.name.trim(), w.description, JSON.stringify(w.items), w.createdAt, w.updatedAt, w.startDate ?? null, w.changeDate ?? null],
     )
     await q.query("delete from workout_assignments where workout_id = $1", [w.id])
     for (const sid of w.studentIds) {

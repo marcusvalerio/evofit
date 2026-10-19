@@ -1,6 +1,7 @@
 import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CIRCUMFERENCES, SKINFOLDS } from "./types"
 import { DATA_VERSION } from "./seed"
+import { isValidIsoDay } from "./date"
 
 type Obj = Record<string, unknown>
 const isObj = (v: unknown): v is Obj => typeof v === "object" && v !== null && !Array.isArray(v)
@@ -8,6 +9,7 @@ const isStr = (v: unknown): v is string => typeof v === "string"
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v)
 const isNumOrNull = (v: unknown) => v === null || isNum(v)
 const isArr = (v: unknown, guard: (x: unknown) => boolean) => Array.isArray(v) && v.every(guard)
+const isDayOrNull = (v: unknown) => v === undefined || v === null || (isStr(v) && isValidIsoDay(v))
 const has = (o: Obj, keys: Record<string, (v: unknown) => boolean>) => Object.entries(keys).every(([k, g]) => g(o[k]))
 
 export const isProfile = (v: unknown): v is TrainerProfile =>
@@ -29,7 +31,7 @@ export const isStudent = (v: unknown): v is Student =>
   has(v, {
     id: isStr, name: isStr, goal: isStr, notes: isStr, createdAt: isStr, phone: isStr,
     monthlyFee: (n) => n === null || (isNum(n) && n > 0 && n <= 100000),
-    dueDay: (n) => n === null || (isNum(n) && Number.isInteger(n) && n >= 1 && n <= 28),
+    dueDay: (n) => n === null || (isNum(n) && Number.isInteger(n) && n >= 1 && n <= 31),
     level: (l) => l === "iniciante" || l === "intermediario" || l === "avancado",
     weeklyTarget: (n) => isNum(n) && n >= 1 && n <= 7,
     status: (s) => s === "ativo" || s === "arquivado",
@@ -46,7 +48,10 @@ export const isItem = (v: unknown): v is WorkoutItem =>
 
 export const isWorkout = (v: unknown): v is Workout =>
   isObj(v) &&
-  has(v, { id: isStr, name: isStr, description: isStr, createdAt: isStr, updatedAt: isStr, items: (i) => isArr(i, isItem), studentIds: (s) => isArr(s, isStr) })
+  has(v, {
+    id: isStr, name: isStr, description: isStr, createdAt: isStr, updatedAt: isStr, items: (i) => isArr(i, isItem), studentIds: (s) => isArr(s, isStr),
+    startDate: isDayOrNull, changeDate: isDayOrNull,
+  })
 
 const isSet = (v: unknown) =>
   isObj(v) &&

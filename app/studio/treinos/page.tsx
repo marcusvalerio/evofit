@@ -4,9 +4,9 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ClipboardList, Copy, Plus, Search, Trash2 } from "lucide-react"
 import { update, useData } from "@/lib/store"
-import { createWorkout, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
-import { fmtDate } from "@/lib/date"
-import { Avatar, ConfirmDialog, EmptyState, Field, Modal, PageHeader, autoFocusOk } from "@/components/ui"
+import { createWorkout, daysToChange, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
+import { fmtDate, fmtIsoDay } from "@/lib/date"
+import { Avatar, ConfirmDialog, EmptyState, Field, Modal, PageHeader, autoFocusOk, cx } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import type { Workout } from "@/lib/types"
 import { getExercise } from "@/lib/catalog"
@@ -143,7 +143,10 @@ function Treinos() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-3 text-xs text-muted">Atualizada em {fmtDate(w.updatedAt)}</p>
+                <p className="mt-3 text-xs text-muted">
+                  Atualizada em {fmtDate(w.updatedAt)}
+                  {w.changeDate && <ChangeNote w={w} />}
+                </p>
                 </div>
               </li>
             )
@@ -200,5 +203,17 @@ function Treinos() {
         />
       )}
     </div>
+  )
+}
+
+function ChangeNote({ w }: { w: Workout }) {
+  const n = daysToChange(w)
+  if (n === null) return null
+  const late = n < 0
+  return (
+    <span className={cx(late || n <= 7 ? "font-semibold text-warning" : undefined)}>
+      {" · "}
+      {late ? `Troca atrasada há ${-n} ${n === -1 ? "dia" : "dias"}` : n === 0 ? "Troca hoje" : `Troca em ${fmtIsoDay(w.changeDate!)}`}
+    </span>
   )
 }

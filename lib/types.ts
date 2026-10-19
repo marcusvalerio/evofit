@@ -83,6 +83,10 @@ export interface Workout {
   description: string
   items: WorkoutItem[]
   studentIds: string[]
+  /** Início do ciclo da ficha (AAAA-MM-DD, sem fuso). */
+  startDate?: string | null
+  /** Data prevista para trocar a ficha (AAAA-MM-DD). Sugerida em 3 meses após o início. */
+  changeDate?: string | null
   createdAt: string
   updatedAt: string
 }

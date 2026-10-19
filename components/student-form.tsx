@@ -27,10 +27,9 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
     setTouched(true)
-    // Mensalidade sem vencimento: assume o dia de hoje. Dias 29–31 viram 28 (existem em todo mês).
+    // Mensalidade sem vencimento: assume o dia de hoje. Dias 29–31 caem no último dia dos meses curtos.
     let input = v
-    if (input.monthlyFee != null && input.dueDay == null) input = { ...input, dueDay: Math.min(new Date().getDate(), 28) }
-    if (input.dueDay != null && input.dueDay > 28 && input.dueDay <= 31) input = { ...input, dueDay: 28 }
+    if (input.monthlyFee != null && input.dueDay == null) input = { ...input, dueDay: new Date().getDate() }
     if (input !== v) setV(input)
     if (Object.keys(validateStudent(input)).length) return revealFirstError(e.currentTarget as HTMLFormElement)
     if (student) {
@@ -105,7 +104,7 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
             />
           )}
         </Field>
-        <Field label="Dia de vencimento" error={show.dueDay} hint="De 1 a 28. Em branco, usamos o dia de hoje.">
+        <Field label="Dia de vencimento da mensalidade" error={show.dueDay} hint="De 1 a 31. Em meses mais curtos, vence no último dia. Em branco, usamos o dia de hoje.">
           {(p) => (
             <input
               {...p}
@@ -113,7 +112,7 @@ function StudentForm({ onClose, student, onCreated }: { onClose: () => void; stu
               type="number"
               inputMode="numeric"
               min={1}
-              max={28}
+              max={31}
               placeholder="5"
               value={v.dueDay ?? ""}
               onChange={(e) => set("dueDay", e.target.value === "" ? null : parseInt(e.target.value, 10))}
