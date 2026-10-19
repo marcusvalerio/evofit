@@ -1,5 +1,5 @@
 import type { DemoData, Student } from "./types"
-import { DAY_MS, startOfDay } from "./date"
+import { DAY_MS, daysInMonth, startOfDay } from "./date"
 
 export const monthKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
 
@@ -29,7 +29,8 @@ export function feesForMonth(d: DemoData, month: string, now = new Date()): FeeR
   return d.students
     .filter((s) => s.status === "ativo" && s.monthlyFee !== null && s.dueDay !== null)
     .map((student) => {
-      const due = new Date(y, m - 1, student.dueDay!)
+      // Vencimento no dia 29–31 cai no último dia dos meses mais curtos.
+      const due = new Date(y, m - 1, Math.min(student.dueDay!, daysInMonth(y, m)))
       const paid = d.payments.find((p) => p.studentId === student.id && p.month === month)
       const overdueDays = Math.floor((today.getTime() - due.getTime()) / DAY_MS)
       const status: FeeStatus = paid ? "paga" : overdueDays > 0 ? "vencida" : "a_vencer"

@@ -1,6 +1,7 @@
 import type { Assessment, Checkin, Payment, ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CATALOG, exerciseName, fold, getExercise } from "./catalog"
 import { parseVideoUrl, validateVideoUrl } from "./video"
+import { addMonthsIso, daysSinceIso, isValidIsoDay } from "./date"
 
 export function uid(prefix: string) {
   const rnd =
@@ -31,7 +32,7 @@ export function validateStudent(s: StudentInput) {
   const fee = s.monthlyFee ?? null
   if (fee !== null && (!Number.isFinite(fee) || fee <= 0 || fee > 100000)) errors.monthlyFee = "Informe um valor entre R$ 1 e R$ 100.000."
   const due = s.dueDay ?? null
-  if (due !== null && (!Number.isInteger(due) || due < 1 || due > 28)) errors.dueDay = "Use um dia entre 1 e 28."
+  if (due !== null && (!Number.isInteger(due) || due < 1 || due > 31)) errors.dueDay = "Use um dia entre 1 e 31."
   if (fee !== null && due === null && !errors.monthlyFee) errors.dueDay = "Informe o dia de vencimento."
   return errors
 }
@@ -110,9 +111,12 @@ export function setExerciseMedia(d: DemoData, id: string, m: ExerciseMedia): Dem
 
 /* ---------- Fichas de treino ---------- */
 
-export function validateWorkout(w: Pick<Workout, "name" | "items">) {
-  const errors: { name?: string; items?: string; itemErrors: Record<string, string> } = { itemErrors: {} }
+export function validateWorkout(w: Pick<Workout, "name" | "items" | "startDate" | "changeDate">) {
+  const errors: { name?: string; items?: string; startDate?: string; changeDate?: string; itemErrors: Record<string, string> } = { itemErrors: {} }
   if (w.name.trim().length < 2) errors.name = "Dê um nome à ficha."
+  if (w.startDate && !isValidIsoDay(w.startDate)) errors.startDate = "Data inválida."
+  if (w.changeDate && !isValidIsoDay(w.changeDate)) errors.changeDate = "Data inválida."
+  else if (w.changeDate && w.startDate && !errors.startDate && w.changeDate <= w.startDate) errors.changeDate = "A troca deve ser depois do início."
   if (w.items.length === 0) errors.items = "Adicione pelo menos um exercício."
   for (const it of w.items) {
     if (!Number.isInteger(it.sets) || it.sets < 1 || it.sets > 20) errors.itemErrors[it.id] = "Séries devem ficar entre 1 e 20."
@@ -124,7 +128,7 @@ export function validateWorkout(w: Pick<Workout, "name" | "items">) {
 }
 
 export function isWorkoutValid(e: ReturnType<typeof validateWorkout>) {
-  return !e.name && !e.items && Object.keys(e.itemErrors).length === 0
+  return !e.name && !e.items && !e.startDate && !e.changeDate && Object.keys(e.itemErrors).length === 0
 }
 
 export function newWorkoutItem(exerciseId: string): WorkoutItem {
@@ -312,4 +316,25 @@ export function markPaid(d: DemoData, studentId: string, month: string, amount: 
 
 export function unmarkPaid(d: DemoData, studentId: string, month: string): DemoData {
   return { ...d, payments: d.payments.filter((p) => !(p.studentId === studentId && p.month === month)) }
+}
+
+/** Ciclo padrão de uma ficha até a troca sugerida. */
+export const WORKOUT_CYCLE_MONTHS = 3
+
+/**
+ * Define o início da ficha e sugere a troca para 3 meses depois. Se o personal já tinha mudado
+ * a data de troca à mão (diferente da sugestão anterior), ela é mantida.
+ */
+export function withStartDate<W extends Pick<Workout, "startDate" | "changeDate">>(w: W, startDate: string): W {
+  const prevSuggestion = w.startDate && isValidIsoDay(w.startDate) ? addMonthsIso(w.startDate, WORKOUT_CYCLE_MONTHS) : null
+  const keepManual = !!w.changeDate && w.changeDate !== prevSuggestion
+  if (!startDate) return { ...w, startDate: null }
+  if (!isValidIsoDay(startDate)) return { ...w, startDate }
+  return { ...w, startDate, changeDate: keepManual ? w.changeDate : addMonthsIso(startDate, WORKOUT_CYCLE_MONTHS) }
+}
+
+/** Dias até a troca prevista (negativo = atrasada); null sem data. */
+export function daysToChange(w: Pick<Workout, "changeDate">, now = new Date()) {
+  if (!w.changeDate || !isValidIsoDay(w.changeDate)) return null
+  return -daysSinceIso(w.changeDate, now)
 }

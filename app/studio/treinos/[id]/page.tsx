@@ -8,9 +8,10 @@ import type { DemoData, Workout, WorkoutItem } from "@/lib/types"
 import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"
 import { BodyMap } from "@/components/body-map"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
-import { deleteWorkout, isWorkoutValid, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
+import { daysToChange, deleteWorkout, isWorkoutValid, withStartDate, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
 import { ConfirmDialog, Field, Modal, NotFoundState, cx, revealFirstError, autoFocusOk } from "@/components/ui"
 import { useToast } from "@/components/providers"
+import { fmtIsoDay } from "@/lib/date"
 import { ExerciseThumb } from "@/components/exercise"
 
 export default function EditorPage() {
@@ -86,7 +87,8 @@ function Editor({ workout }: { workout: Workout }) {
     toast("Ficha salva.")
   }
 
-  const show = tried ? errors : { itemErrors: {} as Record<string, string>, name: undefined, items: undefined }
+  const show: Partial<typeof errors> & Pick<typeof errors, "itemErrors"> = tried ? errors : { itemErrors: {} }
+  const toChange = daysToChange(draft)
 
   return (
     <div className="fade-in pb-20 lg:pb-0">
@@ -108,6 +110,26 @@ function Editor({ workout }: { workout: Workout }) {
             <Field label="Descrição / foco" hint="Opcional. Aparece para o aluno antes de iniciar.">
               {(p) => <textarea {...p} className="input" rows={2} maxLength={300} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />}
             </Field>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Início do treino" error={show.startDate} hint="Ao preencher, sugerimos a troca para 3 meses depois.">
+                {(p) => <input {...p} className="input" type="date" min="2000-01-01" max="2100-12-31" value={draft.startDate ?? ""} onChange={(e) => setDraft((w) => withStartDate(w, e.target.value))} />}
+              </Field>
+              <Field
+                label="Troca prevista"
+                error={show.changeDate}
+                hint={
+                  toChange === null
+                    ? "Data sugerida para trocar a ficha. Pode editar."
+                    : toChange < 0
+                      ? `Troca atrasada há ${-toChange} ${toChange === -1 ? "dia" : "dias"}.`
+                      : toChange === 0
+                        ? "A troca é hoje."
+                        : `Faltam ${toChange} ${toChange === 1 ? "dia" : "dias"} (${fmtIsoDay(draft.changeDate!)}).`
+                }
+              >
+                {(p) => <input {...p} className="input" type="date" min={draft.startDate || "2000-01-01"} max="2100-12-31" value={draft.changeDate ?? ""} onChange={(e) => setDraft((w) => ({ ...w, changeDate: e.target.value || null }))} />}
+              </Field>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2">

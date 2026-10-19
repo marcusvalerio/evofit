@@ -55,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -250,6 +250,14 @@ describe("aluno com convite", () => {
     d = await act(ana, (x) => A.markPaid(x, "al-carlos", "2026-09", 350, "pg-1"))
     expect(d.students.find((s) => s.id === "al-carlos")).toMatchObject({ monthlyFee: 350, dueDay: 10 })
     expect(d.profile.pixKey).toBe("ana@pix.com")
+    // vencimento no dia 31 é aceito (nos meses curtos cai no último dia)
+    d = await act(ana, (x) => A.updateStudent(x, "al-carlos", { ...x.students.find((s) => s.id === "al-carlos")!, dueDay: 31 }))
+    expect(d.students.find((s) => s.id === "al-carlos")?.dueDay).toBe(31)
+    d = await act(ana, (x) => A.updateStudent(x, "al-carlos", { ...x.students.find((s) => s.id === "al-carlos")!, dueDay: 10 }))
+    // início e troca prevista da ficha vão e voltam do banco como AAAA-MM-DD
+    const w0 = d.workouts[0]
+    d = await act(ana, (x) => A.saveWorkout(x, A.withStartDate(w0, "2026-11-30")))
+    expect(d.workouts.find((w) => w.id === w0.id)).toMatchObject({ startDate: "2026-11-30", changeDate: "2027-02-28" })
     expect(d.payments).toEqual([expect.objectContaining({ id: "pg-1", month: "2026-09", amount: 350 })])
     expect(diff(d, await load(ana))).toEqual({})
     // mesmo mês duas vezes: a ação ignora e o banco recusa

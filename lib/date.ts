@@ -62,3 +62,31 @@ export function fmtIsoDay(day: string) {
 export function daysSinceIso(day: string, now = new Date()) {
   return Math.floor((startOfDay(now).getTime() - startOfDay(new Date(`${day}T12:00:00`)).getTime()) / DAY_MS)
 }
+
+/** Último dia do mês (1–12): 28/29 em fevereiro, 30 ou 31 nos demais. */
+export function daysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate()
+}
+
+const pad = (n: number) => String(n).padStart(2, "0")
+export const isoDayOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
+/** AAAA-MM-DD existente no calendário (rejeita 31/04, 29/02 fora de ano bissexto etc.). */
+export function isValidIsoDay(day: string) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day)
+  if (!m) return false
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  return y >= 2000 && y <= 2100 && mo >= 1 && mo <= 12 && d >= 1 && d <= daysInMonth(y, mo)
+}
+
+/**
+ * Soma meses a uma data AAAA-MM-DD mantendo o dia; se o mês de destino for mais curto,
+ * usa o último dia dele (31/11 não existe: 30/11 + 3 meses → 28/02 ou 29/02).
+ */
+export function addMonthsIso(day: string, months: number) {
+  const [y, m, d] = day.split("-").map(Number)
+  const total = y * 12 + (m - 1) + months
+  const ty = Math.floor(total / 12)
+  const tm = (total % 12) + 1
+  return `${ty}-${pad(tm)}-${pad(Math.min(d, daysInMonth(ty, tm)))}`
+}
