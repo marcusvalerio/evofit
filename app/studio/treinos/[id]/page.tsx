@@ -188,10 +188,9 @@ function Editor({ workout }: { workout: Workout }) {
                 const linked = !!slot && !slot.isLast
                 return (
                   <li key={it.id} className={cx("card p-4", err && "border-danger", slot && "evo-superset", slot && slot.position > 1 && "is-cont", linked && "is-linked")}>
-                    {slot && (
+                    {slot?.position === 1 && (
                       <p className="evo-superset-tag">
-                        <Link2 size={13} aria-hidden /> Conjugado {slot.letter} · {slot.position}/{slot.size}
-                        {slot.isLast ? " · descanso depois deste" : " · sem descanso, segue para o próximo"}
+                        <Link2 size={14} aria-hidden /> Conjugado {slot.letter} · {slot.size} exercícios em sequência, descanso só no fim
                       </p>
                     )}
                     <div className="mb-3 flex items-start gap-3">
