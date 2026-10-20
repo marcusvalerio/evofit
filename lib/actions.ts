@@ -1,6 +1,7 @@
 import type { Assessment, Checkin, Payment, ContactRequest, DemoData, Exercise, ExerciseMedia, Session, SetLog, Student, TrainerProfile, Workout, WorkoutItem } from "./types"
 import { CATALOG, exerciseName, fold, getExercise } from "./catalog"
 import { parseVideoUrl, validateVideoUrl } from "./video"
+import { cleanGroups } from "./superset"
 import { addMonthsIso, daysSinceIso, isValidIsoDay } from "./date"
 
 export function uid(prefix: string) {
@@ -141,7 +142,7 @@ export function createWorkout(d: DemoData, name: string, id = uid("tr")): DemoDa
 }
 
 export function saveWorkout(d: DemoData, w: Workout): DemoData {
-  return { ...d, workouts: d.workouts.map((x) => (x.id === w.id ? { ...w, name: w.name.trim(), updatedAt: now() } : x)) }
+  return { ...d, workouts: d.workouts.map((x) => (x.id === w.id ? { ...w, name: w.name.trim(), items: cleanGroups(w.items), updatedAt: now() } : x)) }
 }
 
 export function duplicateWorkout(d: DemoData, id: string, newId = uid("tr")): DemoData {

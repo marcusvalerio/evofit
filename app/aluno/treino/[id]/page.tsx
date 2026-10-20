@@ -1,12 +1,13 @@
 "use client"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
 import { muscleVolume } from "@/lib/volume"
+import { supersets } from "@/lib/superset"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
 import { inProgressSession, personalRecords, previousSets, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
@@ -69,6 +70,7 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
   const [howTo, setHowTo] = useState<string | null>(null)
   // grupos mais trabalhados primeiro (o mapa completo fica no Studio)
   const muscles = muscleVolume(d, workout.items).map((v) => v.muscle)
+  const planSlots = supersets(workout.items)
   return (
     <div className="fade-in">
       <Link href="/aluno" className="btn btn-ghost btn-sm -ml-3 mb-3">
@@ -87,8 +89,9 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
         <ol className="evo-plan mt-5">
           {workout.items.map((it, i) => {
             const ex = getExercise(d, it.exerciseId)
+            const slot = planSlots.get(it.id)
             return (
-              <li key={it.id}>
+              <li key={it.id} className={cx(slot && "evo-superset evo-plan-superset", slot && slot.position > 1 && "is-cont")}>
                 <button type="button" className="evo-plan-row" onClick={() => setHowTo(it.exerciseId)} aria-label={`Como fazer: ${ex?.name ?? "exercício"}`}>
                   {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
                   <span className="min-w-0 flex-1">
@@ -96,6 +99,7 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
                       <span className="tabular text-muted">{i + 1}.</span> {ex?.name ?? "Exercício"}
                     </span>
                     <span className="block text-sm text-muted tabular">
+                      {slot && <span className="font-semibold text-accent">Conjugado {slot.letter} · </span>}
                       {it.sets} séries · {it.reps} reps
                       {hasOwnVideo(d, it.exerciseId) && " · vídeo do personal"}
                     </span>
@@ -175,30 +179,46 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
   }, [restLeft])
 
   // Itens na ordem prescrita; itens removidos da ficha após o início continuam na sessão.
-  const order = [...new Set(session.sets.map((s) => s.itemId))]
+  const order = useMemo(() => [...new Set(session.sets.map((s) => s.itemId))], [session.sets])
   const itemById = new Map(workout.items.map((i) => [i.id, i]))
+
+  const slots = useMemo(() => {
+    const groupOf = new Map(workout.items.map((i) => [i.id, i.group]))
+    return supersets(order.map((id) => ({ id, group: groupOf.get(id) })))
+  }, [order, workout.items])
 
   const toggleSet = useCallback(
     (itemId: string, setIndex: number, done: boolean, restSec: number) => {
       update((x) => updateSet(x, session.id, itemId, setIndex, { done }))
       if (!done) return
       haptic()
+      const slot = slots.get(itemId)
+      const pending = (id: string) => session.sets.some((s) => s.itemId === id && !s.done && !(s.itemId === itemId && s.setIndex === setIndex))
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      const goTo = (id: string) => setTimeout(() => document.getElementById(`item-${id}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }), 450)
+      // Conjugado: sem descanso entre os exercícios do grupo; segue direto para o próximo.
+      if (slot && !slot.isLast) {
+        setRestUntil(null)
+        if (slot.nextId) goTo(slot.nextId)
+        return
+      }
       if (restSec > 0) {
         alerted.current = false
         setRestTotal(restSec)
         setRestUntil(Date.now() + restSec * 1000)
       }
+      // Fim da rodada do conjugado: volta ao primeiro exercício do grupo que ainda tem séries.
+      if (slot) {
+        const first = order.find((id) => slots.get(id)?.letter === slot.letter && pending(id))
+        if (first) return void goTo(first)
+      }
       // Fechou o exercício: rola suavemente até o próximo pendente.
-      const remaining = session.sets.filter((s) => s.itemId === itemId && !s.done && s.setIndex !== setIndex)
-      if (remaining.length === 0) {
+      if (!pending(itemId)) {
         const next = session.sets.find((s) => s.itemId !== itemId && !s.done)
-        if (next) {
-          const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-          setTimeout(() => document.getElementById(`item-${next.itemId}`)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }), 450)
-        }
+        if (next) goTo(next.itemId)
       }
     },
-    [session.id, session.sets],
+    [session.id, session.sets, slots, order],
   )
 
   return (
@@ -229,8 +249,16 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
           const allDone = sets.every((s) => s.done)
           const restSec = item?.restSec ?? 60
           const prev = previousSets(d, session.studentId, sets[0].exerciseId, session.startedAt)
+          const slot = slots.get(itemId)
+          const nextName = slot?.nextId ? session.sets.find((s) => s.itemId === slot.nextId)?.exerciseName : null
           return (
-            <li key={itemId} id={`item-${itemId}`} className={cx("evo-lift scroll-mt-28", allDone && "is-done")}>
+            <li key={itemId} id={`item-${itemId}`} className={cx("evo-lift scroll-mt-28", allDone && "is-done", slot && "evo-superset", slot && slot.position > 1 && "is-cont")}>
+              {slot && (
+                <p className="evo-superset-tag">
+                  <Link2 size={13} aria-hidden /> Conjugado {slot.letter} · {slot.position}/{slot.size}
+                  {nextName ? ` · em seguida: ${nextName}` : " · descanse depois deste"}
+                </p>
+              )}
               <div className="evo-lift-head">
                 <button type="button" className="evo-lift-thumb" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Como fazer: ${sets[0].exerciseName}`}>
                   {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
@@ -246,7 +274,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                   </h2>
                   <p className="evo-lift-meta tabular">
                     {item ? `${item.sets} × ${item.reps}` : `${sets.length} séries`}
-                    {restSec > 0 && (
+                    {restSec > 0 && !(slot && !slot.isLast) && (
                       <>
                         {" · "}
                         <Timer size={12} aria-hidden className="inline" /> {mmss(restSec)}

@@ -2,13 +2,14 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Plus, Search, Trash2 } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Link2, Plus, Search, Trash2, Unlink } from "lucide-react"
 import { update, useData } from "@/lib/store"
 import type { DemoData, Workout, WorkoutItem } from "@/lib/types"
 import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"
 import { BodyMap } from "@/components/body-map"
 import { CATALOG_EQUIPMENT, CATALOG_GROUPS, allExercises, filterExercises, getExercise } from "@/lib/catalog"
-import { daysToChange, deleteWorkout, isWorkoutValid, withStartDate, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
+import { linkWithNext, supersets, unlinkFromNext } from "@/lib/superset"
+import { daysToChange, deleteWorkout, uid, isWorkoutValid, withStartDate, newWorkoutItem, saveWorkout, validateWorkout } from "@/lib/actions"
 import { ConfirmDialog, Field, Modal, NotFoundState, cx, revealFirstError, autoFocusOk } from "@/components/ui"
 import { useToast } from "@/components/providers"
 import { fmtIsoDay } from "@/lib/date"
@@ -89,6 +90,7 @@ function Editor({ workout }: { workout: Workout }) {
 
   const show: Partial<typeof errors> & Pick<typeof errors, "itemErrors"> = tried ? errors : { itemErrors: {} }
   const toChange = daysToChange(draft)
+  const slots = supersets(draft.items)
 
   return (
     <div className="fade-in pb-20 lg:pb-0">
@@ -181,8 +183,17 @@ function Editor({ workout }: { workout: Workout }) {
               {draft.items.map((it, idx) => {
                 const ex = getExercise(d, it.exerciseId)
                 const err = show.itemErrors[it.id]
+                const slot = slots.get(it.id)
+                const next = draft.items[idx + 1]
+                const linked = !!slot && !slot.isLast
                 return (
-                  <li key={it.id} className={cx("card p-4", err && "border-danger")}>
+                  <li key={it.id} className={cx("card p-4", err && "border-danger", slot && "evo-superset", slot && slot.position > 1 && "is-cont", linked && "is-linked")}>
+                    {slot && (
+                      <p className="evo-superset-tag">
+                        <Link2 size={13} aria-hidden /> Conjugado {slot.letter} · {slot.position}/{slot.size}
+                        {slot.isLast ? " · descanso depois deste" : " · sem descanso, segue para o próximo"}
+                      </p>
+                    )}
                     <div className="mb-3 flex items-start gap-3">
                       <span className="relative shrink-0">
                         {ex ? <ExerciseThumb ex={ex} className="w-16 sm:w-20" /> : <span className="thumb w-16 sm:w-20" />}
@@ -236,14 +247,25 @@ function Editor({ workout }: { workout: Workout }) {
                           />
                         )}
                       </Field>
-                      <Field label="Descanso (s)">
-                        {(p) => <input {...p} className="input tabular" type="number" inputMode="numeric" min={0} max={600} step={15} value={num(it.restSec)} onChange={(e) => setItem(it.id, { restSec: parseInt(e.target.value, 10) })} />}
+                      <Field label="Descanso (s)" hint={linked ? "Ignorado: o aluno segue direto para o próximo do conjugado." : undefined}>
+                        {(p) => <input {...p} className="input tabular" type="number" inputMode="numeric" min={0} max={600} step={15} value={num(it.restSec)} disabled={linked} onChange={(e) => setItem(it.id, { restSec: parseInt(e.target.value, 10) })} />}
                       </Field>
                       <Field label="Instruções para o aluno" className="col-span-2 sm:col-span-4">
                         {(p) => <input {...p} className="input" value={it.notes} maxLength={200} placeholder="Opcional" onChange={(e) => setItem(it.id, { notes: e.target.value })} />}
                       </Field>
                     </div>
                     {err && <p className="field-error">{err}</p>}
+                    {next && (
+                      <button
+                        type="button"
+                        className={cx("evo-superset-link", linked && "is-on")}
+                        aria-pressed={linked}
+                        onClick={() => setDraft((w) => ({ ...w, items: linked ? unlinkFromNext(w.items, idx, uid("cj")) : linkWithNext(w.items, idx, uid("cj")) }))}
+                      >
+                        {linked ? <Unlink size={15} aria-hidden /> : <Link2 size={15} aria-hidden />}
+                        {linked ? `Separar de ${getExercise(d, next.exerciseId)?.name ?? "próximo"}` : `Conjugar com ${getExercise(d, next.exerciseId)?.name ?? "o próximo"}`}
+                      </button>
+                    )}
                   </li>
                 )
               })}

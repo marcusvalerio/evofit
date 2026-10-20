@@ -262,6 +262,27 @@ test.describe("Aluno", () => {
     await expect(page.getByText("dor leve").first()).toBeVisible()
   })
 
+  test("conjugado: personal liga dois exercícios e o aluno faz em sequência, com descanso só no fim", async ({ page }) => {
+    await page.goto("/studio/treinos/tr-a-superiores")
+    await page.getByRole("button", { name: /^Conjugar com / }).last().click()
+    await expect(page.getByText("Conjugado A · 1/2", { exact: false })).toBeVisible()
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole("button", { name: /^Separar de / })).toBeVisible()
+
+    await page.goto("/aluno")
+    await page.getByRole("link", { name: /Treino A — Superiores/ }).click()
+    await expect(page.getByText(/Conjugado A ·/).first()).toBeVisible()
+    await page.getByRole("button", { name: "Iniciar treino" }).click()
+    const [first, second] = await page.locator("li.evo-superset").all()
+    await expect(first.getByText(/em seguida:/)).toBeVisible()
+    await first.getByRole("button", { name: /^Marcar série 1 de/ }).click()
+    await expect(page.getByRole("timer")).toBeHidden()
+    await second.getByRole("button", { name: /^Marcar série 1 de/ }).click()
+    await expect(page.getByRole("timer")).toBeVisible()
+  })
+
   test("troca de aluno e treino sem ficha mostra estado vazio", async ({ page }) => {
     await page.goto("/aluno")
     await page.getByRole("button", { name: /Aluno atual: Ana Ribeiro/ }).click()
