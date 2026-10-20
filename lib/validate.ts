@@ -44,7 +44,7 @@ const isMediaMap = (v: unknown) =>
   isObj(v) && Object.values(v).every((m) => isObj(m) && has(m, { videoUrl: isStr, tip: isStr }))
 
 export const isItem = (v: unknown): v is WorkoutItem =>
-  isObj(v) && has(v, { id: isStr, exerciseId: isStr, sets: isNum, reps: isStr, load: isNumOrNull, restSec: isNum, notes: isStr })
+  isObj(v) && has(v, { id: isStr, exerciseId: isStr, sets: isNum, reps: isStr, load: isNumOrNull, restSec: isNum, notes: isStr, group: (g) => g === undefined || g === null || (isStr(g) && g.length <= 64) })
 
 export const isWorkout = (v: unknown): v is Workout =>
   isObj(v) &&

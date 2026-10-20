@@ -24,7 +24,7 @@ export function BrandMark({ size = 26, className }: { size?: number; className?:
 
 export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
   return (
-    <Link href="/" className={cx("inline-flex items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
+    <Link href="/" className={cx("inline-flex min-h-11 items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
       <BrandMark />
       <span className="t-brand text-[1.4375rem] leading-none text-fg">evofit</span>
       {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}

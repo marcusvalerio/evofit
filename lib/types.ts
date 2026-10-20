@@ -75,6 +75,8 @@ export interface WorkoutItem {
   load: number | null
   restSec: number
   notes: string
+  /** Conjugado: exercícios consecutivos com o mesmo grupo são feitos em sequência, descanso só no fim. */
+  group?: string | null
 }
 
 export interface Workout {

@@ -124,9 +124,25 @@ test.describe("Studio", () => {
     await expect(page.getByLabel("Elisa Prado")).toBeChecked()
 
     // validação: séries inválidas bloqueiam o salvamento
-    await page.getByLabel("Séries").first().fill("0")
+    // (o primeiro "Séries" é o do ajuste em lote; o do exercício fica no card da lista)
+    await page.locator("li.card").first().getByLabel("Séries").fill("0")
     await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
     await expect(page.getByText("Séries devem ficar entre 1 e 20.")).toBeVisible()
+  })
+
+  test("datas da ficha: início sugere a troca em 3 meses respeitando o mês e persiste", async ({ page }) => {
+    await page.goto("/studio/treinos/tr-full-body")
+    await page.getByLabel("Início do treino").fill("2026-11-30")
+    await expect(page.getByLabel("Troca prevista")).toHaveValue("2027-02-28")
+    await page.getByLabel("Troca prevista").fill("2026-11-01")
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("A troca deve ser depois do início.")).toBeVisible()
+    await page.getByLabel("Troca prevista").fill("2027-03-10")
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByLabel("Início do treino")).toHaveValue("2026-11-30")
+    await expect(page.getByLabel("Troca prevista")).toHaveValue("2027-03-10")
   })
 
   test("cria nova ficha a partir da lista", async ({ page }) => {
@@ -244,6 +260,27 @@ test.describe("Aluno", () => {
     // o check-in chega ao personal
     await expect(page.getByText("esforço 7/10").first()).toBeVisible()
     await expect(page.getByText("dor leve").first()).toBeVisible()
+  })
+
+  test("conjugado: personal liga dois exercícios e o aluno faz em sequência, com descanso só no fim", async ({ page }) => {
+    await page.goto("/studio/treinos/tr-a-superiores")
+    await page.getByRole("button", { name: /^Conjugar com / }).last().click()
+    await expect(page.getByText("Conjugado A · 1/2", { exact: false })).toBeVisible()
+    await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
+    await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole("button", { name: /^Separar de / })).toBeVisible()
+
+    await page.goto("/aluno")
+    await page.getByRole("link", { name: /Treino A — Superiores/ }).click()
+    await expect(page.getByText(/Conjugado A ·/).first()).toBeVisible()
+    await page.getByRole("button", { name: "Iniciar treino" }).click()
+    const [first, second] = await page.locator("li.evo-superset").all()
+    await expect(first.getByText(/em seguida:/)).toBeVisible()
+    await first.getByRole("button", { name: /^Marcar série 1 de/ }).click()
+    await expect(page.getByRole("timer")).toBeHidden()
+    await second.getByRole("button", { name: /^Marcar série 1 de/ }).click()
+    await expect(page.getByRole("timer")).toBeVisible()
   })
 
   test("troca de aluno e treino sem ficha mostra estado vazio", async ({ page }) => {
