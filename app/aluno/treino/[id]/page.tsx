@@ -91,7 +91,7 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
             const ex = getExercise(d, it.exerciseId)
             const slot = planSlots.get(it.id)
             return (
-              <li key={it.id} className={cx(slot && "evo-superset evo-plan-superset", slot && slot.position > 1 && "is-cont")}>
+              <li key={it.id} className={cx(slot && "evo-superset evo-plan-superset", slot && slot.position > 1 && "is-cont", slot && !slot.isLast && "is-linked")}>
                 <button type="button" className="evo-plan-row" onClick={() => setHowTo(it.exerciseId)} aria-label={`Como fazer: ${ex?.name ?? "exercício"}`}>
                   {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
                   <span className="min-w-0 flex-1">
@@ -252,11 +252,10 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
           const slot = slots.get(itemId)
           const nextName = slot?.nextId ? session.sets.find((s) => s.itemId === slot.nextId)?.exerciseName : null
           return (
-            <li key={itemId} id={`item-${itemId}`} className={cx("evo-lift scroll-mt-28", allDone && "is-done", slot && "evo-superset", slot && slot.position > 1 && "is-cont")}>
-              {slot && (
+            <li key={itemId} id={`item-${itemId}`} className={cx("evo-lift scroll-mt-28", allDone && "is-done", slot && "evo-superset", slot && slot.position > 1 && "is-cont", slot && !slot.isLast && "is-linked")}>
+              {slot?.position === 1 && (
                 <p className="evo-superset-tag">
-                  <Link2 size={13} aria-hidden /> Conjugado {slot.letter} · {slot.position}/{slot.size}
-                  {nextName ? ` · em seguida: ${nextName}` : " · descanse depois deste"}
+                  <Link2 size={14} aria-hidden /> Conjugado {slot.letter} · faça os {slot.size} em sequência, descanse no fim
                 </p>
               )}
               <div className="evo-lift-head">
@@ -282,6 +281,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                     )}
                     {hasOwnVideo(d, sets[0].exerciseId) && " · vídeo do personal"}
                   </p>
+                  {slot && <p className="evo-superset-next">{nextName ? `Em seguida, sem descanso: ${nextName}` : "Último do conjugado: agora descanse"}</p>}
                 </div>
                 <button type="button" className="btn btn-ghost btn-icon btn-sm text-muted" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Ver como fazer ${sets[0].exerciseName}`}>
                   <PlayCircle size={20} aria-hidden />

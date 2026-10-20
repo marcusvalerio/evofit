@@ -265,7 +265,7 @@ test.describe("Aluno", () => {
   test("conjugado: personal liga dois exercícios e o aluno faz em sequência, com descanso só no fim", async ({ page }) => {
     await page.goto("/studio/treinos/tr-a-superiores")
     await page.getByRole("button", { name: /^Conjugar com / }).last().click()
-    await expect(page.getByText("Conjugado A · 1/2", { exact: false })).toBeVisible()
+    await expect(page.getByText(/Conjugado A · 2 exercícios em sequência/)).toBeVisible()
     await page.getByRole("button", { name: "Salvar ficha" }).filter({ visible: true }).click()
     await expect(page.getByText("Salvo", { exact: true })).toBeVisible()
     await page.reload()
@@ -276,7 +276,8 @@ test.describe("Aluno", () => {
     await expect(page.getByText(/Conjugado A ·/).first()).toBeVisible()
     await page.getByRole("button", { name: "Iniciar treino" }).click()
     const [first, second] = await page.locator("li.evo-superset").all()
-    await expect(first.getByText(/em seguida:/)).toBeVisible()
+    await expect(first.getByText(/Em seguida, sem descanso:/)).toBeVisible()
+    await expect(second.getByText("Último do conjugado: agora descanse")).toBeVisible()
     await first.getByRole("button", { name: /^Marcar série 1 de/ }).click()
     await expect(page.getByRole("timer")).toBeHidden()
     await second.getByRole("button", { name: /^Marcar série 1 de/ }).click()

@@ -1797,12 +1797,16 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-radar-foot { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: var(--fg-muted); background: var(--surface-2); }
 
 /* ---------- Conjugados (bi-set, tri-set) ---------- */
-.evo-superset { border-left: 4px solid var(--primary); }
-.evo-superset.is-cont { margin-top: 0.375rem !important; }
+/* Exercícios do mesmo conjugado formam um bloco só: cards colados, divisória tracejada entre eles. */
+.evo-superset { border-left: 4px solid var(--primary); background: color-mix(in srgb, var(--primary) 4%, var(--surface)); }
+.evo-superset.is-cont { margin-top: 0 !important; border-top: 1px dashed var(--line-strong); border-top-left-radius: 0; border-top-right-radius: 0; }
+.evo-superset.is-linked { margin-bottom: 0 !important; border-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; box-shadow: none; }
 .evo-superset-tag {
-  display: flex; align-items: center; gap: 0.375rem; margin-bottom: 0.625rem;
-  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.02em; color: var(--primary);
+  display: flex; align-items: center; gap: 0.4rem; margin: -0.25rem 0 0.75rem; padding-bottom: 0.6rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 25%, var(--line));
+  font-size: 0.8125rem; font-weight: 700; color: var(--primary);
 }
+.evo-superset-next { margin-top: 0.15rem; font-size: 0.8125rem; font-weight: 600; color: var(--primary); }
 .evo-superset-link {
   display: flex; width: 100%; min-height: 2.75rem; align-items: center; justify-content: center; gap: 0.5rem;
   margin-top: 0.875rem; padding: 0 0.75rem; border: 1px dashed var(--line-strong); border-radius: 0.75rem;
@@ -1812,4 +1816,3 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-superset-link:hover { background: var(--line); color: var(--fg); }
 .evo-superset-link.is-on { border-style: solid; border-color: var(--primary); color: var(--primary); }
 .evo-plan-superset { border-left-width: 3px; border-radius: 0.8rem; }
-.evo-plan-superset.is-cont { margin-top: 0 !important; }
