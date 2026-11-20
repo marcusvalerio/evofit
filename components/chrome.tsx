@@ -1,23 +1,29 @@
 "use client"
-import { useState, useSyncExternalStore } from "react"
+import { useId, useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
 import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useDemoEnabled, useToast } from "./providers"
+import { MARK_SHAPES } from "@/lib/brand-mark"
 
-/**
- * Símbolo EVOFIT: brasa cristalizada — uma chama facetada que sobe. A face Gravy é a base, a Ōtan é
- * o esforço e o facho claro é a evolução registrada. Funciona de 16 px (favicon) ao ícone do app.
- */
+/** Símbolo EVOFIT "Explosão": braços orgânicos de tamanhos diferentes saindo de um centro vazado. */
 export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
+  const id = useId().replace(/:/g, "")
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={cx("shrink-0", className)} aria-hidden>
-      <path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="var(--mp-gravy)" />
-      <path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="var(--mp-otan)" />
-      <path d="M19.5 11 19 17.5 12 23.5Z" fill="#2a8f92" />
-      <path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#7fd0d1" />
+    <svg width={size} height={size} viewBox="0 0 100 100" className={cx("shrink-0 text-primary", className)} aria-hidden>
+      <defs>
+        <filter id={`g${id}`}>
+          <feGaussianBlur stdDeviation="3.2" />
+          <feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 24 -10" />
+        </filter>
+        <mask id={`m${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
+          <g filter={`url(#g${id})`} fill="#fff" stroke="#fff" strokeLinecap="round" dangerouslySetInnerHTML={{ __html: MARK_SHAPES }} />
+          <circle cx="50" cy="50" r="8" fill="#000" />
+        </mask>
+      </defs>
+      <rect width="100" height="100" fill="currentColor" mask={`url(#m${id})`} />
     </svg>
   )
 }

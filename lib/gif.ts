@@ -28,7 +28,7 @@ function duotone(gray: Buffer) {
 }
 
 /** Símbolo EVOFIT (pico facetado) para a barra da animação. */
-const MARK = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"><path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="#B83312"/><path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="#FF4E20"/><path d="M19.5 11 19 17.5 12 23.5Z" fill="#E2421A"/><path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#FF8A5C"/></svg>`)
+const MARK = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 100 100"><defs><filter id="g"><feGaussianBlur stdDeviation="3.2"/><feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 24 -10"/></filter><mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100"><g filter="url(#g)" fill="#fff" stroke="#fff" stroke-linecap="round"><circle cx="50" cy="50" r="17"/><line x1="50" y1="50" x2="50.0" y2="8.0" stroke-width="7.7"/><circle cx="50.0" cy="8.0" r="8.5"/><line x1="50" y1="50" x2="77.7" y2="34.0" stroke-width="6.8"/><circle cx="77.7" cy="34.0" r="7.5"/><line x1="50" y1="50" x2="89.0" y2="68.2" stroke-width="8.1"/><circle cx="89.0" cy="68.2" r="9"/><line x1="50" y1="50" x2="52.4" y2="77.9" stroke-width="6.3"/><circle cx="52.4" cy="77.9" r="7"/><line x1="50" y1="50" x2="15.4" y2="70.0" stroke-width="7.7"/><circle cx="15.4" cy="70.0" r="8.5"/><line x1="50" y1="50" x2="26.4" y2="39.0" stroke-width="6.3"/><circle cx="26.4" cy="39.0" r="7"/></g><circle cx="50" cy="50" r="8" fill="#000"/></mask></defs><rect width="100" height="100" fill="#46B8BA" mask="url(#m)"/></svg>`)
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 
