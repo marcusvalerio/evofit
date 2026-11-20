@@ -54,6 +54,7 @@
   --shadow: 0 1px 2px rgb(24 24 27 / 0.05), 0 8px 24px -16px rgb(24 24 27 / 0.22);
   --shadow-lg: 0 30px 80px -30px rgb(24 24 27 / 0.45);
   --radius: 1.25rem;
+  --swell-ink: rgb(15 82 87 / 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -85,6 +86,7 @@
     --focus: var(--mp-otan);
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.7);
     --shadow-lg: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+    --swell-ink: rgb(70 184 186 / 0.2);
   }
 }
 :root[data-theme="dark"] {
@@ -115,6 +117,7 @@
   --focus: var(--mp-otan);
   --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 30px -18px rgb(0 0 0 / 0.7);
   --shadow-lg: 0 30px 80px -30px rgb(0 0 0 / 0.8);
+  --swell-ink: rgb(70 184 186 / 0.2);
 }
 
 @theme inline {
@@ -1081,7 +1084,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 }
 
 /* ---------- Landing ---------- */
+/* Swell: a textura de marca atrás do topo do site, de ponta a ponta. */
+.lp-swell {
+  position: absolute;
+  z-index: -1;
+  inset: -2rem calc(50% - 50vw);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
 .lp-hero {
+  isolation: isolate;
   position: relative;
   display: grid;
   gap: 2.5rem;

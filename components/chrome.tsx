@@ -1,5 +1,5 @@
 "use client"
-import { useId, useState, useSyncExternalStore } from "react"
+import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
 import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
@@ -8,22 +8,11 @@ import { ConfirmDialog, cx } from "./ui"
 import { useDemoEnabled, useToast } from "./providers"
 import { MARK_SHAPES } from "@/lib/brand-mark"
 
-/** Símbolo EVOFIT "Explosão": braços orgânicos de tamanhos diferentes saindo de um centro vazado. */
+/** Símbolo EVOFIT: os palitos inchados da textura Swell, como um pulso de esforço. */
 export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
-  const id = useId().replace(/:/g, "")
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" className={cx("shrink-0 text-primary", className)} aria-hidden>
-      <defs>
-        <filter id={`g${id}`}>
-          <feGaussianBlur stdDeviation="3.2" />
-          <feColorMatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 24 -10" />
-        </filter>
-        <mask id={`m${id}`} maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="100">
-          <g filter={`url(#g${id})`} fill="#fff" stroke="#fff" strokeLinecap="round" dangerouslySetInnerHTML={{ __html: MARK_SHAPES }} />
-          <circle cx="50" cy="50" r="8" fill="#000" />
-        </mask>
-      </defs>
-      <rect width="100" height="100" fill="currentColor" mask={`url(#m${id})`} />
+      <g fill="currentColor" dangerouslySetInnerHTML={{ __html: MARK_SHAPES }} />
     </svg>
   )
 }

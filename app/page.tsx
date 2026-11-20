@@ -7,6 +7,7 @@ import { ProductReel } from "@/components/product-reel"
 import { LibraryMarquee, RevealOnScroll } from "@/components/landing-motion"
 import { CATALOG_SIZE } from "@/lib/catalog"
 import { demoEnabled } from "@/lib/demo-mode"
+import { Swell } from "@/components/textures/swell"
 
 /*
  * Estrutura guiada por Revenue-Centric Design:
@@ -87,6 +88,9 @@ export default function Home() {
     <PublicShell>
       {/* Hero */}
       <section className="lp-hero fade-in" aria-labelledby="hero-title">
+        <div className="lp-swell" data-motion="ambient" aria-hidden>
+          <Swell tokens={{ "--texture-ink": "var(--swell-ink)", "--texture-field": "transparent" }} />
+        </div>
         <div>
           <p className="evo-pill lp-in" style={{ "--d": "0ms" } as React.CSSProperties}>
             <span>Novo</span> Para personal trainers autônomos
