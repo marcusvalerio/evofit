@@ -16,8 +16,8 @@ export function BrandMark({ size = 26, className }: { size?: number; className?:
     <svg width={size} height={size} viewBox="0 0 24 24" className={cx("shrink-0", className)} aria-hidden>
       <path d="M5.5 7 9 12 12 23.5 4.5 17Z" fill="var(--mp-gravy)" />
       <path d="M12.5 .5 19.5 11 19 17.5 12 23.5 9 12Z" fill="var(--mp-otan)" />
-      <path d="M19.5 11 19 17.5 12 23.5Z" fill="#E2421A" />
-      <path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#FF8A5C" />
+      <path d="M19.5 11 19 17.5 12 23.5Z" fill="#c9922f" />
+      <path d="M12.5 .5 9 12 12 23.5 12.6 12Z" fill="#f0c470" />
     </svg>
   )
 }

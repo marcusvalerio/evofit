@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next"
-import "@fontsource-variable/inter/wght.css"
-import "@fontsource-variable/outfit/wght.css"
-import "@fontsource-variable/archivo/wdth.css"
+import "@fontsource-variable/geist/wght.css"
+import "@fontsource-variable/sora/wght.css"
 import { Providers } from "@/components/providers"
 import { demoEnabled } from "@/lib/demo-mode"
 import "./globals.css"
@@ -17,8 +16,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#F6F4F5" },
-    { media: "(prefers-color-scheme: dark)", color: "#050B2C" },
+    { media: "(prefers-color-scheme: light)", color: "#F0F4F3" },
+    { media: "(prefers-color-scheme: dark)", color: "#081415" },
   ],
 }
 
