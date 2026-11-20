@@ -1084,6 +1084,15 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 }
 
 /* ---------- Landing ---------- */
+/* Telas de conta: a mesma onda do topo do site, atrás do formulário. */
+.auth-swell {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(60% 55% at 50% 50%, transparent 30%, #000 80%);
+  mask-image: radial-gradient(60% 55% at 50% 50%, transparent 30%, #000 80%);
+}
 /* Swell: a textura de marca atrás do topo do site, de ponta a ponta. */
 .lp-swell {
   position: absolute;

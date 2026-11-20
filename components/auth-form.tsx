@@ -2,16 +2,22 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "@/components/icons"
 import { Field } from "./ui"
+import { Swell } from "./textures/swell"
 
 /** Moldura das telas de conta. */
 export function AuthCard({ eyebrow, title, children, footer }: { eyebrow: string; title: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
-    <div className="fade-in mx-auto w-full max-w-md py-4 sm:py-10">
+    <>
+    <div className="auth-swell" data-motion="ambient" aria-hidden>
+      <Swell tokens={{ "--texture-ink": "var(--swell-ink)", "--texture-field": "transparent" }} />
+    </div>
+    <div className="fade-in relative mx-auto w-full max-w-md py-4 sm:py-10">
       <p className="t-eyebrow">{eyebrow}</p>
       <h1 className="t-h1 mt-1">{title}</h1>
       <div className="card mt-6 p-5 sm:p-6">{children}</div>
       {footer && <div className="mt-5 space-y-2 text-center text-sm text-muted">{footer}</div>}
     </div>
+    </>
   )
 }
 
