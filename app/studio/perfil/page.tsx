@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { Check, ExternalLink, Eye, EyeOff, Inbox, Trash2 } from "lucide-react"
+import { Check, ExternalLink, Eye, EyeOff, Inbox, Trash2 } from "@/components/icons"
 import { update, useData, useIsDemo } from "@/lib/store"
 import type { AccentChoice, Modality, TrainerProfile } from "@/lib/types"
 import { MODALITY_LABEL, SPECIALTIES } from "@/lib/types"

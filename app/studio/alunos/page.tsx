@@ -2,7 +2,7 @@
 import { Suspense, useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Search, UserPlus, Users } from "lucide-react"
+import { Search, UserPlus, Users } from "@/components/icons"
 import { useData } from "@/lib/store"
 import { LEVEL_LABEL } from "@/lib/types"
 import { lastSession, weekCount } from "@/lib/metrics"

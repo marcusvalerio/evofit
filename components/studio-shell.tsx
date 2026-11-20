@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "lucide-react"
+import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "@/components/icons"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"

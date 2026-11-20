@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, BadgeCheck, Instagram, MapPin, MessageCircle, MessageSquare, ShieldCheck } from "lucide-react"
+import { ArrowLeft, BadgeCheck, Instagram, MapPin, MessageCircle, MessageSquare, ShieldCheck } from "@/components/icons"
 import { whatsappLink } from "@/lib/whatsapp"
 import { update, useDemoState } from "@/lib/store"
 import { useRealProfiles } from "@/lib/use-directory"

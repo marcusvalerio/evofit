@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { KeyRound } from "lucide-react"
+import { KeyRound } from "@/components/icons"
 import { hardNavigate, postJson } from "@/lib/account-client"
 import { AuthCard, FormError, PasswordField } from "./auth-form"
 

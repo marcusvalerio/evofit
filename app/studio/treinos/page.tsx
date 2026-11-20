@@ -2,7 +2,7 @@
 import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ClipboardList, Copy, Plus, Search, Trash2 } from "lucide-react"
+import { ClipboardList, Copy, Plus, Search, Trash2 } from "@/components/icons"
 import { update, useData } from "@/lib/store"
 import { createWorkout, daysToChange, deleteWorkout, duplicateWorkout, uid } from "@/lib/actions"
 import { fmtDate, fmtIsoDay } from "@/lib/date"

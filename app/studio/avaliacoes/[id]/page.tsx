@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { ArrowLeft, Pencil, Plus, Ruler, Trash2 } from "lucide-react"
+import { ArrowLeft, Pencil, Plus, Ruler, Trash2 } from "@/components/icons"
 import { update, useData } from "@/lib/store"
 import { deleteAssessment } from "@/lib/actions"
 import { assessmentsOf, bmi, bodyFat, composition, FAT_SOURCE_LABEL, sumSkinfolds, waistHip } from "@/lib/assessment"

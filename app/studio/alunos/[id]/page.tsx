@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, KeyRound, MessageCircle, Pencil, Ruler, Smartphone } from "lucide-react"
+import { Archive, ArchiveRestore, ArrowLeft, CalendarCheck, KeyRound, MessageCircle, Pencil, Ruler, Smartphone } from "@/components/icons"
 import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { update, useData, useIsDemo } from "@/lib/store"
 import { LEVEL_LABEL } from "@/lib/types"

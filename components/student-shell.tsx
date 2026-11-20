@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Check, Dumbbell, History, LayoutDashboard } from "lucide-react"
+import { Check, Dumbbell, History, LayoutDashboard } from "@/components/icons"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"

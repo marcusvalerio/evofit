@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useSyncExternalStore } from "react"
-import { AlertTriangle, Download, Dumbbell, ExternalLink, Link2, Pause, Play, PlayCircle, Share2, Volume2, VolumeX } from "lucide-react"
+import { AlertTriangle, Download, Dumbbell, ExternalLink, Link2, Pause, Play, PlayCircle, Share2, Volume2, VolumeX } from "@/components/icons"
 import type { DemoData } from "@/lib/types"
 import { LEVEL_LABEL } from "@/lib/types"
 import { FORCE_LABEL, MECHANIC_LABEL, animUrl, frameUrl, getExercise, libraryUrl, loadDetail, type ExerciseDetail, type ExerciseView } from "@/lib/catalog"

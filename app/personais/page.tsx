@@ -2,7 +2,7 @@
 import { Suspense, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { Instagram, MapPin, MessageCircle, Search, SearchX } from "lucide-react"
+import { Instagram, MapPin, MessageCircle, Search, SearchX } from "@/components/icons"
 import { useDemoState } from "@/lib/store"
 import { useDemoEnabled } from "@/components/providers"
 import { useRealProfiles } from "@/lib/use-directory"

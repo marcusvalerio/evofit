@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Check, Play } from "lucide-react"
+import { ArrowRight, Check, Play } from "@/components/icons"
 import { cx } from "./ui"
 
 /**

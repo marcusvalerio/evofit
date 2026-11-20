@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowRight, Plus, Ruler } from "lucide-react"
+import { ArrowRight, Plus, Ruler } from "@/components/icons"
 import { useData } from "@/lib/store"
 import { assessmentsOf, bodyFat } from "@/lib/assessment"
 import { fmtIsoDay, daysSinceIso } from "@/lib/date"

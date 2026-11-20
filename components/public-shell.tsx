@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronDown, LogIn, PlayCircle, Search } from "lucide-react"
+import { ChevronDown, LogIn, PlayCircle, Search } from "@/components/icons"
 import { useDemoState } from "@/lib/store"
 import { homeFor } from "@/lib/account-client"
 import { useDemoEnabled } from "./providers"

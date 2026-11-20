@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft } from "@/components/icons"
 import { Brand, DemoBanner, ThemeToggle } from "@/components/chrome"
 
 export const metadata: Metadata = {

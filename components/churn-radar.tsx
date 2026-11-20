@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { MessageCircle, Radar } from "lucide-react"
+import { MessageCircle, Radar } from "@/components/icons"
 import type { DemoData } from "@/lib/types"
 import { churnRadar, revenueAtRisk } from "@/lib/radar"
 import { brl } from "@/lib/finance"

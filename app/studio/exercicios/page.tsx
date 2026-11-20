@@ -2,7 +2,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Dumbbell, Lightbulb, Plus, Video } from "lucide-react"
+import { Dumbbell, Lightbulb, Plus, Video } from "@/components/icons"
 import { useData } from "@/lib/store"
 import { CATALOG_SIZE, allExercises } from "@/lib/catalog"
 import { parseVideoUrl } from "@/lib/video"

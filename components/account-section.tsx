@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { LogOut, ShieldAlert, UserRound } from "lucide-react"
+import { LogOut, ShieldAlert, UserRound } from "@/components/icons"
 import { useDemoState } from "@/lib/store"
 import { hardNavigate, logout, postJson } from "@/lib/account-client"
 import { Field, Modal } from "./ui"

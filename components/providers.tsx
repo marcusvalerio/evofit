@@ -1,6 +1,6 @@
 "use client"
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from "react"
-import { CheckCircle2, AlertTriangle, Info, X } from "lucide-react"
+import { CheckCircle2, AlertTriangle, Info, X } from "@/components/icons"
 import { ServiceWorker } from "./offline"
 import { configureDemo } from "@/lib/store"
 

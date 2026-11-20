@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { History } from "lucide-react"
+import { History } from "@/components/icons"
 import { useActiveStudent } from "@/lib/use-student"
 import { loadProgression, sessionsOf, trackedExercises, weekCount, weeklySeries } from "@/lib/metrics"
 import { fmtDate, fmtDayMonth } from "@/lib/date"

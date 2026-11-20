@@ -1,7 +1,7 @@
 "use client"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Check, ChevronRight, Clock, Dumbbell, Play } from "lucide-react"
+import { Check, ChevronRight, Clock, Dumbbell, Play } from "@/components/icons"
 import { update } from "@/lib/store"
 import { startSession, uid } from "@/lib/actions"
 import { useActiveStudent } from "@/lib/use-student"

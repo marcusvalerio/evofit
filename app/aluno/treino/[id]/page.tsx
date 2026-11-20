@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Timer, Trophy, X } from "lucide-react"
+import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Timer, Trophy, X } from "@/components/icons"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"

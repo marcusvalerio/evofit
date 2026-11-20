@@ -1,5 +1,5 @@
 "use client"
-import { Check, Play } from "lucide-react"
+import { Check, Play } from "@/components/icons"
 import { useEffect, useState } from "react"
 import { useDemoState } from "@/lib/store"
 import { createSeed } from "@/lib/seed"

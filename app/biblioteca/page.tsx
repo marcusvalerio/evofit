@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { Dumbbell } from "lucide-react"
+import { Dumbbell } from "@/components/icons"
 import { CATALOG, CATALOG_SIZE, libraryUrl } from "@/lib/catalog"
 import { LEVEL_LABEL } from "@/lib/types"
 import { EmptyState } from "@/components/ui"

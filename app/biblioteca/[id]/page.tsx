@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { AlertTriangle, ArrowLeft, ArrowRight } from "lucide-react"
+import { AlertTriangle, ArrowLeft, ArrowRight } from "@/components/icons"
 import { catalogExercise } from "@/lib/catalog"
 import { LEVEL_LABEL } from "@/lib/types"
 import { AnimatedExercise, GifActions, MuscleChips, StepList } from "@/components/exercise"

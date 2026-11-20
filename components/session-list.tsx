@@ -2,7 +2,7 @@
 import type { Session } from "@/lib/types"
 import { durationMin, fmtDate, fmtTime } from "@/lib/date"
 import { sessionProgress, sessionVolume } from "@/lib/metrics"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown } from "@/components/icons"
 import { CheckinBadges } from "./checkin-badges"
 
 /** Lista de sessões concluídas, com detalhamento por exercício. */

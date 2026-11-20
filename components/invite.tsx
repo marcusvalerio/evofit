@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-import { Copy, MessageCircle, Share2 } from "lucide-react"
+import { Copy, MessageCircle, Share2 } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { Modal } from "./ui"
 import { useToast } from "./providers"

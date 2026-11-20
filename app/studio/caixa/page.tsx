@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { Check, ChevronLeft, ChevronRight, MessageCircle, Undo2, Wallet } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, MessageCircle, Undo2, Wallet } from "@/components/icons"
 import { update, useData } from "@/lib/store"
 import { markPaid, unmarkPaid } from "@/lib/actions"
 import { brl, feeMessage, feesForMonth, feeTotals, monthKey, monthLabel, type FeeRow } from "@/lib/finance"

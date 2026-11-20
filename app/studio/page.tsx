@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, RefreshCw, UserPlus, type LucideIcon } from "lucide-react"
+import { ArrowRight, CalendarCheck, ClipboardList, Inbox, MessageCircle, RefreshCw, UserPlus, type LucideIcon } from "@/components/icons"
 import { comebackMessage, whatsappLink } from "@/lib/whatsapp"
 import { CheckinBadges } from "@/components/checkin-badges"
 import { ChurnRadar } from "@/components/churn-radar"

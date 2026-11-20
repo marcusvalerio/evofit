@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useId, useRef } from "react"
 import Link from "next/link"
-import { X } from "lucide-react"
+import { X } from "@/components/icons"
 import { CountUp } from "./motion"
 
 export function cx(...c: (string | false | null | undefined)[]) {

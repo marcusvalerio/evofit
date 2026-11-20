@@ -1,7 +1,7 @@
 "use client"
 import { useState } from "react"
 import Link from "next/link"
-import { UserPlus } from "lucide-react"
+import { UserPlus } from "@/components/icons"
 import { postJson, hardNavigate } from "@/lib/account-client"
 import { Field } from "@/components/ui"
 import { AuthCard, FormError, PasswordField } from "@/components/auth-form"

@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useState } from "react"
-import { Ban, Check, Copy, KeyRound, Link2, MessageCircle, RefreshCw, ShieldCheck, UserRoundPlus } from "lucide-react"
+import { Ban, Check, Copy, KeyRound, Link2, MessageCircle, RefreshCw, ShieldCheck, UserRoundPlus } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { relativeDays } from "@/lib/date"
 import { whatsappLink } from "@/lib/whatsapp"

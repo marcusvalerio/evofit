@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { Search, SlidersHorizontal } from "@/components/icons"
 import { LEVEL_LABEL, type Level } from "@/lib/types"
 import { CATALOG_CATEGORIES, CATALOG_EQUIPMENT, CATALOG_GROUPS, filterExercises, type ExerciseView } from "@/lib/catalog"
 import { cx } from "./ui"

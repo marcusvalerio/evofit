@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Link2, Plus, Search, Trash2, Unlink } from "lucide-react"
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Copy, Eye, Link2, Plus, Search, Trash2, Unlink } from "@/components/icons"
 import { update, useData } from "@/lib/store"
 import type { DemoData, Workout, WorkoutItem } from "@/lib/types"
 import { balanceNotes, muscleVolume, volumeLevels } from "@/lib/volume"

@@ -2,7 +2,7 @@
 import { useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, ClipboardList, Pencil, Trash2, Video } from "lucide-react"
+import { ArrowLeft, ClipboardList, Pencil, Trash2, Video } from "@/components/icons"
 import { update, useData } from "@/lib/store"
 import { getExercise } from "@/lib/catalog"
 import { deleteExercise, exerciseUsage, setExerciseMedia, validateMedia } from "@/lib/actions"

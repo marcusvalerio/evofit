@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Activity, Ban, Copy, Database, EyeOff, KeyRound, MoreHorizontal, RotateCcw, Search, ShieldCheck } from "lucide-react"
+import { Activity, Ban, Copy, Database, EyeOff, KeyRound, MoreHorizontal, RotateCcw, Search, ShieldCheck } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { fmtDate, relativeDays } from "@/lib/date"
 import { useDemoState } from "@/lib/store"

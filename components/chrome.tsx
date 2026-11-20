@@ -1,7 +1,7 @@
 "use client"
 import { useState, useSyncExternalStore } from "react"
 import Link from "next/link"
-import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "lucide-react"
+import { Check, CloudOff, FlaskConical, LogIn, LogOut, Monitor, Moon, RotateCcw, Sun, TriangleAlert, UserRound, X } from "@/components/icons"
 import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
 import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"

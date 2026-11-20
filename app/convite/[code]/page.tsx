@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { Smartphone } from "lucide-react"
+import { Smartphone } from "@/components/icons"
 import { postJson, hardNavigate } from "@/lib/account-client"
 import { Field, LoadingScreen, NotFoundState } from "@/components/ui"
 import { AuthCard, FormError, PasswordField } from "@/components/auth-form"
