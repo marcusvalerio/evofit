@@ -1,11 +1,12 @@
 "use client"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "@/components/icons"
+import { BadgeCheck, ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "@/components/icons"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
 import { FirstAccessPassword } from "./first-access"
+import { AccessLocked, Onboarding } from "./onboarding"
 import { GateScreen, useLoginGate } from "./login-gate"
 
 const NAV = [
@@ -16,6 +17,7 @@ const NAV = [
   { href: "/studio/caixa", label: "Caixa", icon: Wallet },
   { href: "/studio/exercicios", label: "Exercícios", icon: Dumbbell },
   { href: "/studio/perfil", label: "Perfil", icon: UserRound },
+  { href: "/studio/plano", label: "Plano", icon: BadgeCheck },
 ]
 
 function isActive(path: string, href: string, exact?: boolean) {
@@ -29,6 +31,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const isStudent = mode === "account" && account?.role === "student"
   const mustChange = mode === "account" && account?.role === "trainer" && !!account.mustChangePassword
   const isAdmin = mode === "account" && !!account?.isAdmin
+  const trainerAccount = mode === "account" && account?.role === "trainer" && !account.mustChangePassword
+  const needsOnboarding = trainerAccount && account?.onboarded === false
+  const locked = trainerAccount && account?.hasAccess === false && !path.startsWith("/studio/plano") && !path.startsWith("/studio/perfil")
 
   return (
     <div className="min-h-dvh">
@@ -110,6 +115,10 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               <LoadingScreen />
             ) : mustChange ? (
               <FirstAccessPassword login={account?.email ?? ""} who="trainer" />
+            ) : needsOnboarding ? (
+              <Onboarding />
+            ) : locked ? (
+              <AccessLocked />
             ) : isStudent ? (
               <NotFoundState title="Esta é a área do personal" href="/aluno" cta="Ir para meus treinos">
                 Você entrou com uma conta de aluno. Seus treinos estão no app do aluno.
@@ -124,7 +133,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       {/* Navegação inferior (mobile/tablet) */}
       <nav aria-label="Studio" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
         <ul className="mx-auto grid max-w-2xl grid-cols-7">
-          {NAV.map(({ href, label, icon: Icon, exact }) => {
+          {NAV.filter((n) => n.href !== "/studio/plano").map(({ href, label, icon: Icon, exact }) => {
             const on = isActive(path, href, exact)
             return (
               <li key={href}>

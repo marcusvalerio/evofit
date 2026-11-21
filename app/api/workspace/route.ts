@@ -1,5 +1,6 @@
 import { withTenant } from "@/lib/server/db"
 import { isAdmin } from "@/lib/server/admin"
+import { trainerHasAccess } from "@/lib/server/billing"
 import { assertSameOrigin, handle, json, readJson, requireAccount } from "@/lib/server/http"
 import { applyChanges, loadWorkspace } from "@/lib/server/workspace"
 import type { Account } from "@/lib/server/auth"
@@ -12,7 +13,10 @@ const tenant = (a: Account) => (a.role === "trainer" ? { role: "trainer" as cons
 export const GET = handle(async () => {
   const a = await requireAccount()
   const data = await withTenant(tenant(a), (q) => loadWorkspace(q, tenant(a)))
-  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword, isAdmin: isAdmin(a) }, data })
+  const admin = isAdmin(a)
+  // acesso do personal (teste, assinatura ou liberação manual); o aluno não é bloqueado
+  const hasAccess = a.role !== "trainer" || admin || (await trainerHasAccess(a.trainerId))
+  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword, isAdmin: admin, onboarded: a.onboarded !== false, hasAccess }, data })
 })
 
 /** Recebe só o que mudou; o servidor revalida e grava numa transação. */
@@ -20,6 +24,8 @@ export const PATCH = handle(async (req) => {
   assertSameOrigin(req)
   const a = await requireAccount()
   if (a.mustChangePassword) throw new HttpError(403, "Crie sua senha antes de continuar.")
+  if (a.role === "trainer" && !isAdmin(a) && !(await trainerHasAccess(a.trainerId)))
+    throw new HttpError(402, "Seu teste grátis terminou. Escolha um plano em Studio → Plano para continuar.")
   const body = await readJson(req, 1024 * 1024)
   await withTenant(tenant(a), (q) => applyChanges(q, tenant(a), (body.changes ?? {}) as Changes))
   return json({ ok: true })

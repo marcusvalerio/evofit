@@ -7,7 +7,8 @@ import { useDemoState } from "@/lib/store"
 import { BarChart } from "@/components/charts"
 import { useToast } from "@/components/providers"
 import { ConfirmDialog, EmptyState, Field, LoadingScreen, Modal, NotFoundState, PageHeader, Stat, cx } from "@/components/ui"
-import type { AuditEntry, Health, Overview, TrainerRow } from "@/lib/server/admin"
+import type { AccessInfo, AdminMember, AdminNote, AuditEntry, BillingOverview, Health, LifetimeRequest, LoginEvent, Overview, TrainerRow } from "@/lib/server/admin"
+import { AccessBadge, AdminTeam, BillingStats, IdeasBoard, LifetimeRequests, RecentLogins, STATE_LABEL, TrainerAccessDialog } from "@/components/admin-access"
 
 type Payload = {
   overview: Overview
@@ -15,10 +16,16 @@ type Payload = {
   health: Health
   audit: AuditEntry[]
   me: string
+  access: Record<string, AccessInfo>
+  billing: BillingOverview
+  logins: LoginEvent[]
+  requests: LifetimeRequest[]
+  admins: AdminMember[]
+  notes: AdminNote[]
 }
 type Filter = "todos" | "ativos" | "parados" | "suspensos"
 type Pending = {
-  kind: "reset" | "hide" | "reactivate" | "suspend"
+  kind: "reset" | "hide" | "reactivate" | "suspend" | "access"
   t: TrainerRow
 } | null
 
@@ -87,6 +94,7 @@ export default function AdminPage() {
 
 function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void> }) {
   const { overview: o, trainers, health: h, audit } = data
+  const { account } = useDemoState()
   const signups = o.signups.map((w) => ({
     label: fmtDate(w.week).slice(0, 5),
     value: w.count,
@@ -113,6 +121,18 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
         </div>
       </section>
 
+      <BillingStats b={data.billing} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <LifetimeRequests requests={data.requests} reload={reload} />
+        <RecentLogins logins={data.logins} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <IdeasBoard notes={data.notes} reload={reload} />
+        <AdminTeam admins={data.admins} me={account?.email ?? ""} reload={reload} />
+      </div>
+
       <section aria-labelledby="signup-title" className="card p-5">
         <h2 id="signup-title" className="t-h2">
           Cadastros de personal por semana
@@ -121,7 +141,7 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
         <BarChart data={signups} title="Cadastros de personal por semana" unit="cadastros" />
       </section>
 
-      <TrainersSection trainers={trainers} me={data.me} reload={reload} />
+      <TrainersSection trainers={trainers} me={data.me} access={data.access} reload={reload} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section aria-labelledby="health-title" className="card p-5">
@@ -189,7 +209,8 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
   )
 }
 
-function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me: string; reload: () => Promise<void> }) {
+function TrainersSection({ trainers, me, access, reload }: { trainers: TrainerRow[]; me: string; access: Record<string, AccessInfo>; reload: () => Promise<void> }) {
+  const [plan, setPlan] = useState<AccessInfo["state"] | "todos">("todos")
   const toast = useToast()
   const [q, setQ] = useState("")
   const [filter, setFilter] = useState<Filter>("todos")
@@ -216,6 +237,7 @@ function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me:
   const list = trainers.filter(
     (t) =>
       (filter === "todos" || (filter === "suspensos" ? t.suspended : !t.suspended && (filter === "parados") === isIdle(t))) &&
+      (plan === "todos" || access[t.id]?.state === plan) &&
       (!term || t.name.toLowerCase().includes(term) || (t.email ?? "").toLowerCase().includes(term)),
   )
 
@@ -274,6 +296,18 @@ function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me:
         ))}
       </div>
 
+      <div className="mb-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar por plano">
+        {(["todos", ...Object.keys(STATE_LABEL)] as (AccessInfo["state"] | "todos")[]).map((f) => {
+          const n = f === "todos" ? trainers.length : trainers.filter((t) => access[t.id]?.state === f).length
+          if (f !== "todos" && !n) return null
+          return (
+            <button key={f} type="button" className="chip" aria-pressed={plan === f} onClick={() => setPlan(f)}>
+              {f === "todos" ? "Todos os planos" : STATE_LABEL[f]} <span className="tabular opacity-70">{n}</span>
+            </button>
+          )
+        })}
+      </div>
+
       {list.length === 0 ? (
         <p className="card p-5 text-sm text-muted">{trainers.length ? "Nenhum personal com esse filtro." : "Nenhum personal cadastrado ainda."}</p>
       ) : (
@@ -288,6 +322,7 @@ function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me:
                   {!t.suspended && isIdle(t) && <span className="badge badge-warning">Parado</span>}
                   {t.mustChangePassword && <span className="badge">Senha provisória</span>}
                   {t.directoryVisible && <span className="badge badge-accent">No diretório</span>}
+                  <AccessBadge a={access[t.id]} />
                 </p>
                 <p className="truncate text-sm text-muted">{t.email ?? "sem e-mail"}</p>
               </div>
@@ -321,6 +356,9 @@ function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me:
                   <MoreHorizontal size={18} aria-hidden />
                 </summary>
                 <div role="menu" className="evo-admin-menu-panel">
+                  <button type="button" role="menuitem" onClick={(e) => (closeMenu(e), setPending({ kind: "access", t }))}>
+                    <ShieldCheck size={16} aria-hidden /> Acesso, plano e logins
+                  </button>
                   <button type="button" role="menuitem" onClick={(e) => (closeMenu(e), setPending({ kind: "reset", t }))}>
                     <KeyRound size={16} aria-hidden /> Gerar senha provisória
                   </button>
@@ -347,6 +385,7 @@ function TrainersSection({ trainers, me, reload }: { trainers: TrainerRow[]; me:
         </ul>
       )}
 
+      {pending?.kind === "access" && <TrainerAccessDialog trainer={pending.t} onClose={() => setPending(null)} reload={reload} />}
       <ConfirmDialog
         open={pending?.kind === "reset"}
         onClose={() => setPending(null)}

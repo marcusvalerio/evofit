@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "check": "npm run lint && npm run typecheck && npm test && npm run build",
     "db:migrate": "node scripts/migrate.mjs",
-    "db:dev": "node scripts/dev-db.mjs"
+    "db:dev": "node scripts/dev-db.mjs",
+    "founder-codes": "node scripts/founder-codes.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "5.2.8",
@@ -26,7 +27,8 @@
     "pg": "8.23.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "sharp": "0.35.5"
+    "sharp": "0.35.5",
+    "stripe": "^23.2.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8",

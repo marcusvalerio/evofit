@@ -16,6 +16,8 @@ export interface Account {
   mustChangePassword: boolean
   /** Equipe do EVOFIT (users.is_admin): vê o painel de administração. */
   isAdmin?: boolean
+  /** Personal já passou pelo onboarding (boas-vindas). */
+  onboarded?: boolean
 }
 
 export const SESSION_DAYS = 30
@@ -81,7 +83,17 @@ export async function throttle(key: string, max = 10, windowMin = 15, db: Db = g
 
 /* ---------- Sessões ---------- */
 
-async function createSession(q: Queryable, userId: string) {
+/** Navegador resumido para o histórico de acessos (sem IP, sem versão). */
+export function deviceLabel(ua: string | null | undefined) {
+  const u = ua ?? ""
+  const os = /iPhone|iPad/.test(u) ? "iPhone" : /Android/.test(u) ? "Android" : /Windows/.test(u) ? "Windows" : /Mac OS X/.test(u) ? "Mac" : /Linux/.test(u) ? "Linux" : "Outro"
+  const br = /Edg\//.test(u) ? "Edge" : /SamsungBrowser/.test(u) ? "Samsung" : /CriOS|Chrome\//.test(u) ? "Chrome" : /FxiOS|Firefox\//.test(u) ? "Firefox" : /Safari\//.test(u) ? "Safari" : "Navegador"
+  return `${os} · ${br}`
+}
+
+async function createSession(q: Queryable, userId: string, device = "") {
+  await q.query("insert into login_events (user_id, trainer_id, role, device) select id, trainer_id, role, $2 from users where id = $1", [userId, device.slice(0, 60)])
+  await q.query("update users set last_login_at = now() where id = $1", [userId])
   const token = newToken()
   await q.query(`insert into auth_sessions (token_hash, user_id, expires_at) values ($1, $2, now() + make_interval(days => $3))`, [hashToken(token), userId, SESSION_DAYS])
   return token
@@ -90,14 +102,14 @@ async function createSession(q: Queryable, userId: string) {
 export async function accountFromToken(token: string | undefined, db: Db = getDb()): Promise<Account | null> {
   if (!token || token.length > 100) return null
   return db.tx(async (q) => {
-    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean; is_admin: boolean }>(
-      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password, u.is_admin from auth_sessions s join users u on u.id = s.user_id
+    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean; is_admin: boolean; onboarded_at: unknown }>(
+      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password, u.is_admin, u.onboarded_at from auth_sessions s join users u on u.id = s.user_id
        where s.token_hash = $1 and s.expires_at > now() and u.disabled_at is null`,
       [hashToken(token)],
     )
     const u = r.rows[0]
     return u
-      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password, isAdmin: !!u.is_admin }
+      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password, isAdmin: !!u.is_admin, onboarded: u.role !== "trainer" || !!u.onboarded_at }
       : null
   })
 }
@@ -137,7 +149,7 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
 const DUMMY = "scrypt$16384$8$1$AAAAAAAAAAAAAAAAAAAAAA$AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
 
 /** Entra com e-mail ou, para acessos gerados pelo personal, com o nome de usuário. */
-export async function login(input: { email: unknown; password: unknown }, db: Db = getDb()) {
+export async function login(input: { email: unknown; password: unknown }, db: Db = getDb(), device = "") {
   if (typeof input.email !== "string" || typeof input.password !== "string" || input.password.length > 128) return null
   const id = input.email.trim().toLowerCase()
   const column = id.includes("@") ? "email" : "username"
@@ -151,7 +163,7 @@ export async function login(input: { email: unknown; password: unknown }, db: Db
   if (u.disabled_at) throw new HttpError(403, "Conta suspensa. Fale com o suporte do EVOFIT.")
   const token = await db.tx(async (q) => {
     await q.query("update users set last_login_at = now() where id = $1", [u.id])
-    return createSession(q, u.id)
+    return createSession(q, u.id, device)
   })
   return { token, role: u.role, mustChangePassword: u.must_change_password }
 }
@@ -341,8 +353,18 @@ export async function deleteAccount(account: Account, db: Db = getDb()) {
   if (account.role === "trainer") {
     // apaga o personal e, em cascata, alunos, fichas, sessões, convites e todos os logins vinculados
     await withTenant({ role: "trainer", trainerId: account.trainerId }, (q) => q.query("delete from trainers where id = $1", [account.trainerId]), db)
-    await db.tx((q) => q.query("delete from users where trainer_id = $1", [account.trainerId]))
+    await db.tx(async (q) => {
+      await q.query("delete from users where trainer_id = $1", [account.trainerId])
+      await q.query("delete from lifetime_requests where trainer_id = $1", [account.trainerId])
+      await q.query("delete from login_events where trainer_id = $1", [account.trainerId])
+    })
   } else {
     await db.tx((q) => q.query("delete from users where id = $1", [account.userId]))
   }
+}
+
+/** Marca o onboarding do personal como concluído. */
+export async function finishOnboarding(account: Account, db: Db = getDb()) {
+  if (account.role !== "trainer") throw new HttpError(403, "Só para personal.")
+  await db.tx((q) => q.query("update users set onboarded_at = coalesce(onboarded_at, now()) where id = $1", [account.userId]))
 }

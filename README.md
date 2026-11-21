@@ -233,3 +233,14 @@ Os vídeos tocam só quando estão na tela; com “reduzir movimento” ficam pa
 ## Diretório: WhatsApp e Instagram
 
 No Studio → Perfil, o personal pode publicar WhatsApp e Instagram (opcionais). No perfil público aparecem os botões “Chamar no WhatsApp” (mensagem pronta) e “@usuario”. A chave Pix nunca é pública. Dados v5 (migração automática da demonstração) e migração `006_contacts_admin_flag.sql`.
+
+## Pagamentos (Stripe)
+
+Os personais assinam em **Studio → Plano** (`/studio/plano`). Os preços ficam em `lib/plans.ts` (fonte única; ver `docs/PLANOS.md`) e são enviados ao Stripe Checkout como `price_data`, então não é preciso cadastrar produtos no painel do Stripe.
+
+- **Assinaturas:** Inicial e Mensal (mensais), Anual e Anual Fundador (anuais). Trocar cartão, mudar de plano e cancelar ficam no portal do cliente do Stripe (botão “Gerenciar assinatura”).
+- **Vitalício:** pagamento único; cancela a assinatura anterior, se houver.
+- **Código Fundador:** individual e de uso único. Gere com `DATABASE_URL=... npm run founder-codes -- 100 "lançamento"` (os códigos aparecem só no terminal; o banco guarda o hash). Ao pagar, a próxima cobrança é empurrada em 3 meses (bônus de 15 meses no primeiro ciclo).
+- **Teste grátis:** 7 dias a partir da criação da conta.
+- **Configuração:** `STRIPE_SECRET_KEY` e `STRIPE_WEBHOOK_SECRET` (ver `.env.example`). Cadastre o webhook em `https://SEU-DOMINIO/api/billing/webhook` com os eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.created`, `customer.subscription.updated` e `customer.subscription.deleted`. Ative o portal do cliente em *Settings → Billing → Customer portal*. Rode `npm run db:migrate` para criar as tabelas.
+- **Ainda não bloqueia o uso:** o fim do teste e o limite de 10 alunos do Inicial aparecem na tela Plano, mas o Studio continua funcionando.
