@@ -217,3 +217,30 @@ describe("admin central: acesso, Pix e monitoramento", () => {
     expect(stats.manual).toBeGreaterThanOrEqual(1)
   })
 })
+
+describe("admin central: equipe e ideias", () => {
+  it("adiciona e remove admin; não remove a si mesmo", async () => {
+    const me = { ...(await trainer("chefe@evofit.app")), isAdmin: true }
+    await db.tx((q) => q.query("update users set is_admin = true where lower(email) = 'chefe@evofit.app'"))
+    await trainer("socio@evofit.app")
+    await expect(Admin.setAdmin(me, "ninguem@evofit.app", true, db)).rejects.toMatchObject({ status: 404 })
+    await Admin.setAdmin(me, "Socio@evofit.app", true, db)
+    expect((await Admin.listAdmins(db)).map((a) => a.email)).toEqual(expect.arrayContaining(["chefe@evofit.app", "socio@evofit.app"]))
+    await expect(Admin.setAdmin(me, "chefe@evofit.app", false, db)).rejects.toMatchObject({ status: 409 })
+    await Admin.setAdmin(me, "socio@evofit.app", false, db)
+    expect((await Admin.listAdmins(db)).map((a) => a.email)).not.toContain("socio@evofit.app")
+  })
+
+  it("bloco de ideias já vem com ideias de marketing e aceita novas", async () => {
+    const me = await trainer("ideias@evofit.app")
+    const before = await Admin.listNotes(db)
+    expect(before.filter((n) => n.category === "marketing").length).toBeGreaterThanOrEqual(8)
+    await Admin.noteAction(me, { op: "add", text: "Live semanal com dicas", category: "marketing" }, db)
+    const n = (await Admin.listNotes(db)).find((x) => x.text === "Live semanal com dicas")!
+    await Admin.noteAction(me, { op: "toggle", id: n.id }, db)
+    expect((await Admin.listNotes(db)).find((x) => x.id === n.id)?.done).toBe(true)
+    await Admin.noteAction(me, { op: "delete", id: n.id }, db)
+    expect((await Admin.listNotes(db)).find((x) => x.id === n.id)).toBeUndefined()
+    await expect(Admin.noteAction(me, { op: "add", text: "" }, db)).rejects.toMatchObject({ status: 400 })
+  })
+})

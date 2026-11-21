@@ -7,8 +7,8 @@ import { useDemoState } from "@/lib/store"
 import { BarChart } from "@/components/charts"
 import { useToast } from "@/components/providers"
 import { ConfirmDialog, EmptyState, Field, LoadingScreen, Modal, NotFoundState, PageHeader, Stat, cx } from "@/components/ui"
-import type { AccessInfo, AuditEntry, BillingOverview, Health, LifetimeRequest, LoginEvent, Overview, TrainerRow } from "@/lib/server/admin"
-import { AccessBadge, BillingStats, LifetimeRequests, RecentLogins, STATE_LABEL, TrainerAccessDialog } from "@/components/admin-access"
+import type { AccessInfo, AdminMember, AdminNote, AuditEntry, BillingOverview, Health, LifetimeRequest, LoginEvent, Overview, TrainerRow } from "@/lib/server/admin"
+import { AccessBadge, AdminTeam, BillingStats, IdeasBoard, LifetimeRequests, RecentLogins, STATE_LABEL, TrainerAccessDialog } from "@/components/admin-access"
 
 type Payload = {
   overview: Overview
@@ -20,6 +20,8 @@ type Payload = {
   billing: BillingOverview
   logins: LoginEvent[]
   requests: LifetimeRequest[]
+  admins: AdminMember[]
+  notes: AdminNote[]
 }
 type Filter = "todos" | "ativos" | "parados" | "suspensos"
 type Pending = {
@@ -92,6 +94,7 @@ export default function AdminPage() {
 
 function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void> }) {
   const { overview: o, trainers, health: h, audit } = data
+  const { account } = useDemoState()
   const signups = o.signups.map((w) => ({
     label: fmtDate(w.week).slice(0, 5),
     value: w.count,
@@ -123,6 +126,11 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
       <div className="grid gap-6 lg:grid-cols-2">
         <LifetimeRequests requests={data.requests} reload={reload} />
         <RecentLogins logins={data.logins} />
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <IdeasBoard notes={data.notes} reload={reload} />
+        <AdminTeam admins={data.admins} me={account?.email ?? ""} reload={reload} />
       </div>
 
       <section aria-labelledby="signup-title" className="card p-5">

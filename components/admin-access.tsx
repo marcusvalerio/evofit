@@ -1,12 +1,12 @@
 "use client"
 import { useCallback, useEffect, useState } from "react"
-import { Activity, BadgeCheck, Check, Clock, Smartphone, X } from "@/components/icons"
+import { Activity, BadgeCheck, Check, Clock, Lightbulb, ShieldCheck, Smartphone, UserPlus, X } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { fmtDate, fmtTime, relativeDays } from "@/lib/date"
 import { PLANS, brl, type PlanId } from "@/lib/plans"
 import { useToast } from "./providers"
 import { ConfirmDialog, Field, Modal, Stat, cx } from "./ui"
-import type { AccessInfo, BillingOverview, LifetimeRequest, LoginEvent, TrainerDetail } from "@/lib/server/admin"
+import type { AccessInfo, AdminMember, AdminNote, BillingOverview, LifetimeRequest, LoginEvent, TrainerDetail } from "@/lib/server/admin"
 
 export const STATE_LABEL: Record<AccessInfo["state"], string> = {
   teste: "Em teste",
@@ -356,5 +356,150 @@ export function TrainerAccessDialog({ trainer, onClose, reload }: { trainer: { i
         onConfirm={run}
       />
     </Modal>
+  )
+}
+
+/** Equipe que acessa o admin: adicionar e remover. */
+export function AdminTeam({ admins, me, reload }: { admins: AdminMember[]; me: string; reload: () => Promise<void> }) {
+  const toast = useToast()
+  const [email, setEmail] = useState("")
+  const [error, setError] = useState<string | undefined>()
+  const [busy, setBusy] = useState(false)
+  const [removing, setRemoving] = useState<AdminMember | null>(null)
+  const send = async (target: string, admin: boolean) => {
+    setBusy(true)
+    setError(undefined)
+    const r = await postJson("/api/admin/team", { email: target, admin }).catch(() => null)
+    setBusy(false)
+    if (!r?.ok) {
+      if (admin && r?.data.fields?.email) return setError(r.data.fields.email)
+      return toast(r?.data.error ?? "Sem conexão.", "info")
+    }
+    toast(admin ? `${target} agora é admin.` : `${target} saiu do admin.`)
+    setEmail("")
+    await reload()
+  }
+  return (
+    <section aria-labelledby="team-title" className="card p-5">
+      <h2 id="team-title" className="t-h2 flex items-center gap-2">
+        <ShieldCheck size={18} aria-hidden /> Equipe do admin
+      </h2>
+      <p className="text-sm text-muted">Quem pode ver este painel e liberar acessos. A pessoa precisa ter conta de personal no EVOFIT.</p>
+      <ul className="mt-3 divide-y divide-line">
+        {admins.map((m) => (
+          <li key={m.email} className="flex items-center justify-between gap-3 py-2 text-sm">
+            <span className="min-w-0">
+              <strong>{m.name || m.email}</strong> <span className="text-muted">· {m.email}</span>
+              {m.email.toLowerCase() === me.toLowerCase() && <span className="badge ml-2">você</span>}
+              <span className="block text-xs text-muted">{m.lastLoginAt ? `último acesso ${relativeDays(m.lastLoginAt)}` : "ainda não entrou"}</span>
+            </span>
+            {m.email.toLowerCase() !== me.toLowerCase() && !m.fromEnv && (
+              <button type="button" className="btn btn-ghost btn-sm text-danger" onClick={() => setRemoving(m)}>
+                Remover
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+      <form
+        className="mt-3 flex flex-wrap items-end gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void send(email.trim(), true)
+        }}
+      >
+        <Field label="Adicionar admin (e-mail)" error={error} className="min-w-56 flex-1">
+          {(f) => <input {...f} className="input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@email.com" />}
+        </Field>
+        <button type="submit" className="btn btn-primary" disabled={busy || !email.includes("@")}>
+          <UserPlus size={16} aria-hidden /> Adicionar
+        </button>
+      </form>
+      <ConfirmDialog
+        open={!!removing}
+        onClose={() => setRemoving(null)}
+        title="Remover do admin?"
+        message={`${removing?.email ?? ""} deixa de ver o painel de administração. A conta de personal continua funcionando.`}
+        confirmLabel="Remover"
+        danger
+        onConfirm={async () => {
+          const m = removing
+          setRemoving(null)
+          if (m) await send(m.email, false)
+        }}
+      />
+    </section>
+  )
+}
+
+const CAT_LABEL: Record<AdminNote["category"], string> = { marketing: "Marketing", produto: "Produto", vendas: "Vendas", geral: "Geral" }
+
+/** Bloco de ideias da equipe (marketing e o que mais for para depois). */
+export function IdeasBoard({ notes, reload }: { notes: AdminNote[]; reload: () => Promise<void> }) {
+  const toast = useToast()
+  const [text, setText] = useState("")
+  const [cat, setCat] = useState<AdminNote["category"]>("marketing")
+  const [show, setShow] = useState<AdminNote["category"] | "todas">("todas")
+  const op = async (body: Record<string, unknown>) => {
+    const r = await postJson("/api/admin/notes", body).catch(() => null)
+    if (!r?.ok) toast(r?.data.error ?? "Sem conexão.", "info")
+    await reload()
+  }
+  const list = notes.filter((n) => show === "todas" || n.category === show)
+  return (
+    <section aria-labelledby="ideas-title" className="card p-5">
+      <h2 id="ideas-title" className="t-h2 flex items-center gap-2">
+        <Lightbulb size={18} aria-hidden /> Bloco de ideias
+      </h2>
+      <p className="text-sm text-muted">Para lembrar depois: marketing, produto e vendas. Marque como feito quando sair do papel.</p>
+      <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Filtrar ideias">
+        {(["todas", "marketing", "produto", "vendas", "geral"] as const).map((c) => (
+          <button key={c} type="button" className="chip" aria-pressed={show === c} onClick={() => setShow(c)}>
+            {c === "todas" ? "Todas" : CAT_LABEL[c]} <span className="tabular opacity-70">{c === "todas" ? notes.length : notes.filter((n) => n.category === c).length}</span>
+          </button>
+        ))}
+      </div>
+      <ul className="mt-3 grid gap-2">
+        {list.map((n) => (
+          <li key={n.id} className={cx("flex items-start gap-3 rounded-xl border border-line p-3 text-sm", n.done && "opacity-60")}>
+            <input type="checkbox" className="mt-0.5 size-4 accent-[var(--primary)]" checked={n.done} aria-label={n.done ? "Marcar como pendente" : "Marcar como feita"} onChange={() => void op({ op: "toggle", id: n.id })} />
+            <span className={cx("min-w-0 flex-1", n.done && "line-through")}>
+              <span className="badge mr-2">{CAT_LABEL[n.category]}</span>
+              {n.text}
+            </span>
+            <button type="button" className="btn btn-ghost btn-icon btn-sm" aria-label="Apagar ideia" onClick={() => void op({ op: "delete", id: n.id })}>
+              <X size={14} aria-hidden />
+            </button>
+          </li>
+        ))}
+        {list.length === 0 && <li className="text-sm text-muted">Nenhuma ideia aqui ainda.</li>}
+      </ul>
+      <form
+        className="mt-3 flex flex-wrap items-end gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          if (!text.trim()) return
+          void op({ op: "add", text, category: cat }).then(() => setText(""))
+        }}
+      >
+        <Field label="Nova ideia" className="min-w-56 flex-1">
+          {(f) => <input {...f} className="input" maxLength={500} value={text} onChange={(e) => setText(e.target.value)} placeholder="Ex.: sorteio para quem indicar 3 personais" />}
+        </Field>
+        <Field label="Tipo">
+          {(f) => (
+            <select {...f} className="input" value={cat} onChange={(e) => setCat(e.target.value as AdminNote["category"])}>
+              {Object.entries(CAT_LABEL).map(([k, v]) => (
+                <option key={k} value={k}>
+                  {v}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+        <button type="submit" className="btn btn-primary" disabled={!text.trim()}>
+          Guardar ideia
+        </button>
+      </form>
+    </section>
   )
 }

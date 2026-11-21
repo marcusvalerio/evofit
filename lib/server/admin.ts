@@ -623,3 +623,79 @@ export async function setLifetimeRequest(admin: Account, id: unknown, status: un
     await audit(q, admin, "cancelar_pedido_vitalicio", label(t))
   })
 }
+
+/* ---------- Equipe de admins ---------- */
+
+export interface AdminMember {
+  email: string
+  name: string
+  /** Definido em ADMIN_EMAILS (só sai pela configuração do servidor). */
+  fromEnv: boolean
+  lastLoginAt: string | null
+}
+
+export async function listAdmins(db: Db = getDb()): Promise<AdminMember[]> {
+  const env = adminEmails()
+  const rows = (
+    await db.tx((q) =>
+      q.query<{ email: string; trainer_id: string; last_login_at: unknown; is_admin: boolean }>(
+        "select email, trainer_id, last_login_at, is_admin from users where role = 'trainer' and email is not null and (is_admin or lower(email) = any($1::text[]))",
+        [env],
+      ),
+    )
+  ).rows
+  const ids = rows.map((r) => r.trainer_id)
+  const names = ids.length ? new Map((await withTenant(ADMIN, (q) => q.query<{ id: string; name: string }>("select id, name from trainers where id = any($1::uuid[])", [ids]), db)).rows.map((t) => [t.id, t.name])) : new Map()
+  return rows
+    .map((r) => ({ email: r.email, name: names.get(r.trainer_id) ?? "", fromEnv: env.includes(r.email.toLowerCase()), lastLoginAt: iso(r.last_login_at) }))
+    .sort((a, b) => a.email.localeCompare(b.email))
+}
+
+/** Dá ou tira acesso ao admin. A pessoa precisa ter conta de personal no EVOFIT. */
+export async function setAdmin(admin: Account, email: unknown, on: boolean, db: Db = getDb()) {
+  const e = typeof email === "string" ? email.trim().toLowerCase() : ""
+  if (!e.includes("@") || e.length > 254) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { email: "Informe um e-mail válido." } })
+  if (!on && e === admin.email.toLowerCase()) throw new HttpError(409, "Você não pode tirar o próprio acesso de admin.")
+  if (!on && adminEmails().includes(e)) throw new HttpError(409, "Este admin vem da configuração do servidor (ADMIN_EMAILS).")
+  await db.tx(async (q) => {
+    const u = (await q.query<{ id: string; role: string }>("select id, role from users where lower(email) = $1", [e])).rows[0]
+    if (!u) throw Object.assign(new HttpError(404, "Não existe conta com este e-mail."), { fields: { email: "Peça para a pessoa criar uma conta de personal no EVOFIT primeiro." } })
+    if (u.role !== "trainer") throw Object.assign(new HttpError(400, "Só contas de personal podem ser admin."), { fields: { email: "Este e-mail é de um aluno." } })
+    await q.query("update users set is_admin = $2 where id = $1", [u.id, on])
+    await audit(q, admin, on ? "adicionar_admin" : "remover_admin", e)
+  })
+}
+
+/* ---------- Bloco de ideias ---------- */
+
+export interface AdminNote {
+  id: number
+  category: "marketing" | "produto" | "vendas" | "geral"
+  text: string
+  done: boolean
+  createdBy: string
+  createdAt: string
+}
+const CATS = ["marketing", "produto", "vendas", "geral"]
+
+export async function listNotes(db: Db = getDb()): Promise<AdminNote[]> {
+  const rows = (await db.tx((q) => q.query<Record<string, unknown>>("select * from admin_notes order by done, created_at desc limit 300"))).rows
+  return rows.map((r) => ({ id: Number(r.id), category: r.category as AdminNote["category"], text: String(r.text), done: !!r.done, createdBy: String(r.created_by), createdAt: iso(r.created_at)! }))
+}
+
+export async function noteAction(admin: Account, body: Record<string, unknown>, db: Db = getDb()) {
+  await db.tx(async (q) => {
+    if (body.op === "add") {
+      const text = typeof body.text === "string" ? body.text.trim() : ""
+      if (!text || text.length > 500) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { text: "Escreva a ideia (até 500 caracteres)." } })
+      const cat = CATS.includes(String(body.category)) ? String(body.category) : "geral"
+      await q.query("insert into admin_notes (category, text, created_by) values ($1, $2, $3)", [cat, text, admin.email.toLowerCase()])
+      return
+    }
+    const id = Number(body.id)
+    if (!Number.isInteger(id)) throw new HttpError(400, "Ideia inválida.")
+    if (body.op === "toggle") await q.query("update admin_notes set done = not done where id = $1", [id])
+    else if (body.op === "delete") await q.query("delete from admin_notes where id = $1", [id])
+    else throw new HttpError(400, "Ação inválida.")
+  })
+}
