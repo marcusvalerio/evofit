@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
-import { LogOut, ShieldAlert, UserRound } from "@/components/icons"
+import Link from "next/link"
+import { BadgeCheck, LogOut, ShieldAlert, UserRound } from "@/components/icons"
 import { useDemoState } from "@/lib/store"
 import { hardNavigate, logout, postJson } from "@/lib/account-client"
 import { Field, Modal } from "./ui"
@@ -33,6 +34,11 @@ export function AccountSection() {
         Entrou como <strong className="text-fg">{account.email}</strong>.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
+        {trainer && (
+          <Link href="/studio/plano" className="btn btn-outline">
+            <BadgeCheck size={16} aria-hidden /> Plano e pagamento
+          </Link>
+        )}
         <button type="button" className="btn btn-outline" onClick={() => logout()}>
           <LogOut size={16} aria-hidden /> Sair
         </button>

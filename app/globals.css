@@ -1840,3 +1840,10 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-superset-link:hover { background: var(--line); color: var(--fg); }
 .evo-superset-link.is-on { border-style: solid; border-color: var(--primary); color: var(--primary); }
 .evo-plan-superset { border-left-width: 3px; border-radius: 0.8rem; }
+
+/* Card de destaque do plano Vitalício (tela Plano). */
+.evo-plan-hero {
+  background: linear-gradient(135deg, #46b8ba, #1f9aa0 55%, #0f5257);
+  color: #061718;
+  box-shadow: 0 30px 80px -30px rgb(70 184 186 / 0.7);
+}

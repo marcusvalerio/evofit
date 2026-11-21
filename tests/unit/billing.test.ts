@@ -1,0 +1,159 @@
+import { beforeAll, beforeEach, describe, expect, it } from "vitest"
+import { PGlite } from "@electric-sql/pglite"
+import type Stripe from "stripe"
+import type { Db } from "@/lib/server/db"
+import { migrate } from "@/lib/server/migrate"
+import * as Auth from "@/lib/server/auth"
+import * as Billing from "@/lib/server/billing"
+import { PLANS } from "@/lib/plans"
+
+let db: Db
+async function pglite(): Promise<Db> {
+  const pg = await PGlite.create()
+  return {
+    tx: (fn) =>
+      pg.transaction((tx) =>
+        fn({
+          query: async (text: string, params?: unknown[]) => {
+            if (!params?.length && text.includes(";")) {
+              const rs = await tx.exec(text)
+              return (rs.at(-1) ?? { rows: [] }) as never
+            }
+            return tx.query(text, params) as never
+          },
+        }),
+      ),
+  }
+}
+
+/* Stripe falso: guarda o que foi pedido e devolve objetos mínimos. */
+const PERIOD_END = Math.floor(Date.UTC(2027, 10, 21) / 1000)
+let calls: { sessions: Record<string, unknown>[]; updates: [string, Record<string, unknown>][]; cancels: string[] }
+const subs = new Map<string, Record<string, unknown>>()
+const fake = {
+  customers: { create: async () => ({ id: `cus_${Math.random().toString(36).slice(2, 8)}` }) },
+  checkout: { sessions: { create: async (p: Record<string, unknown>) => (calls.sessions.push(p), { url: "https://checkout.stripe.test/s" }) } },
+  billingPortal: { sessions: { create: async () => ({ url: "https://billing.stripe.test/p" }) } },
+  subscriptions: {
+    retrieve: async (id: string) => subs.get(id),
+    update: async (id: string, p: Record<string, unknown>) => {
+      calls.updates.push([id, p])
+      const s = { ...subs.get(id)!, trial_end: p.trial_end, status: "trialing" }
+      subs.set(id, s)
+      return s
+    },
+    cancel: async (id: string) => (calls.cancels.push(id), {}),
+  },
+} as unknown as Stripe
+
+let n = 0
+const event = (type: string, object: unknown) => ({ id: `evt_${++n}`, type, data: { object } }) as unknown as Stripe.Event
+async function trainer(email: string) {
+  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1" }, db)
+  return (await Auth.accountFromToken(token, db))!
+}
+const sub = (id: string, customer: string, meta: Record<string, string>) =>
+  subs.set(id, { id, customer, status: "active", metadata: meta, items: { data: [{ current_period_end: PERIOD_END }] }, trial_end: null })
+
+beforeAll(async () => {
+  db = await pglite()
+  await migrate(db)
+  Billing.setStripe(fake)
+})
+beforeEach(() => {
+  calls = { sessions: [], updates: [], cancels: [] }
+})
+
+describe("cobrança (Stripe)", () => {
+  it("conta nova começa no teste grátis de 7 dias", async () => {
+    const a = await trainer("teste1@evofit.app")
+    const s = await Billing.billingStatus(a, db)
+    expect(s.plan).toBeNull()
+    expect(s.hasAccess).toBe(true)
+    const days = (Date.parse(s.trialEndsAt!) - Date.now()) / 86400_000
+    expect(days).toBeGreaterThan(6.9)
+    expect(days).toBeLessThanOrEqual(7)
+  })
+
+  it("abre checkout de assinatura com o preço do plano e ativa pelo webhook", async () => {
+    const a = await trainer("mensal@evofit.app")
+    const url = await Billing.startCheckout(a, { plan: "mensal" }, "https://app.test", db)
+    expect(url).toContain("checkout.stripe.test")
+    const p = calls.sessions[0] as { mode: string; customer: string; line_items: { price_data: { unit_amount: number; currency: string; recurring: { interval: string } } }[] }
+    expect(p.mode).toBe("subscription")
+    expect(p.line_items[0].price_data).toMatchObject({ unit_amount: PLANS.mensal.amount, currency: "brl", recurring: { interval: "month" } })
+
+    sub("sub_m", p.customer, { trainer_id: a.trainerId, plan: "mensal" })
+    const done = event("checkout.session.completed", { mode: "subscription", subscription: "sub_m", customer: p.customer, metadata: { trainer_id: a.trainerId, plan: "mensal" } })
+    await Billing.handleEvent(done, db)
+    await Billing.handleEvent(done, db) // repetido: ignorado
+    const s = await Billing.billingStatus(a, db)
+    expect(s).toMatchObject({ plan: "mensal", status: "active", hasAccess: true, lifetime: false })
+    expect(s.currentPeriodEnd).toBe(new Date(PERIOD_END * 1000).toISOString())
+
+    await expect(Billing.startCheckout(a, { plan: "anual" }, "https://app.test", db)).rejects.toMatchObject({ status: 409 })
+
+    // cancelamento chega pelo webhook
+    subs.set("sub_m", { ...subs.get("sub_m")!, status: "canceled" })
+    await Billing.handleEvent(event("customer.subscription.deleted", subs.get("sub_m")), db)
+    expect((await Billing.billingStatus(a, db)).status).toBe("canceled")
+  })
+
+  it("Fundador exige código válido, de uso único, e ganha 3 meses de bônus", async () => {
+    const a = await trainer("fundador@evofit.app")
+    const b = await trainer("outro@evofit.app")
+    await expect(Billing.startCheckout(a, { plan: "fundador" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
+    await expect(Billing.startCheckout(a, { plan: "fundador", code: "FUNDADOR-NAOEXISTE" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
+
+    const [code] = await Billing.createFounderCodes(1, "teste", db)
+    expect(code).toMatch(/^FUNDADOR-[A-Z2-9]{6}$/)
+    await Billing.startCheckout(a, { plan: "fundador", code: ` ${code.toLowerCase()} ` }, "https://app.test", db)
+    const p = calls.sessions[0] as { customer: string; metadata: Record<string, string>; line_items: { price_data: { unit_amount: number; recurring: { interval: string } } }[] }
+    expect(p.line_items[0].price_data).toMatchObject({ unit_amount: 39990, recurring: { interval: "year" } })
+    // código reservado: outra pessoa não usa
+    await expect(Billing.startCheckout(b, { plan: "fundador", code }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
+
+    sub("sub_f", p.customer, p.metadata)
+    await Billing.handleEvent(event("checkout.session.completed", { mode: "subscription", subscription: "sub_f", customer: p.customer, metadata: p.metadata }), db)
+    const bonus = new Date(PERIOD_END * 1000)
+    bonus.setUTCMonth(bonus.getUTCMonth() + 3)
+    expect(calls.updates[0]).toEqual(["sub_f", { trial_end: bonus.getTime() / 1000, proration_behavior: "none" }])
+    const s = await Billing.billingStatus(a, db)
+    expect(s).toMatchObject({ plan: "fundador", status: "active" })
+    expect(s.currentPeriodEnd).toBe(bonus.toISOString())
+  })
+
+  it("Vitalício: pagamento único, acesso para sempre e cancela assinatura antiga", async () => {
+    const a = await trainer("vitalicio@evofit.app")
+    await Billing.startCheckout(a, { plan: "inicial" }, "https://app.test", db)
+    const p0 = calls.sessions[0] as { customer: string }
+    sub("sub_i", p0.customer, { trainer_id: a.trainerId, plan: "inicial" })
+    await Billing.handleEvent(event("checkout.session.completed", { mode: "subscription", subscription: "sub_i", customer: p0.customer, metadata: { trainer_id: a.trainerId, plan: "inicial" } }), db)
+
+    await Billing.startCheckout(a, { plan: "vitalicio" }, "https://app.test", db)
+    const p = calls.sessions[1] as { mode: string; line_items: { price_data: { unit_amount: number; recurring?: unknown } }[] }
+    expect(p.mode).toBe("payment")
+    expect(p.line_items[0].price_data.unit_amount).toBe(89990)
+    expect(p.line_items[0].price_data.recurring).toBeUndefined()
+
+    const unpaid = { mode: "payment", payment_status: "unpaid", customer: p0.customer, metadata: { trainer_id: a.trainerId, plan: "vitalicio" } }
+    await Billing.handleEvent(event("checkout.session.completed", unpaid), db)
+    expect((await Billing.billingStatus(a, db)).lifetime).toBe(false)
+    await Billing.handleEvent(event("checkout.session.async_payment_succeeded", { ...unpaid, payment_status: "paid" }), db)
+    const s = await Billing.billingStatus(a, db)
+    expect(s).toMatchObject({ plan: "vitalicio", lifetime: true, hasAccess: true })
+    expect(calls.cancels).toEqual(["sub_i"])
+    // evento tardio da assinatura antiga não tira o vitalício
+    subs.set("sub_i", { ...subs.get("sub_i")!, status: "canceled" })
+    await Billing.handleEvent(event("customer.subscription.deleted", subs.get("sub_i")), db)
+    expect(await Billing.billingStatus(a, db)).toMatchObject({ plan: "vitalicio", lifetime: true, status: "active" })
+    await expect(Billing.startCheckout(a, { plan: "mensal" }, "https://app.test", db)).rejects.toMatchObject({ status: 409 })
+  })
+
+  it("aluno não assina e plano inválido é recusado", async () => {
+    const a = await trainer("regras@evofit.app")
+    await expect(Billing.startCheckout(a, { plan: "gratis" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
+    await expect(Billing.billingStatus({ ...a, role: "student", studentId: "x" }, db)).rejects.toMatchObject({ status: 403 })
+    await expect(Billing.portalUrl({ ...a, trainerId: "00000000-0000-4000-8000-000000000000" }, "https://app.test", db)).rejects.toMatchObject({ status: 404 })
+  })
+})
