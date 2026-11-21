@@ -10,11 +10,19 @@ Quem paga é o personal. O aluno usa o app de graça.
 | **Mensal** | R$ 49,90/mês | R$ 49,90 | — | ilimitados |
 | **Anual** | R$ 479,90/ano | ≈ R$ 39,99 | 20% (economia de R$ 118,90/ano) | ilimitados |
 | **Anual + código Fundador** | R$ 399,90 por 15 meses | ≈ R$ 26,66 | 47% | ilimitados |
+| **Vitalício (lançamento)** | R$ 800, pagamento único | — | — | ilimitados |
 
 - Não há plano gratuito. A entrada é o **Inicial**.
 - O limite conta só **alunos ativos**: aluno arquivado não conta.
 - Ao passar de 10 alunos no Inicial, o app sugere subir para o Mensal ou o Anual. Ninguém perde dados.
 - Todos os planos incluem a biblioteca de exercícios, as fichas, o app do Aluno e as avaliações.
+
+## Vitalício (lançamento)
+- Sugestão do professor: R$ 800 pagos uma vez, acesso para sempre.
+- Só no lançamento e com **vagas limitadas** (número a definir).
+- Serve para fazer caixa no início; depois a oferta fecha e fica só o modelo recorrente.
+
+Imagem pronta para divulgar: [tabela-precos.png](./tabela-precos.png).
 
 ## Teste grátis
 - **7 dias grátis**, sem cartão, com os recursos do Mensal.
@@ -42,6 +50,7 @@ O Fundador não é um plano separado: é um **código de desconto aplicado no pl
 - Mensagem central: "seus dados são seus". O EVOFIT importa **e** exporta, então ninguém fica preso.
 
 ## Pendências
+- Definir quantas vagas terá o Vitalício.
 - Confirmar o limite de 10 alunos no Inicial.
 - Definir a data limite do Fundador, o formato dos códigos e como serão distribuídos e a regra exata da promoção MFIT.
 - Avaliar o plano **Studio+** para estúdios e academias, com vários personais.
