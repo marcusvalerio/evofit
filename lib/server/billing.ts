@@ -66,7 +66,7 @@ export async function billingStatus(a: Account, db: Db = getDb()): Promise<Billi
 async function customerFor(q: Queryable, a: Account): Promise<string> {
   const row = (await q.query<Row>("select stripe_customer_id from billing where trainer_id = $1", [a.trainerId])).rows[0]
   if (row?.stripe_customer_id) return String(row.stripe_customer_id)
-  const c = await stripe().customers.create({ email: a.email.includes("@") ? a.email : undefined, metadata: { trainer_id: a.trainerId } })
+  const c = await stripe().customers.create({ email: a.email.includes("@") ? a.email : undefined, metadata: { app: "evofit", trainer_id: a.trainerId } })
   await q.query(
     `insert into billing (trainer_id, stripe_customer_id) values ($1, $2)
      on conflict (trainer_id) do update set stripe_customer_id = coalesce(billing.stripe_customer_id, excluded.stripe_customer_id), updated_at = now()`,
@@ -97,7 +97,7 @@ export async function startCheckout(a: Account, input: { plan: unknown; code?: u
     }
 
     const customer = await customerFor(q, a)
-    const metadata: Record<string, string> = { trainer_id: a.trainerId, plan: plan.id }
+    const metadata: Record<string, string> = { app: "evofit", trainer_id: a.trainerId, plan: plan.id }
     if (codeHash) metadata.code_hash = codeHash
     const product_data = { name: `EVOFIT ${plan.name}` }
     const base = {
@@ -119,7 +119,7 @@ export async function startCheckout(a: Account, input: { plan: unknown; code?: u
           ...base,
           mode: "payment",
           line_items: [{ quantity: 1, price_data: { currency: "brl", unit_amount: plan.amount, product_data } }],
-          payment_intent_data: { metadata },
+          payment_intent_data: { metadata, statement_descriptor_suffix: "EVOFIT" },
         })
     if (!session.url) throw new HttpError(502, "Não foi possível abrir o pagamento.")
     return session.url
@@ -130,7 +130,12 @@ export async function portalUrl(a: Account, origin: string, db: Db = getDb()) {
   requireTrainer(a)
   const row = await db.tx(async (q) => (await q.query<Row>("select stripe_customer_id from billing where trainer_id = $1", [a.trainerId])).rows[0])
   if (!row?.stripe_customer_id) throw new HttpError(404, "Nenhuma assinatura encontrada.")
-  const p = await stripe().billingPortal.sessions.create({ customer: String(row.stripe_customer_id), return_url: `${origin}/studio/plano` })
+  const p = await stripe().billingPortal.sessions.create({
+    customer: String(row.stripe_customer_id),
+    return_url: `${origin}/studio/plano`,
+    // configuração própria do EVOFIT (a conta Stripe é compartilhada com outro produto)
+    ...(process.env.STRIPE_PORTAL_CONFIG ? { configuration: process.env.STRIPE_PORTAL_CONFIG } : {}),
+  })
   return p.url
 }
 
