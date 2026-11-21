@@ -10,7 +10,7 @@ Quem paga é o personal. O aluno usa o app de graça.
 | **Mensal** | R$ 49,90/mês | R$ 49,90 | — | ilimitados |
 | **Anual** | R$ 479,90/ano | ≈ R$ 39,99 | 20% (economia de R$ 118,90/ano) | ilimitados |
 | **Anual + código Fundador** | R$ 399,90 por 15 meses | ≈ R$ 26,66 | 47% | ilimitados |
-| **Vitalício (lançamento)** | R$ 800, pagamento único | — | — | ilimitados |
+| **Vitalício (lançamento, destaque principal)** | R$ 899,90, pagamento único | — | — | ilimitados |
 
 - Não há plano gratuito. A entrada é o **Inicial**.
 - O limite conta só **alunos ativos**: aluno arquivado não conta.
@@ -18,7 +18,7 @@ Quem paga é o personal. O aluno usa o app de graça.
 - Todos os planos incluem a biblioteca de exercícios, as fichas, o app do Aluno e as avaliações.
 
 ## Vitalício (lançamento)
-- Sugestão do professor: R$ 800 pagos uma vez, acesso para sempre.
+- R$ 899,90 pagos uma vez, acesso para sempre. É o destaque principal da tabela de preços.
 - Só no lançamento e com **vagas limitadas** (número a definir).
 - Serve para fazer caixa no início; depois a oferta fecha e fica só o modelo recorrente.
 
