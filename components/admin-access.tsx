@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useState } from "react"
-import { Activity, BadgeCheck, Check, Clock, Lightbulb, ShieldCheck, Smartphone, UserPlus, X } from "@/components/icons"
+import { Activity, BadgeCheck, Check, Clock, Lightbulb, MessageCircle, ShieldCheck, Smartphone, UserPlus, X } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { fmtDate, fmtTime, relativeDays } from "@/lib/date"
 import { PLANS, brl, type PlanId } from "@/lib/plans"
@@ -500,6 +500,134 @@ export function IdeasBoard({ notes, reload }: { notes: AdminNote[]; reload: () =
           Guardar ideia
         </button>
       </form>
+    </section>
+  )
+}
+
+type BotInfo = { configured: boolean; adminNumber: string | null; log: { at: string; to: string; kind: string; status: string; error: string }[] }
+const KIND_LABEL: Record<string, string> = {
+  novo_cadastro: "Novo cadastro",
+  pedido_vitalicio: "Pedido de Vitalício",
+  vitalicio_liberado: "Vitalício liberado",
+  nova_assinatura: "Nova assinatura",
+  pagamento_pendente: "Pagamento pendente",
+  boas_vindas: "Boas-vindas",
+  teste_acabando: "Teste acabando",
+  teste_acabou: "Teste acabou",
+  teste: "Teste",
+}
+
+/** Robô de WhatsApp: situação, teste e últimas mensagens. */
+export function WhatsAppBot() {
+  const toast = useToast()
+  const [info, setInfo] = useState<BotInfo | null>(null)
+  const [busy, setBusy] = useState(false)
+  const load = useCallback(async () => {
+    const r = await fetch("/api/admin/whatsapp", { credentials: "same-origin", cache: "no-store" }).catch(() => null)
+    if (r?.ok) setInfo((await r.json()) as BotInfo)
+  }, [])
+  useEffect(() => {
+    const t = setTimeout(load, 0)
+    return () => clearTimeout(t)
+  }, [load])
+  const test = async () => {
+    setBusy(true)
+    const r = await postJson<{ status?: string }>("/api/admin/whatsapp", {}).catch(() => null)
+    setBusy(false)
+    const st = r?.data.status
+    toast(st === "enviado" ? "Mensagem de teste enviada." : st === "desligado" ? "Robô ainda não configurado." : st === "sem_numero" ? "Defina ADMIN_WHATSAPP ou SALES_WHATSAPP." : "Falhou. Veja o registro abaixo.", st === "enviado" ? undefined : "info")
+    await load()
+  }
+  return (
+    <section aria-labelledby="bot-title" className="card p-5">
+      <h2 id="bot-title" className="t-h2 flex items-center gap-2">
+        <Smartphone size={18} aria-hidden /> Robô de WhatsApp
+      </h2>
+      {!info ? (
+        <div className="skeleton mt-3 h-20" role="status" aria-label="Carregando" />
+      ) : (
+        <>
+          <p className="mt-1 text-sm">
+            <span className={info.configured ? "badge badge-accent" : "badge badge-warning"}>{info.configured ? "Conectado" : "Não configurado"}</span>
+            <span className="ml-2 text-muted">Avisos da equipe vão para {info.adminNumber ?? "— (defina ADMIN_WHATSAPP)"}</span>
+          </p>
+          <p className="mt-2 text-sm text-muted">Envia sozinho: aviso de novo cadastro, pedido de Vitalício e nova assinatura (para você); boas-vindas, fim do teste e Vitalício liberado (para o personal).</p>
+          <button type="button" className="btn btn-outline btn-sm mt-3" disabled={busy} onClick={test}>
+            {busy ? "Enviando…" : "Enviar mensagem de teste"}
+          </button>
+          <ol className="mt-3 max-h-60 divide-y divide-line overflow-y-auto text-sm">
+            {info.log.length === 0 && <li className="py-2 text-muted">Nenhuma mensagem ainda.</li>}
+            {info.log.map((l, i) => (
+              <li key={i} className="flex justify-between gap-3 py-1.5">
+                <span>
+                  {KIND_LABEL[l.kind] ?? l.kind} <span className="text-muted">· {l.to}</span>
+                </span>
+                <span className={cx("shrink-0", l.status === "enviado" ? "text-primary" : l.status === "erro" ? "text-danger" : "text-muted")} title={l.error}>
+                  {l.status} · {ddmm(l.at)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </section>
+  )
+}
+
+type LeadRow = { number: string; name: string; stage: string; messages: number; lastText: string; lastInAt: string | null; paused: boolean }
+const STAGE_LABEL: Record<string, string> = { novo: "Novo", conhecendo: "Conhecendo", planos: "Viu os planos", teste: "Foi testar", vitalicio: "Quer Vitalício 🔥", humano: "Pediu atendimento" }
+
+/** Conversas do vendedor automático do WhatsApp. */
+export function SalesLeads() {
+  const toast = useToast()
+  const [leads, setLeads] = useState<LeadRow[] | null>(null)
+  const load = useCallback(async () => {
+    const r = await fetch("/api/admin/leads", { credentials: "same-origin", cache: "no-store" }).catch(() => null)
+    if (r?.ok) setLeads(((await r.json()) as { leads: LeadRow[] }).leads)
+  }, [])
+  useEffect(() => {
+    const t = setTimeout(load, 0)
+    return () => clearTimeout(t)
+  }, [load])
+  const toggle = async (l: LeadRow) => {
+    const r = await postJson("/api/admin/leads", { number: l.number, paused: !l.paused }).catch(() => null)
+    toast(r?.ok ? (l.paused ? "O robô voltou a responder essa conversa." : "Robô pausado: a conversa é sua.") : "Sem conexão.", r?.ok ? undefined : "info")
+    await load()
+  }
+  return (
+    <section aria-labelledby="leads-title" className="card p-5">
+      <h2 id="leads-title" className="t-h2 flex items-center gap-2">
+        <MessageCircle size={18} aria-hidden /> Vendedor automático · conversas
+      </h2>
+      <p className="text-sm text-muted">Quem chamou no WhatsApp. O robô pausa sozinho quando você responde pelo celular (12 h) ou quando a pessoa pede atendimento (24 h).</p>
+      {!leads ? (
+        <div className="skeleton mt-3 h-20" role="status" aria-label="Carregando" />
+      ) : leads.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">Nenhuma conversa ainda.</p>
+      ) : (
+        <ul className="mt-3 max-h-96 divide-y divide-line overflow-y-auto">
+          {leads.map((l) => (
+            <li key={l.number} className="flex flex-wrap items-center justify-between gap-3 py-2.5 text-sm">
+              <div className="min-w-0 flex-1">
+                <p className="flex flex-wrap items-center gap-2">
+                  <strong>{l.name || "Sem nome"}</strong>
+                  <a className="text-muted underline" href={`https://wa.me/${l.number}`} target="_blank" rel="noopener noreferrer">
+                    +{l.number}
+                  </a>
+                  <span className={l.stage === "vitalicio" || l.stage === "humano" ? "badge badge-warning" : "badge"}>{STAGE_LABEL[l.stage] ?? l.stage}</span>
+                  {l.paused && <span className="badge">Robô pausado</span>}
+                </p>
+                <p className="truncate text-muted">
+                  “{l.lastText}” · {l.messages} msg{l.lastInAt ? ` · ${ddmm(l.lastInAt)}` : ""}
+                </p>
+              </div>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => void toggle(l)}>
+                {l.paused ? "Robô assume" : "Eu assumo"}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

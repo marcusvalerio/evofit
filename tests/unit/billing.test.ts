@@ -6,6 +6,9 @@ import { migrate } from "@/lib/server/migrate"
 import * as Auth from "@/lib/server/auth"
 import * as Billing from "@/lib/server/billing"
 import * as Admin from "@/lib/server/admin"
+import * as Bot from "@/lib/server/whatsapp-bot"
+import * as Sales from "@/lib/server/sales-bot"
+import { withTenant } from "@/lib/server/db"
 import { PLANS } from "@/lib/plans"
 
 let db: Db
@@ -243,5 +246,100 @@ describe("admin central: equipe e ideias", () => {
     await Admin.noteAction(me, { op: "delete", id: n.id }, db)
     expect((await Admin.listNotes(db)).find((x) => x.id === n.id)).toBeUndefined()
     await expect(Admin.noteAction(me, { op: "add", text: "" }, db)).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+describe("robô de WhatsApp (Evolution API)", () => {
+  const sent: { url: string; body: { number: string; text: string } }[] = []
+  beforeAll(() => {
+    Bot.setBotFetch((async (url: string, init: RequestInit) => (sent.push({ url, body: JSON.parse(String(init.body)) }), new Response("{}", { status: 201 }))) as unknown as typeof fetch)
+  })
+
+  it("desligado: não envia e não quebra o fluxo", async () => {
+    delete process.env.EVOLUTION_API_URL
+    expect(await Bot.sendWhatsApp("(21) 99999-0000", "oi", "teste", "", db)).toBe("desligado")
+    expect(sent).toHaveLength(0)
+    expect(Bot.toE164("21999990000")).toBe("5521999990000")
+    expect(Bot.toE164("123")).toBe("")
+  })
+
+  it("configurado: envia, registra e não repete lembretes", async () => {
+    Object.assign(process.env, { EVOLUTION_API_URL: "https://bot.test/", EVOLUTION_API_KEY: "k", EVOLUTION_INSTANCE: "evofit", ADMIN_WHATSAPP: "21988887777" })
+    expect(await Bot.sendWhatsApp("21999990000", "olá", "teste", "x1", db)).toBe("enviado")
+    expect(await Bot.sendWhatsApp("21999990000", "olá", "teste", "x1", db)).toBe("repetido")
+    expect(sent.at(-1)).toMatchObject({ url: "https://bot.test/message/sendText/evofit", body: { number: "5521999990000", text: "olá" } })
+    // novo cadastro avisa a equipe
+    await trainer("zap@evofit.app")
+    expect(sent.at(-1)?.body.number).toBe("5521988887777")
+    expect(sent.at(-1)?.body.text).toContain("zap@evofit.app")
+    expect((await Bot.botLog(5, db))[0].to).toBe("•••7777")
+  })
+
+  it("lembrete de fim do teste vai uma vez para quem tem WhatsApp no perfil", async () => {
+    const a = await trainer("lembrete@evofit.app")
+    await withTenant({ role: "trainer", trainerId: a.trainerId }, (q) => q.query("update trainers set whatsapp = '21977776666' where id = $1", [a.trainerId]), db)
+    await db.tx((q) => q.query("update users set created_at = now() - interval '6 days' where trainer_id = $1", [a.trainerId]))
+    const before = sent.length
+    await Bot.trialReminders(db)
+    const mine = sent.slice(before).filter((m) => m.body.number === "5521977776666")
+    expect(mine).toHaveLength(1)
+    expect(mine[0].body.text).toContain("acaba em 1 dia")
+    await Bot.trialReminders(db)
+    expect(sent.filter((m) => m.body.number === "5521977776666")).toHaveLength(1)
+  })
+})
+
+describe("vendedor automático no WhatsApp", () => {
+  const out: { number: string; text: string }[] = []
+  beforeAll(() => {
+    Object.assign(process.env, { EVOLUTION_API_URL: "https://bot.test", EVOLUTION_API_KEY: "k", EVOLUTION_INSTANCE: "evofit", ADMIN_WHATSAPP: "21988887777", SITE_URL: "https://evofit.test" })
+    Bot.setBotFetch((async (_u: string, init: RequestInit) => (out.push(JSON.parse(String(init.body))), new Response("{}", { status: 201 }))) as unknown as typeof fetch)
+  })
+  const last = (n: string) => (out.filter((m) => m.number === n).at(-1)?.text ?? "").replace(/\u00a0/g, " ")
+
+  it("entende o que a pessoa quer", () => {
+    expect(Sales.intentOf("Quanto custa?")).toBe("planos")
+    expect(Sales.intentOf("2")).toBe("planos")
+    expect(Sales.intentOf("quero testar")).toBe("teste")
+    expect(Sales.intentOf("tem vitalício no pix?")).toBe("vitalicio")
+    expect(Sales.intentOf("uso o MFIT hoje")).toBe("migrar")
+    expect(Sales.intentOf("quero falar com atendente")).toBe("humano")
+    expect(Sales.intentOf("Olá, bom dia")).toBe("menu")
+    expect(Sales.intentOf("asdfgh")).toBe("desconhecido")
+  })
+
+  it("conversa: apresenta, mostra planos, leva ao cadastro e avisa a equipe no Vitalício", async () => {
+    const n = "5521911112222"
+    expect(await Sales.handleIncoming({ number: n, name: "Carla Souza", text: "oi, vi o evofit", fromMe: false }, db)).toBe("respondida")
+    expect(last(n)).toContain("Oi, Carla")
+    expect(last(n)).toContain("1️⃣")
+    await db.tx((q) => q.query("update whatsapp_leads set last_out_at = now() - interval '1 minute' where number = $1", [n]))
+    await Sales.handleIncoming({ number: n, name: "Carla Souza", text: "2", fromMe: false }, db)
+    expect(last(n)).toContain("R$ 49,90")
+    expect(last(n)).toContain("https://evofit.test/criar-conta")
+    await db.tx((q) => q.query("update whatsapp_leads set last_out_at = now() - interval '1 minute' where number = $1", [n]))
+    await Sales.handleIncoming({ number: n, name: "Carla Souza", text: "quero o vitalicio", fromMe: false }, db)
+    expect(last(n)).toContain("R$ 899,90")
+    expect(last("5521988887777")).toContain("Lead quer o *Vitalício*")
+    expect((await Sales.listLeads(10, db)).find((l) => l.number === n)).toMatchObject({ stage: "vitalicio", messages: 3 })
+  })
+
+  it("para de responder quando a equipe assume, e o eco do robô não conta", async () => {
+    const n = "5521933334444"
+    await Sales.handleIncoming({ number: n, name: "Leo", text: "oi", fromMe: false }, db)
+    const bot = last(n)
+    expect(await Sales.handleIncoming({ number: n, name: "", text: bot, fromMe: true }, db)).toBe("ignorada")
+    expect(await Sales.handleIncoming({ number: n, name: "", text: "Fala Leo, aqui é o Marcus!", fromMe: true }, db)).toBe("humano_assumiu")
+    expect(await Sales.handleIncoming({ number: n, name: "Leo", text: "2", fromMe: false }, db)).toBe("pausado")
+    await Sales.setLeadPaused(n, false, db)
+    await db.tx((q) => q.query("update whatsapp_leads set last_out_at = now() - interval '1 minute' where number = $1", [n]))
+    expect(await Sales.handleIncoming({ number: n, name: "Leo", text: "2", fromMe: false }, db)).toBe("respondida")
+  })
+
+  it("lê o webhook da Evolution API e ignora grupos e mensagens antigas", () => {
+    const m = Sales.parseEvolution({ event: "messages.upsert", data: { key: { remoteJid: "5521955556666@s.whatsapp.net", fromMe: false }, pushName: "Ana", message: { conversation: "preço?" }, messageTimestamp: 1 } })
+    expect(m).toMatchObject({ number: "5521955556666", name: "Ana", text: "preço?", fromMe: false })
+    expect(Sales.parseEvolution({ event: "messages.upsert", data: { key: { remoteJid: "123@g.us" }, message: { conversation: "x" } } })).toBeNull()
+    expect(Sales.parseEvolution({ event: "connection.update", data: {} })).toBeNull()
   })
 })

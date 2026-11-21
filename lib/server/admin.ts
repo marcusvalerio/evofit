@@ -4,6 +4,7 @@ import { getDb, withTenant, type Db, type Queryable } from "./db"
 import { hashPassword, temporaryPassword, type Account } from "./auth"
 import { HttpError } from "./workspace"
 import { computeStatus, statusFor } from "./billing"
+import { MSG, sendWhatsApp, trainerContact } from "./whatsapp-bot"
 import { PLANS, TRIAL_DAYS, isPlanId, type PlanId } from "../plans"
 
 /**
@@ -558,6 +559,8 @@ export async function grantAccess(admin: Account, trainerId: unknown, input: { k
       await q.query("update lifetime_requests set status = 'pago', handled_at = now(), handled_by = $2 where trainer_id = $1 and status = 'pendente'", [t.id, admin.email.toLowerCase()])
       await audit(q, admin, "liberar_vitalicio", label(t), note)
     })
+    const c = await trainerContact(t.id, db)
+    if (c.whatsapp) await sendWhatsApp(c.whatsapp, MSG.lifetimeGranted(c.name), "vitalicio_liberado", t.id, db)
     return
   }
   if (input.kind !== "dias") throw new HttpError(400, "Tipo de liberação inválido.")
