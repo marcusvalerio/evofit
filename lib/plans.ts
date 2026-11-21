@@ -37,6 +37,8 @@ export interface BillingStatus {
   plan: PlanId | null
   status: "none" | "active" | "past_due" | "canceled"
   lifetime: boolean
+  /** stripe = cobrança automática; manual = liberado pelo admin (ex.: Pix). */
+  source: "stripe" | "manual"
   currentPeriodEnd: string | null
   trialEndsAt: string | null
   inTrial: boolean

@@ -22,6 +22,10 @@ export interface AccountInfo {
   mustChangePassword?: boolean
   /** E-mail em ADMIN_EMAILS: vê o painel de administração. */
   isAdmin?: boolean
+  /** Personal ainda não passou pelas boas-vindas. */
+  onboarded?: boolean
+  /** Personal com teste, assinatura ou liberação ativa. */
+  hasAccess?: boolean
 }
 
 export type SyncStatus = "idle" | "saving" | "error" | "offline"

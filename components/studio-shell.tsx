@@ -6,6 +6,7 @@ import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
 import { FirstAccessPassword } from "./first-access"
+import { AccessLocked, Onboarding } from "./onboarding"
 import { GateScreen, useLoginGate } from "./login-gate"
 
 const NAV = [
@@ -30,6 +31,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
   const isStudent = mode === "account" && account?.role === "student"
   const mustChange = mode === "account" && account?.role === "trainer" && !!account.mustChangePassword
   const isAdmin = mode === "account" && !!account?.isAdmin
+  const trainerAccount = mode === "account" && account?.role === "trainer" && !account.mustChangePassword
+  const needsOnboarding = trainerAccount && account?.onboarded === false
+  const locked = trainerAccount && account?.hasAccess === false && !path.startsWith("/studio/plano") && !path.startsWith("/studio/perfil")
 
   return (
     <div className="min-h-dvh">
@@ -111,6 +115,10 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               <LoadingScreen />
             ) : mustChange ? (
               <FirstAccessPassword login={account?.email ?? ""} who="trainer" />
+            ) : needsOnboarding ? (
+              <Onboarding />
+            ) : locked ? (
+              <AccessLocked />
             ) : isStudent ? (
               <NotFoundState title="Esta é a área do personal" href="/aluno" cta="Ir para meus treinos">
                 Você entrou com uma conta de aluno. Seus treinos estão no app do aluno.

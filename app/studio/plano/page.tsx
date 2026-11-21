@@ -59,6 +59,24 @@ function Plano() {
     else setError(msg)
   }
 
+  const [pixDone, setPixDone] = useState(false)
+  const lifetime = async () => {
+    setError(null)
+    if (!isAccount) return setError("Crie sua conta para pedir o Vitalício. Na demonstração não há cobrança.")
+    setBusy("vitalicio")
+    // abre a aba antes da resposta para o navegador não bloquear o pop-up
+    const tab = window.open("", "_blank")
+    const r = await postJson<{ whatsapp?: string | null }>("/api/billing/lifetime", {}).catch(() => null)
+    setBusy(null)
+    if (!r?.ok) {
+      tab?.close()
+      return setError(r?.data.error ?? "Sem conexão. Tente de novo.")
+    }
+    setPixDone(true)
+    if (r.data.whatsapp && tab) tab.location.href = r.data.whatsapp
+    else tab?.close()
+  }
+
   const portal = async () => {
     setBusy("portal")
     const r = await postJson<{ url?: string }>("/api/billing/portal", {}).catch(() => null)
@@ -95,6 +113,8 @@ function Plano() {
           <p className="mt-2 text-sm text-muted">
             {status.lifetime
               ? "Plano Vitalício: acesso para sempre, sem mensalidade."
+              : status.source === "manual" && status.currentPeriodEnd && Date.parse(status.currentPeriodEnd) > 0
+                ? `Acesso liberado pela equipe EVOFIT até ${dmy(status.currentPeriodEnd)}.`
               : current && status.status === "active"
                 ? `Plano ${current.name} ativo${status.currentPeriodEnd ? ` · próxima cobrança em ${dmy(status.currentPeriodEnd)}` : ""}.`
                 : current && status.status === "past_due"
@@ -106,7 +126,7 @@ function Plano() {
                       : "Seu teste grátis terminou. Escolha um plano para continuar usando o Studio."}
           </p>
           {!status.stripeReady && <p className="mt-2 text-sm text-warning">Os pagamentos ainda não foram configurados neste ambiente.</p>}
-          {subscribed && !status.lifetime && (
+          {subscribed && !status.lifetime && status.source !== "manual" && (
             <button type="button" className="btn btn-outline mt-4" onClick={portal} disabled={busy !== null}>
               <ExternalLink size={16} aria-hidden /> {busy === "portal" ? "Abrindo…" : "Gerenciar assinatura"}
             </button>
@@ -126,10 +146,14 @@ function Plano() {
           <p className="mt-2 max-w-xl">
             Pague <strong>uma única vez</strong> e use o EVOFIT <strong>para sempre</strong>. Sem mensalidade, alunos ilimitados.
           </p>
-          <button type="button" className="btn mt-5 bg-[#061718] text-white hover:opacity-90" onClick={() => checkout("vitalicio")} disabled={busy !== null}>
-            {busy === "vitalicio" ? "Abrindo pagamento…" : "Quero o Vitalício"}
+          <button type="button" className="btn mt-5 bg-[#061718] text-white hover:opacity-90" onClick={lifetime} disabled={busy !== null}>
+            {busy === "vitalicio" ? "Abrindo…" : "Quero o Vitalício (Pix)"}
           </button>
-          <p className="mt-2 text-xs opacity-80">Vagas limitadas.</p>
+          <p className="mt-2 text-xs opacity-80">
+            {pixDone
+              ? "Pedido registrado! Combine o Pix com a equipe pelo WhatsApp. Assim que o pagamento for confirmado, seu acesso vitalício é liberado."
+              : "Pagamento por Pix direto com a equipe EVOFIT, pelo WhatsApp. Vagas limitadas."}
+          </p>
         </section>
       )}
 

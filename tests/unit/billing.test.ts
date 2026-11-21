@@ -5,6 +5,7 @@ import type { Db } from "@/lib/server/db"
 import { migrate } from "@/lib/server/migrate"
 import * as Auth from "@/lib/server/auth"
 import * as Billing from "@/lib/server/billing"
+import * as Admin from "@/lib/server/admin"
 import { PLANS } from "@/lib/plans"
 
 let db: Db
@@ -155,5 +156,64 @@ describe("cobrança (Stripe)", () => {
     await expect(Billing.startCheckout(a, { plan: "gratis" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
     await expect(Billing.billingStatus({ ...a, role: "student", studentId: "x" }, db)).rejects.toMatchObject({ status: 403 })
     await expect(Billing.portalUrl({ ...a, trainerId: "00000000-0000-4000-8000-000000000000" }, "https://app.test", db)).rejects.toMatchObject({ status: 404 })
+  })
+})
+
+describe("admin central: acesso, Pix e monitoramento", () => {
+  const admin = async () => ({ ...(await trainer(`admin${Math.random()}@evofit.app`)), isAdmin: true })
+
+  it("onboarding: conta nova começa sem boas-vindas concluídas", async () => {
+    const a = await trainer("onb@evofit.app")
+    expect(a.onboarded).toBe(false)
+    await Auth.finishOnboarding(a, db)
+    const { token } = (await Auth.login({ email: "onb@evofit.app", password: "senha-segura-1" }, db, "iPhone · Safari"))!
+    expect((await Auth.accountFromToken(token, db))!.onboarded).toBe(true)
+  })
+
+  it("login fica no histórico com o aparelho", async () => {
+    const a = await trainer("log@evofit.app")
+    await Auth.login({ email: "log@evofit.app", password: "senha-segura-1" }, db, Auth.deviceLabel("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/604.1"))
+    const logs = await Admin.recentLogins(a.trainerId, 10, db)
+    expect(logs[0]).toMatchObject({ role: "trainer", device: "iPhone · Safari", who: "log@evofit.app" })
+    expect(logs.length).toBe(2) // cadastro + login
+  })
+
+  it("pedido de Vitalício por Pix: admin confirma e libera para sempre", async () => {
+    const a = await trainer("pix@evofit.app")
+    const adm = await admin()
+    process.env.SALES_WHATSAPP = "55 (21) 99999-0000"
+    const r = await Billing.requestLifetime(a, db)
+    expect(r.whatsapp).toMatch(/^https:\/\/wa\.me\/5521999990000\?text=/)
+    await Billing.requestLifetime(a, db) // não duplica
+    const reqs = (await Admin.lifetimeRequests(db)).filter((x) => x.trainerId === a.trainerId)
+    expect(reqs).toHaveLength(1)
+    await Admin.setLifetimeRequest(adm, reqs[0].id, "pago", db)
+    expect(await Billing.billingStatus(a, db)).toMatchObject({ lifetime: true, hasAccess: true, source: "manual" })
+    expect((await Admin.lifetimeRequests(db)).find((x) => x.id === reqs[0].id)?.status).toBe("pago")
+    await expect(Billing.requestLifetime(a, db)).rejects.toMatchObject({ status: 409 })
+    const access = await Admin.accessByTrainer(db)
+    expect(access[a.trainerId].state).toBe("vitalicio")
+    await Admin.revokeAccess(adm, a.trainerId, db)
+    expect((await Billing.billingStatus(a, db)).lifetime).toBe(false)
+  })
+
+  it("teste vencido bloqueia; admin estende teste ou libera por dias", async () => {
+    const a = await trainer("venceu@evofit.app")
+    const adm = await admin()
+    await db.tx((q) => q.query("update users set created_at = now() - interval '30 days' where trainer_id = $1", [a.trainerId]))
+    expect(await Billing.trainerHasAccess(a.trainerId, db)).toBe(false)
+    await Admin.extendTrial(adm, a.trainerId, 5, db)
+    const s = await Billing.billingStatus(a, db)
+    expect(s.inTrial).toBe(true)
+    expect((Date.parse(s.trialEndsAt!) - Date.now()) / 86400_000).toBeGreaterThan(4)
+    await db.tx((q) => q.query("update billing set trial_extra_days = 0 where trainer_id = $1", [a.trainerId]))
+    expect(await Billing.trainerHasAccess(a.trainerId, db)).toBe(false)
+    await Admin.grantAccess(adm, a.trainerId, { kind: "dias", days: 30, plan: "anual", note: "cortesia" }, db)
+    const g = await Billing.billingStatus(a, db)
+    expect(g).toMatchObject({ hasAccess: true, plan: "anual", source: "manual" })
+    expect((await Admin.trainerDetail(a.trainerId, db)).access.state).toBe("liberado")
+    await expect(Admin.grantAccess(adm, a.trainerId, { kind: "dias", days: 0 }, db)).rejects.toMatchObject({ status: 400 })
+    const stats = Admin.billingOverview(await Admin.accessByTrainer(db), await Admin.loginStats(db))
+    expect(stats.manual).toBeGreaterThanOrEqual(1)
   })
 })

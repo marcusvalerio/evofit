@@ -39,26 +39,43 @@ function requireTrainer(a: Account) {
 
 export async function billingStatus(a: Account, db: Db = getDb()): Promise<BillingStatus> {
   requireTrainer(a)
-  return db.tx(async (q) => {
-    const b = (await q.query<Row>("select * from billing where trainer_id = $1", [a.trainerId])).rows[0]
-    const u = (await q.query<Row>("select min(created_at) as created_at from users where trainer_id = $1 and role = 'trainer'", [a.trainerId])).rows[0]
-    const trialEnd = u?.created_at ? new Date(new Date(u.created_at as string).getTime() + TRIAL_DAYS * 86400_000) : null
-    const status = (b?.status as BillingStatus["status"]) ?? "none"
-    const lifetime = !!b?.lifetime
-    const periodEnd = asIso(b?.current_period_end)
-    const inTrial = !!trialEnd && trialEnd.getTime() > Date.now()
-    const paid = lifetime || status === "active" || status === "past_due" || (status === "canceled" && !!periodEnd && Date.parse(periodEnd) > Date.now())
-    return {
-      plan: isPlanId(b?.plan) ? b.plan : null,
-      status,
-      lifetime,
-      currentPeriodEnd: periodEnd,
-      trialEndsAt: trialEnd?.toISOString() ?? null,
-      inTrial,
-      hasAccess: paid || inTrial,
-      stripeReady: stripeReady(),
-    }
-  })
+  return db.tx((q) => statusFor(q, a.trainerId))
+}
+
+/** Situação de cobrança de um personal (usada também pelo admin e pelo bloqueio de acesso). */
+export async function statusFor(q: Queryable, trainerId: string): Promise<BillingStatus> {
+  const b = (await q.query<Row>("select * from billing where trainer_id = $1", [trainerId])).rows[0]
+  const u = (await q.query<Row>("select min(created_at) as created_at from users where trainer_id = $1 and role = 'trainer'", [trainerId])).rows[0]
+  return computeStatus(b, u?.created_at)
+}
+
+/** Regra de acesso a partir da linha de billing e da data de cadastro (sem consultar o banco). */
+export function computeStatus(b: Row | undefined, createdAt: unknown, now = Date.now()): BillingStatus {
+  const extra = Number(b?.trial_extra_days ?? 0)
+  const trialEnd = createdAt ? new Date(new Date(createdAt as string).getTime() + (TRIAL_DAYS + extra) * 86400_000) : null
+  const status = (b?.status as BillingStatus["status"]) ?? "none"
+  const lifetime = !!b?.lifetime
+  const periodEnd = asIso(b?.current_period_end)
+  const manualUntil = asIso(b?.manual_until)
+  const inTrial = !!trialEnd && trialEnd.getTime() > now
+  const manual = b?.source === "manual" && !!manualUntil && Date.parse(manualUntil) > now
+  const paid = lifetime || manual || status === "active" || status === "past_due" || (status === "canceled" && !!periodEnd && Date.parse(periodEnd) > now)
+  return {
+    plan: isPlanId(b?.plan) ? b.plan : null,
+    status,
+    lifetime,
+    source: b?.source === "manual" ? "manual" : "stripe",
+    currentPeriodEnd: b?.source === "manual" ? manualUntil : periodEnd,
+    trialEndsAt: trialEnd?.toISOString() ?? null,
+    inTrial,
+    hasAccess: paid || inTrial,
+    stripeReady: stripeReady(),
+  }
+}
+
+/** O personal pode usar o Studio? Admins sempre podem. */
+export async function trainerHasAccess(trainerId: string, db: Db = getDb()) {
+  return db.tx(async (q) => (await statusFor(q, trainerId)).hasAccess)
 }
 
 /* ---------- Checkout ---------- */
@@ -190,6 +207,7 @@ async function saveSubscription(q: Queryable, trainerId: string, sub: Stripe.Sub
        plan = case when billing.lifetime then billing.plan else coalesce(excluded.plan, billing.plan) end,
        status = case when billing.lifetime then 'active' else excluded.status end,
        stripe_subscription_id = excluded.stripe_subscription_id,
+       source = case when billing.lifetime then billing.source else 'stripe' end,
        current_period_end = excluded.current_period_end,
        updated_at = now()`,
     [trainerId, customer, isPlanId(plan) ? plan : isPlanId(sub.metadata?.plan) ? sub.metadata.plan : null, status, sub.id, end ? new Date(end * 1000) : null],
@@ -258,4 +276,23 @@ export async function createFounderCodes(n: number, label = "", db: Db = getDb()
     }
   })
   return codes
+}
+
+/* ---------- Vitalício por Pix (direto com a equipe) ---------- */
+
+/**
+ * Registra o pedido de Vitalício e devolve o link de WhatsApp da equipe (SALES_WHATSAPP, só dígitos
+ * com DDI e DDD). O admin confirma o Pix no painel e libera o acesso.
+ */
+export async function requestLifetime(a: Account, db: Db = getDb()) {
+  requireTrainer(a)
+  const phone = (process.env.SALES_WHATSAPP ?? "").replace(/\D/g, "")
+  await db.tx(async (q) => {
+    const b = (await q.query<Row>("select lifetime from billing where trainer_id = $1", [a.trainerId])).rows[0]
+    if (b?.lifetime) throw new HttpError(409, "Você já tem o plano Vitalício.")
+    const open = await q.query("select 1 from lifetime_requests where trainer_id = $1 and status = 'pendente'", [a.trainerId])
+    if (!open.rows.length) await q.query("insert into lifetime_requests (trainer_id) values ($1)", [a.trainerId])
+  })
+  const msg = `Olá! Quero o plano Vitalício do EVOFIT (${(PLANS.vitalicio.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) pagando por Pix. Minha conta: ${a.email}`
+  return { whatsapp: phone.length >= 10 ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : null }
 }

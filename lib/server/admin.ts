@@ -3,6 +3,8 @@ import path from "node:path"
 import { getDb, withTenant, type Db, type Queryable } from "./db"
 import { hashPassword, temporaryPassword, type Account } from "./auth"
 import { HttpError } from "./workspace"
+import { computeStatus, statusFor } from "./billing"
+import { PLANS, TRIAL_DAYS, isPlanId, type PlanId } from "../plans"
 
 /**
  * Painel de administração do EVOFIT: quem opera a plataforma acompanha crescimento, uso e saúde,
@@ -328,4 +330,296 @@ export async function hideFromDirectory(admin: Account, trainerId: unknown, db: 
   const t = await trainerTarget(trainerId, db)
   await withTenant(ADMIN, (q) => q.query("update trainers set directory_visible = false where id = $1", [t.id]), db)
   await db.tx((q) => audit(q, admin, "tirar_do_diretorio", label(t)))
+}
+
+/* ---------- Acesso, planos e monitoramento ---------- */
+
+export interface AccessInfo {
+  plan: PlanId | null
+  /** situação resumida para filtros e etiquetas */
+  state: "teste" | "teste_vencido" | "ativo" | "pendente" | "cancelado" | "vitalicio" | "liberado"
+  source: "stripe" | "manual"
+  until: string | null
+  trialEndsAt: string | null
+  hasAccess: boolean
+  pendingLifetime: boolean
+}
+
+function accessOf(st: ReturnType<typeof computeStatus>, pending: boolean): AccessInfo {
+  const state: AccessInfo["state"] = st.lifetime
+    ? "vitalicio"
+    : st.source === "manual" && st.hasAccess && !st.inTrial
+      ? "liberado"
+      : st.status === "active"
+        ? "ativo"
+        : st.status === "past_due"
+          ? "pendente"
+          : st.status === "canceled" && st.hasAccess
+            ? "cancelado"
+            : st.inTrial
+              ? "teste"
+              : "teste_vencido"
+  return { plan: st.plan, state, source: st.source, until: st.currentPeriodEnd, trialEndsAt: st.trialEndsAt, hasAccess: st.hasAccess, pendingLifetime: pending }
+}
+
+/** Situação de acesso de todos os personais (um mapa por id). */
+export async function accessByTrainer(db: Db = getDb()): Promise<Record<string, AccessInfo>> {
+  return db.tx(async (q) => {
+    const rows = (
+      await q.query<Record<string, unknown>>(`select u.trainer_id, u.created_at, to_jsonb(b) as b,
+        exists (select 1 from lifetime_requests r where r.trainer_id = u.trainer_id and r.status = 'pendente') as pending
+        from (select trainer_id, min(created_at) as created_at from users where role = 'trainer' group by trainer_id) u
+        left join billing b on b.trainer_id = u.trainer_id`)
+    ).rows
+    return Object.fromEntries(rows.map((r) => [String(r.trainer_id), accessOf(computeStatus((r.b as Record<string, unknown>) ?? undefined, r.created_at), !!r.pending)]))
+  })
+}
+
+export interface BillingOverview {
+  inTrial: number
+  trialExpired: number
+  paying: number
+  lifetime: number
+  manual: number
+  pastDue: number
+  byPlan: Record<string, number>
+  /** Receita recorrente mensal estimada (centavos): assinaturas ativas do Stripe, anuais divididas por 12. */
+  mrr: number
+  pendingLifetime: number
+  logins24h: number
+  logins7d: number
+  activeTrainers7d: number
+  activeStudents7d: number
+}
+
+export function billingOverview(access: Record<string, AccessInfo>, logins: { logins24h: number; logins7d: number; activeTrainers7d: number; activeStudents7d: number }): BillingOverview {
+  const list = Object.values(access)
+  const byPlan: Record<string, number> = {}
+  let mrr = 0
+  for (const a of list) {
+    if (a.state === "ativo" || a.state === "pendente") {
+      if (a.plan) {
+        byPlan[a.plan] = (byPlan[a.plan] ?? 0) + 1
+        const p = PLANS[a.plan]
+        if (a.source === "stripe" && p.interval) mrr += p.interval === "year" ? Math.round(p.amount / 12) : p.amount
+      }
+    }
+    if (a.state === "vitalicio") byPlan.vitalicio = (byPlan.vitalicio ?? 0) + 1
+  }
+  return {
+    inTrial: list.filter((a) => a.state === "teste").length,
+    trialExpired: list.filter((a) => a.state === "teste_vencido").length,
+    paying: list.filter((a) => a.state === "ativo" || a.state === "pendente" || a.state === "cancelado").length,
+    lifetime: list.filter((a) => a.state === "vitalicio").length,
+    manual: list.filter((a) => a.state === "liberado").length,
+    pastDue: list.filter((a) => a.state === "pendente").length,
+    byPlan,
+    mrr,
+    pendingLifetime: list.filter((a) => a.pendingLifetime).length,
+    ...logins,
+  }
+}
+
+export async function loginStats(db: Db = getDb()) {
+  const r = (
+    await db.tx((q) =>
+      q.query<Record<string, unknown>>(`select
+        count(*) filter (where at > now() - interval '24 hours')::int as l24,
+        count(*) filter (where at > now() - interval '7 days')::int as l7,
+        count(distinct trainer_id) filter (where at > now() - interval '7 days' and role = 'trainer')::int as t7,
+        count(distinct user_id) filter (where at > now() - interval '7 days' and role = 'student')::int as s7
+        from login_events where at > now() - interval '7 days'`),
+    )
+  ).rows[0]
+  return { logins24h: num(r?.l24), logins7d: num(r?.l7), activeTrainers7d: num(r?.t7), activeStudents7d: num(r?.s7) }
+}
+
+export interface LoginEvent {
+  at: string
+  trainerId: string
+  trainerName: string
+  role: "trainer" | "student"
+  who: string
+  device: string
+}
+
+/** Acessos recentes (de toda a plataforma ou de um personal). Do aluno mostra só o login, nunca o nome. */
+export async function recentLogins(trainerId: string | null, limit = 50, db: Db = getDb()): Promise<LoginEvent[]> {
+  const rows = (
+    await db.tx((q) =>
+      q.query<Record<string, unknown>>(
+        `select e.at, e.trainer_id, e.role, e.device, coalesce(u.email, u.username, '') as who
+         from login_events e left join users u on u.id = e.user_id
+         where ($1::uuid is null or e.trainer_id = $1::uuid) order by e.at desc limit $2`,
+        [trainerId, Math.min(200, Math.max(1, limit))],
+      ),
+    )
+  ).rows
+  const ids = [...new Set(rows.map((r) => String(r.trainer_id)))]
+  const names = ids.length
+    ? new Map((await withTenant(ADMIN, (q) => q.query<{ id: string; name: string }>("select id, name from trainers where id = any($1::uuid[])", [ids]), db)).rows.map((t) => [t.id, t.name]))
+    : new Map<string, string>()
+  return rows.map((r) => ({
+    at: iso(r.at)!,
+    trainerId: String(r.trainer_id),
+    trainerName: names.get(String(r.trainer_id)) ?? "—",
+    role: r.role === "student" ? "student" : "trainer",
+    who: String(r.who ?? ""),
+    device: String(r.device ?? ""),
+  }))
+}
+
+export interface LifetimeRequest {
+  id: number
+  trainerId: string
+  trainerName: string
+  email: string
+  status: "pendente" | "pago" | "cancelado"
+  createdAt: string
+  handledAt: string | null
+  handledBy: string | null
+}
+
+export async function lifetimeRequests(db: Db = getDb()): Promise<LifetimeRequest[]> {
+  const rows = (
+    await db.tx((q) =>
+      q.query<Record<string, unknown>>(`select r.*, (select email from users u where u.trainer_id = r.trainer_id and u.role = 'trainer' limit 1) as email
+        from lifetime_requests r order by (r.status = 'pendente') desc, r.created_at desc limit 100`),
+    )
+  ).rows
+  const ids = [...new Set(rows.map((r) => String(r.trainer_id)))]
+  const names = ids.length
+    ? new Map((await withTenant(ADMIN, (q) => q.query<{ id: string; name: string }>("select id, name from trainers where id = any($1::uuid[])", [ids]), db)).rows.map((t) => [t.id, t.name]))
+    : new Map<string, string>()
+  return rows.map((r) => ({
+    id: Number(r.id),
+    trainerId: String(r.trainer_id),
+    trainerName: names.get(String(r.trainer_id)) ?? "—",
+    email: String(r.email ?? ""),
+    status: r.status as LifetimeRequest["status"],
+    createdAt: iso(r.created_at)!,
+    handledAt: iso(r.handled_at),
+    handledBy: (r.handled_by as string | null) ?? null,
+  }))
+}
+
+export interface TrainerDetail {
+  access: AccessInfo
+  note: string
+  logins: LoginEvent[]
+  logins30: number
+  studentLogins30: number
+  requests: LifetimeRequest[]
+  audit: AuditEntry[]
+}
+
+export async function trainerDetail(trainerId: unknown, db: Db = getDb()): Promise<TrainerDetail> {
+  const t = await trainerTarget(trainerId, db)
+  const access = await db.tx(async (q) => {
+    const st = await statusFor(q, t.id)
+    const b = (await q.query<Record<string, unknown>>("select note from billing where trainer_id = $1", [t.id])).rows[0]
+    const p = await q.query("select 1 from lifetime_requests where trainer_id = $1 and status = 'pendente'", [t.id])
+    return { info: accessOf(st, p.rows.length > 0), note: String(b?.note ?? "") }
+  })
+  const logins = await recentLogins(t.id, 30, db)
+  const reqs = await lifetimeRequests(db)
+  const auditRows = await db.tx((q) => q.query<Record<string, unknown>>("select at, admin_email, action, target, detail from admin_audit where target like $1 order by at desc limit 30", [`%(${t.id.slice(0, 8)})`]))
+  const counts = await db.tx((q) =>
+    q.query<Record<string, unknown>>(
+      `select count(*) filter (where role = 'trainer')::int as t, count(*) filter (where role = 'student')::int as s from login_events where trainer_id = $1 and at > now() - interval '30 days'`,
+      [t.id],
+    ),
+  )
+  return {
+    access: access.info,
+    note: access.note,
+    logins,
+    logins30: num(counts.rows[0]?.t),
+    studentLogins30: num(counts.rows[0]?.s),
+    requests: reqs.filter((r) => r.trainerId === t.id),
+    audit: auditRows.rows.map((x) => ({ at: iso(x.at)!, admin: String(x.admin_email), action: String(x.action), target: String(x.target), detail: String(x.detail) })),
+  }
+}
+
+/**
+ * Libera acesso manualmente (ex.: Vitalício pago por Pix, cortesia, parceria).
+ * kind: "vitalicio" = para sempre; "dias" = N dias a partir de hoje (ou do fim da liberação atual).
+ */
+export async function grantAccess(admin: Account, trainerId: unknown, input: { kind: unknown; days?: unknown; plan?: unknown; note?: unknown }, db: Db = getDb()) {
+  const t = await trainerTarget(trainerId, db)
+  const note = typeof input.note === "string" ? input.note.trim().slice(0, 300) : ""
+  if (input.kind === "vitalicio") {
+    await db.tx(async (q) => {
+      await q.query(
+        `insert into billing (trainer_id, plan, status, lifetime, source, note) values ($1, 'vitalicio', 'active', true, 'manual', $2)
+         on conflict (trainer_id) do update set plan = 'vitalicio', status = 'active', lifetime = true, source = 'manual', note = $2, updated_at = now()`,
+        [t.id, note],
+      )
+      await q.query("update lifetime_requests set status = 'pago', handled_at = now(), handled_by = $2 where trainer_id = $1 and status = 'pendente'", [t.id, admin.email.toLowerCase()])
+      await audit(q, admin, "liberar_vitalicio", label(t), note)
+    })
+    return
+  }
+  if (input.kind !== "dias") throw new HttpError(400, "Tipo de liberação inválido.")
+  const days = Number(input.days)
+  if (!Number.isInteger(days) || days < 1 || days > 3650) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { days: "Use de 1 a 3650 dias." } })
+  const plan = isPlanId(input.plan) && input.plan !== "vitalicio" ? input.plan : "mensal"
+  await db.tx(async (q) => {
+    await q.query(
+      `insert into billing (trainer_id, plan, status, source, manual_until, note) values ($1, $2, 'none', 'manual', now() + make_interval(days => $3), $4)
+       on conflict (trainer_id) do update set plan = $2, source = 'manual', note = $4, updated_at = now(),
+         manual_until = greatest(coalesce(billing.manual_until, now()), now()) + make_interval(days => $3)`,
+      [t.id, plan, days, note],
+    )
+    await audit(q, admin, "liberar_acesso", label(t), `${days} dias (${PLANS[plan].name})${note ? ` · ${note}` : ""}`)
+  })
+}
+
+/** Dá dias extras de teste grátis. */
+export async function extendTrial(admin: Account, trainerId: unknown, days: unknown, db: Db = getDb()) {
+  const t = await trainerTarget(trainerId, db)
+  const n = Number(days)
+  if (!Number.isInteger(n) || n < 1 || n > 365) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { days: "Use de 1 a 365 dias." } })
+  await db.tx(async (q) => {
+    // conta a partir de hoje se o teste já venceu
+    const u = (await q.query<{ created_at: string }>("select min(created_at) as created_at from users where trainer_id = $1 and role = 'trainer'", [t.id])).rows[0]
+    const b = (await q.query<{ trial_extra_days: number }>("select trial_extra_days from billing where trainer_id = $1", [t.id])).rows[0]
+    const elapsed = u?.created_at ? Math.ceil((Date.now() - Date.parse(String(u.created_at))) / 86400_000) : 0
+    const current = TRIAL_DAYS + (b?.trial_extra_days ?? 0)
+    const extra = Math.min(3650, Math.max(current, elapsed) + n - TRIAL_DAYS)
+    await q.query(
+      `insert into billing (trainer_id, trial_extra_days) values ($1, $2)
+       on conflict (trainer_id) do update set trial_extra_days = $2, updated_at = now()`,
+      [t.id, extra],
+    )
+    await audit(q, admin, "estender_teste", label(t), `+${n} dias`)
+  })
+}
+
+/** Remove a liberação manual (não mexe em assinatura paga pelo Stripe). */
+export async function revokeAccess(admin: Account, trainerId: unknown, db: Db = getDb()) {
+  const t = await trainerTarget(trainerId, db)
+  await db.tx(async (q) => {
+    const b = (await q.query<{ source: string; stripe_subscription_id: string | null }>("select source, stripe_subscription_id from billing where trainer_id = $1", [t.id])).rows[0]
+    if (!b || b.source !== "manual") throw new HttpError(409, "Este personal não tem liberação manual. Assinaturas do Stripe são canceladas pelo painel do Stripe.")
+    await q.query(
+      `update billing set lifetime = false, manual_until = null, source = 'stripe',
+         plan = case when stripe_subscription_id is null then null else plan end, updated_at = now() where trainer_id = $1`,
+      [t.id],
+    )
+    await audit(q, admin, "remover_liberacao", label(t))
+  })
+}
+
+export async function setLifetimeRequest(admin: Account, id: unknown, status: unknown, db: Db = getDb()) {
+  const n = Number(id)
+  if (!Number.isInteger(n) || (status !== "pago" && status !== "cancelado")) throw new HttpError(400, "Pedido inválido.")
+  const r = (await db.tx((q) => q.query<{ trainer_id: string }>("select trainer_id from lifetime_requests where id = $1 and status = 'pendente'", [n]))).rows[0]
+  if (!r) throw new HttpError(404, "Pedido não encontrado ou já resolvido.")
+  if (status === "pago") return grantAccess(admin, r.trainer_id, { kind: "vitalicio", note: "Pix confirmado" }, db)
+  const t = await trainerTarget(r.trainer_id, db)
+  await db.tx(async (q) => {
+    await q.query("update lifetime_requests set status = 'cancelado', handled_at = now(), handled_by = $2 where id = $1", [n, admin.email.toLowerCase()])
+    await audit(q, admin, "cancelar_pedido_vitalicio", label(t))
+  })
 }
