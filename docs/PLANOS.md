@@ -17,7 +17,7 @@ Quem paga é o personal. O aluno usa o app de graça.
 - Todos os planos incluem a biblioteca de exercícios, as fichas, o app do Aluno e as avaliações.
 
 ## Teste grátis
-- **14 dias grátis**, sem cartão, com os recursos do Mensal.
+- **7 dias grátis**, sem cartão, com os recursos do Mensal.
 - Ao fim do teste, o personal escolhe um plano. Se não escolher, a conta fica só para leitura (nada é apagado).
 
 ## Plano Fundador
