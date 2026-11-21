@@ -8,7 +8,7 @@ import { BarChart } from "@/components/charts"
 import { useToast } from "@/components/providers"
 import { ConfirmDialog, EmptyState, Field, LoadingScreen, Modal, NotFoundState, PageHeader, Stat, cx } from "@/components/ui"
 import type { AccessInfo, AdminMember, AdminNote, AuditEntry, BillingOverview, Health, LifetimeRequest, LoginEvent, Overview, TrainerRow } from "@/lib/server/admin"
-import { AccessBadge, AdminTeam, BillingStats, IdeasBoard, LifetimeRequests, RecentLogins, STATE_LABEL, TrainerAccessDialog } from "@/components/admin-access"
+import { AccessBadge, AdminTeam, BillingStats, IdeasBoard, WhatsAppBot, LifetimeRequests, RecentLogins, STATE_LABEL, TrainerAccessDialog } from "@/components/admin-access"
 
 type Payload = {
   overview: Overview
@@ -132,6 +132,8 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
         <IdeasBoard notes={data.notes} reload={reload} />
         <AdminTeam admins={data.admins} me={account?.email ?? ""} reload={reload} />
       </div>
+
+      <WhatsAppBot />
 
       <section aria-labelledby="signup-title" className="card p-5">
         <h2 id="signup-title" className="t-h2">

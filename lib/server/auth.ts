@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID, scrypt as scryptCb, timingSafeEqua
 import { promisify } from "node:util"
 import { affected, getDb, withTenant, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
+import { MSG, notifyAdmin, sendWhatsApp, trainerContact } from "./whatsapp-bot"
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>
 
@@ -129,7 +130,7 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
   const email = String(input.email).trim().toLowerCase()
   const hash = await hashPassword(String(input.password))
 
-  return db.tx(async (q) => {
+  const created = await db.tx(async (q) => {
     const exists = await q.query("select 1 from users where lower(email) = $1", [email])
     if (exists.rows.length) throw Object.assign(new HttpError(409, "Já existe uma conta com este e-mail."), { fields: { email: "Já existe uma conta com este e-mail. Tente entrar." } })
     const trainerId = randomUUID()
@@ -143,6 +144,8 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
     await q.query("insert into users (id, email, password_hash, role, trainer_id) values ($1, $2, $3, 'trainer', $4)", [userId, email, hash, trainerId])
     return { token: await createSession(q, userId), role: "trainer" as const }
   })
+  await notifyAdmin(MSG.newSignup(name, email), "novo_cadastro", "", db)
+  return created
 }
 
 // hash fixo para gastar o mesmo tempo quando o e-mail não existe
@@ -367,4 +370,6 @@ export async function deleteAccount(account: Account, db: Db = getDb()) {
 export async function finishOnboarding(account: Account, db: Db = getDb()) {
   if (account.role !== "trainer") throw new HttpError(403, "Só para personal.")
   await db.tx((q) => q.query("update users set onboarded_at = coalesce(onboarded_at, now()) where id = $1", [account.userId]))
+  const c = await trainerContact(account.trainerId, db)
+  if (c.whatsapp) await sendWhatsApp(c.whatsapp, MSG.welcome(c.name), "boas_vindas", account.trainerId, db)
 }

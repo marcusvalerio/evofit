@@ -6,6 +6,8 @@ import { migrate } from "@/lib/server/migrate"
 import * as Auth from "@/lib/server/auth"
 import * as Billing from "@/lib/server/billing"
 import * as Admin from "@/lib/server/admin"
+import * as Bot from "@/lib/server/whatsapp-bot"
+import { withTenant } from "@/lib/server/db"
 import { PLANS } from "@/lib/plans"
 
 let db: Db
@@ -243,5 +245,45 @@ describe("admin central: equipe e ideias", () => {
     await Admin.noteAction(me, { op: "delete", id: n.id }, db)
     expect((await Admin.listNotes(db)).find((x) => x.id === n.id)).toBeUndefined()
     await expect(Admin.noteAction(me, { op: "add", text: "" }, db)).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+describe("robô de WhatsApp (Evolution API)", () => {
+  const sent: { url: string; body: { number: string; text: string } }[] = []
+  beforeAll(() => {
+    Bot.setBotFetch((async (url: string, init: RequestInit) => (sent.push({ url, body: JSON.parse(String(init.body)) }), new Response("{}", { status: 201 }))) as unknown as typeof fetch)
+  })
+
+  it("desligado: não envia e não quebra o fluxo", async () => {
+    delete process.env.EVOLUTION_API_URL
+    expect(await Bot.sendWhatsApp("(21) 99999-0000", "oi", "teste", "", db)).toBe("desligado")
+    expect(sent).toHaveLength(0)
+    expect(Bot.toE164("21999990000")).toBe("5521999990000")
+    expect(Bot.toE164("123")).toBe("")
+  })
+
+  it("configurado: envia, registra e não repete lembretes", async () => {
+    Object.assign(process.env, { EVOLUTION_API_URL: "https://bot.test/", EVOLUTION_API_KEY: "k", EVOLUTION_INSTANCE: "evofit", ADMIN_WHATSAPP: "21988887777" })
+    expect(await Bot.sendWhatsApp("21999990000", "olá", "teste", "x1", db)).toBe("enviado")
+    expect(await Bot.sendWhatsApp("21999990000", "olá", "teste", "x1", db)).toBe("repetido")
+    expect(sent.at(-1)).toMatchObject({ url: "https://bot.test/message/sendText/evofit", body: { number: "5521999990000", text: "olá" } })
+    // novo cadastro avisa a equipe
+    await trainer("zap@evofit.app")
+    expect(sent.at(-1)?.body.number).toBe("5521988887777")
+    expect(sent.at(-1)?.body.text).toContain("zap@evofit.app")
+    expect((await Bot.botLog(5, db))[0].to).toBe("•••7777")
+  })
+
+  it("lembrete de fim do teste vai uma vez para quem tem WhatsApp no perfil", async () => {
+    const a = await trainer("lembrete@evofit.app")
+    await withTenant({ role: "trainer", trainerId: a.trainerId }, (q) => q.query("update trainers set whatsapp = '21977776666' where id = $1", [a.trainerId]), db)
+    await db.tx((q) => q.query("update users set created_at = now() - interval '6 days' where trainer_id = $1", [a.trainerId]))
+    const before = sent.length
+    await Bot.trialReminders(db)
+    const mine = sent.slice(before).filter((m) => m.body.number === "5521977776666")
+    expect(mine).toHaveLength(1)
+    expect(mine[0].body.text).toContain("acaba em 1 dia")
+    await Bot.trialReminders(db)
+    expect(sent.filter((m) => m.body.number === "5521977776666")).toHaveLength(1)
   })
 })

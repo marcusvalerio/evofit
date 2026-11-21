@@ -503,3 +503,73 @@ export function IdeasBoard({ notes, reload }: { notes: AdminNote[]; reload: () =
     </section>
   )
 }
+
+type BotInfo = { configured: boolean; adminNumber: string | null; log: { at: string; to: string; kind: string; status: string; error: string }[] }
+const KIND_LABEL: Record<string, string> = {
+  novo_cadastro: "Novo cadastro",
+  pedido_vitalicio: "Pedido de Vitalício",
+  vitalicio_liberado: "Vitalício liberado",
+  nova_assinatura: "Nova assinatura",
+  pagamento_pendente: "Pagamento pendente",
+  boas_vindas: "Boas-vindas",
+  teste_acabando: "Teste acabando",
+  teste_acabou: "Teste acabou",
+  teste: "Teste",
+}
+
+/** Robô de WhatsApp: situação, teste e últimas mensagens. */
+export function WhatsAppBot() {
+  const toast = useToast()
+  const [info, setInfo] = useState<BotInfo | null>(null)
+  const [busy, setBusy] = useState(false)
+  const load = useCallback(async () => {
+    const r = await fetch("/api/admin/whatsapp", { credentials: "same-origin", cache: "no-store" }).catch(() => null)
+    if (r?.ok) setInfo((await r.json()) as BotInfo)
+  }, [])
+  useEffect(() => {
+    const t = setTimeout(load, 0)
+    return () => clearTimeout(t)
+  }, [load])
+  const test = async () => {
+    setBusy(true)
+    const r = await postJson<{ status?: string }>("/api/admin/whatsapp", {}).catch(() => null)
+    setBusy(false)
+    const st = r?.data.status
+    toast(st === "enviado" ? "Mensagem de teste enviada." : st === "desligado" ? "Robô ainda não configurado." : st === "sem_numero" ? "Defina ADMIN_WHATSAPP ou SALES_WHATSAPP." : "Falhou. Veja o registro abaixo.", st === "enviado" ? undefined : "info")
+    await load()
+  }
+  return (
+    <section aria-labelledby="bot-title" className="card p-5">
+      <h2 id="bot-title" className="t-h2 flex items-center gap-2">
+        <Smartphone size={18} aria-hidden /> Robô de WhatsApp
+      </h2>
+      {!info ? (
+        <div className="skeleton mt-3 h-20" role="status" aria-label="Carregando" />
+      ) : (
+        <>
+          <p className="mt-1 text-sm">
+            <span className={info.configured ? "badge badge-accent" : "badge badge-warning"}>{info.configured ? "Conectado" : "Não configurado"}</span>
+            <span className="ml-2 text-muted">Avisos da equipe vão para {info.adminNumber ?? "— (defina ADMIN_WHATSAPP)"}</span>
+          </p>
+          <p className="mt-2 text-sm text-muted">Envia sozinho: aviso de novo cadastro, pedido de Vitalício e nova assinatura (para você); boas-vindas, fim do teste e Vitalício liberado (para o personal).</p>
+          <button type="button" className="btn btn-outline btn-sm mt-3" disabled={busy} onClick={test}>
+            {busy ? "Enviando…" : "Enviar mensagem de teste"}
+          </button>
+          <ol className="mt-3 max-h-60 divide-y divide-line overflow-y-auto text-sm">
+            {info.log.length === 0 && <li className="py-2 text-muted">Nenhuma mensagem ainda.</li>}
+            {info.log.map((l, i) => (
+              <li key={i} className="flex justify-between gap-3 py-1.5">
+                <span>
+                  {KIND_LABEL[l.kind] ?? l.kind} <span className="text-muted">· {l.to}</span>
+                </span>
+                <span className={cx("shrink-0", l.status === "enviado" ? "text-primary" : l.status === "erro" ? "text-danger" : "text-muted")} title={l.error}>
+                  {l.status} · {ddmm(l.at)}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </section>
+  )
+}

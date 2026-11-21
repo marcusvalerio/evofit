@@ -27,10 +27,10 @@ export function Onboarding() {
 
   const saveStep1 = () => {
     const e = validateProfile(p) as Record<string, string>
-    const mine = Object.fromEntries(Object.entries(e).filter(([k]) => ["name", "city", "state"].includes(k)))
+    const mine = Object.fromEntries(Object.entries(e).filter(([k]) => ["name", "city", "state", "whatsapp"].includes(k)))
     setPErr(mine)
     if (Object.keys(mine).length) return
-    update((x) => saveProfile(x, { ...x.profile, name: p.name, city: p.city, state: p.state, modality: p.modality }))
+    update((x) => saveProfile(x, { ...x.profile, name: p.name, city: p.city, state: p.state, modality: p.modality, whatsapp: p.whatsapp }))
     setStep(1)
   }
 
@@ -89,6 +89,9 @@ export function Onboarding() {
             </Field>
             <Field label="UF" error={pErr.state}>
               {(f) => <input {...f} className="input uppercase" value={p.state} maxLength={2} onChange={(e) => setP({ ...p, state: e.target.value })} />}
+            </Field>
+            <Field label="Seu WhatsApp (opcional)" error={pErr.whatsapp} hint="Para avisos do EVOFIT, como o fim do teste grátis." className="sm:col-span-2">
+              {(f) => <input {...f} className="input" inputMode="tel" value={p.whatsapp} placeholder="(21) 99999-0000" onChange={(e) => setP({ ...p, whatsapp: e.target.value })} />}
             </Field>
           </div>
           <fieldset className="mt-4">

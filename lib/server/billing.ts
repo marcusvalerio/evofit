@@ -4,6 +4,7 @@ import { PLANS, TRIAL_DAYS, isPlanId, type BillingStatus } from "../plans"
 import type { Account } from "./auth"
 import { getDb, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
+import { MSG, notifyAdmin } from "./whatsapp-bot"
 
 /**
  * Cobrança com Stripe Checkout (assinaturas e pagamento único) e portal do cliente.
@@ -217,6 +218,7 @@ async function saveSubscription(q: Queryable, trainerId: string, sub: Stripe.Sub
 /** Processa um evento do Stripe. Idempotente: eventos repetidos são ignorados. */
 export async function handleEvent(event: Stripe.Event, db: Db = getDb()) {
   const s = stripe()
+  let notice: { kind: "nova_assinatura" | "pagamento_pendente"; trainerId: string; plan?: string; ref?: string } | null = null
   await db.tx(async (q) => {
     const fresh = await q.query("insert into stripe_events (id) values ($1) on conflict do nothing returning id", [event.id])
     if (!fresh.rows.length) return
@@ -235,6 +237,7 @@ export async function handleEvent(event: Stripe.Event, db: Db = getDb()) {
         // quem tinha assinatura não deve continuar pagando
         const old = (await q.query<Row>("select stripe_subscription_id from billing where trainer_id = $1", [trainerId])).rows[0]
         if (old?.stripe_subscription_id) await s.subscriptions.cancel(String(old.stripe_subscription_id)).catch(() => {})
+        notice = { kind: "nova_assinatura", trainerId, plan: "vitalicio" }
         return
       }
       if (cs.mode !== "subscription" || !cs.subscription) return
@@ -247,6 +250,7 @@ export async function handleEvent(event: Stripe.Event, db: Db = getDb()) {
         if (end) sub = await s.subscriptions.update(sub.id, { trial_end: addMonths(end, PLANS.fundador.bonusMonths ?? 0), proration_behavior: "none" })
       }
       await saveSubscription(q, trainerId, sub, plan)
+      notice = { kind: "nova_assinatura", trainerId, plan }
       return
     }
 
@@ -258,8 +262,16 @@ export async function handleEvent(event: Stripe.Event, db: Db = getDb()) {
       const cur = (await q.query<Row>("select stripe_subscription_id from billing where trainer_id = $1", [trainerId])).rows[0]
       if (cur?.stripe_subscription_id && cur.stripe_subscription_id !== sub.id && event.type !== "customer.subscription.created") return
       await saveSubscription(q, trainerId, sub)
+      if (mapStatus(sub.status) === "past_due") notice = { kind: "pagamento_pendente", trainerId, ref: `${sub.id}:${periodEnd(sub) ?? ""}` }
     }
   })
+  if (notice) {
+    const n = notice as { kind: "nova_assinatura" | "pagamento_pendente"; trainerId: string; plan?: string; ref?: string }
+    const u = await db.tx((q) => q.query<{ email: string | null }>("select email from users where trainer_id = $1 and role = 'trainer' limit 1", [n.trainerId]))
+    const email = u.rows[0]?.email ?? n.trainerId
+    if (n.kind === "nova_assinatura") await notifyAdmin(MSG.newSubscription(email, isPlanId(n.plan) ? PLANS[n.plan].name : "assinatura"), n.kind, "", db)
+    else await notifyAdmin(MSG.paymentFailed(email), n.kind, n.ref ?? "", db)
+  }
 }
 
 /** Gera códigos Fundador (mostra o texto só uma vez; o banco guarda o hash). */
@@ -287,11 +299,15 @@ export async function createFounderCodes(n: number, label = "", db: Db = getDb()
 export async function requestLifetime(a: Account, db: Db = getDb()) {
   requireTrainer(a)
   const phone = (process.env.SALES_WHATSAPP ?? "").replace(/\D/g, "")
-  await db.tx(async (q) => {
+  await db.tx(async (q): Promise<boolean> => {
     const b = (await q.query<Row>("select lifetime from billing where trainer_id = $1", [a.trainerId])).rows[0]
     if (b?.lifetime) throw new HttpError(409, "Você já tem o plano Vitalício.")
     const open = await q.query("select 1 from lifetime_requests where trainer_id = $1 and status = 'pendente'", [a.trainerId])
-    if (!open.rows.length) await q.query("insert into lifetime_requests (trainer_id) values ($1)", [a.trainerId])
+    if (open.rows.length) return false
+    await q.query("insert into lifetime_requests (trainer_id) values ($1)", [a.trainerId])
+    return true
+  }).then(async (isNew) => {
+    if (isNew) await notifyAdmin(MSG.lifetimeRequest(a.email), "pedido_vitalicio", "", db)
   })
   const msg = `Olá! Quero o plano Vitalício do EVOFIT (${(PLANS.vitalicio.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) pagando por Pix. Minha conta: ${a.email}`
   return { whatsapp: phone.length >= 10 ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : null }
