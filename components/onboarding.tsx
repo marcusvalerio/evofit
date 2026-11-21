@@ -145,7 +145,7 @@ export function Onboarding() {
           <p className="mt-1 text-sm text-muted">Use tudo à vontade, sem cartão. Antes de acabar, escolha como quer continuar:</p>
           <ul className="mt-4 grid gap-2 text-sm">
             <li className="rounded-xl border border-line p-3">
-              <strong>Mensal</strong> · {brl(PLANS.mensal.amount)}/mês, sem fidelidade.
+              <strong>Inicial</strong> · {brl(PLANS.inicial.amount)}/mês, alunos ilimitados, sem fidelidade.
             </li>
             <li className="rounded-xl border border-line p-3">
               <strong>Anual</strong> · {brl(PLANS.anual.amount)}/ano. Com código Fundador: {brl(PLANS.fundador.amount)} por 15 meses.

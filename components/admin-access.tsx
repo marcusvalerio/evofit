@@ -178,7 +178,7 @@ export function TrainerAccessDialog({ trainer, onClose, reload }: { trainer: { i
   const [err, setErr] = useState<string | null>(null)
   const [action, setAction] = useState<Action>(null)
   const [days, setDays] = useState("30")
-  const [plan, setPlan] = useState<PlanId>("mensal")
+  const [plan, setPlan] = useState<PlanId>("inicial")
   const [note, setNote] = useState("")
   const [fieldErr, setFieldErr] = useState<string | undefined>()
   const [busy, setBusy] = useState(false)
@@ -285,7 +285,7 @@ export function TrainerAccessDialog({ trainer, onClose, reload }: { trainer: { i
                   <Field label="Como plano">
                     {(f) => (
                       <select {...f} className="input" value={plan} onChange={(e) => setPlan(e.target.value as PlanId)}>
-                        {(["inicial", "mensal", "anual"] as PlanId[]).map((p) => (
+                        {(["inicial", "anual"] as PlanId[]).map((p) => (
                           <option key={p} value={p}>
                             {PLANS[p].name}
                           </option>

@@ -94,7 +94,7 @@ async function customerFor(q: Queryable, a: Account): Promise<string> {
 
 export async function startCheckout(a: Account, input: { plan: unknown; code?: unknown }, origin: string, db: Db = getDb()) {
   requireTrainer(a)
-  if (!isPlanId(input.plan)) throw new HttpError(400, "Plano inválido.")
+  if (!isPlanId(input.plan) || input.plan === "mensal") throw new HttpError(400, "Plano inválido.")
   const plan = PLANS[input.plan]
   const s = stripe()
   return db.tx(async (q) => {

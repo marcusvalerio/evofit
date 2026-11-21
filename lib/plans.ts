@@ -20,7 +20,8 @@ export interface Plan {
 }
 
 export const PLANS: Record<PlanId, Plan> = {
-  inicial: { id: "inicial", name: "Inicial", amount: 2990, interval: "month", maxStudents: 10, blurb: "Até 10 alunos ativos." },
+  inicial: { id: "inicial", name: "Inicial", amount: 4990, interval: "month", maxStudents: null, blurb: "Mensal, alunos ilimitados. Sem fidelidade." },
+  /** Antigo plano mensal: mantido só para assinaturas que já existam. Não aparece para venda. */
   mensal: { id: "mensal", name: "Mensal", amount: 4990, interval: "month", maxStudents: null, blurb: "Alunos ilimitados. Sem fidelidade." },
   anual: { id: "anual", name: "Anual", amount: 47990, interval: "year", maxStudents: null, blurb: "≈ R$ 39,99/mês. Alunos ilimitados." },
   fundador: { id: "fundador", name: "Anual Fundador", amount: 39990, interval: "year", maxStudents: null, bonusMonths: 3, needsCode: true, blurb: "15 meses no primeiro ciclo (12 + 3 de bônus). Preço travado na renovação." },

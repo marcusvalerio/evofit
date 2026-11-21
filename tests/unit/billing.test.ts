@@ -78,18 +78,18 @@ describe("cobrança (Stripe)", () => {
 
   it("abre checkout de assinatura com o preço do plano e ativa pelo webhook", async () => {
     const a = await trainer("mensal@evofit.app")
-    const url = await Billing.startCheckout(a, { plan: "mensal" }, "https://app.test", db)
+    const url = await Billing.startCheckout(a, { plan: "inicial" }, "https://app.test", db)
     expect(url).toContain("checkout.stripe.test")
     const p = calls.sessions[0] as { mode: string; customer: string; line_items: { price_data: { unit_amount: number; currency: string; recurring: { interval: string } } }[] }
     expect(p.mode).toBe("subscription")
-    expect(p.line_items[0].price_data).toMatchObject({ unit_amount: PLANS.mensal.amount, currency: "brl", recurring: { interval: "month" } })
+    expect(p.line_items[0].price_data).toMatchObject({ unit_amount: PLANS.inicial.amount, currency: "brl", recurring: { interval: "month" } })
 
-    sub("sub_m", p.customer, { trainer_id: a.trainerId, plan: "mensal" })
-    const done = event("checkout.session.completed", { mode: "subscription", subscription: "sub_m", customer: p.customer, metadata: { trainer_id: a.trainerId, plan: "mensal" } })
+    sub("sub_m", p.customer, { trainer_id: a.trainerId, plan: "inicial" })
+    const done = event("checkout.session.completed", { mode: "subscription", subscription: "sub_m", customer: p.customer, metadata: { trainer_id: a.trainerId, plan: "inicial" } })
     await Billing.handleEvent(done, db)
     await Billing.handleEvent(done, db) // repetido: ignorado
     const s = await Billing.billingStatus(a, db)
-    expect(s).toMatchObject({ plan: "mensal", status: "active", hasAccess: true, lifetime: false })
+    expect(s).toMatchObject({ plan: "inicial", status: "active", hasAccess: true, lifetime: false })
     expect(s.currentPeriodEnd).toBe(new Date(PERIOD_END * 1000).toISOString())
 
     await expect(Billing.startCheckout(a, { plan: "anual" }, "https://app.test", db)).rejects.toMatchObject({ status: 409 })
@@ -148,11 +148,12 @@ describe("cobrança (Stripe)", () => {
     subs.set("sub_i", { ...subs.get("sub_i")!, status: "canceled" })
     await Billing.handleEvent(event("customer.subscription.deleted", subs.get("sub_i")), db)
     expect(await Billing.billingStatus(a, db)).toMatchObject({ plan: "vitalicio", lifetime: true, status: "active" })
-    await expect(Billing.startCheckout(a, { plan: "mensal" }, "https://app.test", db)).rejects.toMatchObject({ status: 409 })
+    await expect(Billing.startCheckout(a, { plan: "inicial" }, "https://app.test", db)).rejects.toMatchObject({ status: 409 })
   })
 
   it("aluno não assina e plano inválido é recusado", async () => {
     const a = await trainer("regras@evofit.app")
+    await expect(Billing.startCheckout(a, { plan: "mensal" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
     await expect(Billing.startCheckout(a, { plan: "gratis" }, "https://app.test", db)).rejects.toMatchObject({ status: 400 })
     await expect(Billing.billingStatus({ ...a, role: "student", studentId: "x" }, db)).rejects.toMatchObject({ status: 403 })
     await expect(Billing.portalUrl({ ...a, trainerId: "00000000-0000-4000-8000-000000000000" }, "https://app.test", db)).rejects.toMatchObject({ status: 404 })

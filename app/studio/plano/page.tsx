@@ -88,7 +88,7 @@ function Plano() {
   const current = status?.plan ? PLANS[status.plan] : null
   const subscribed = !!status && (status.lifetime || status.status === "active" || status.status === "past_due")
   const vit = PLANS.vitalicio
-  const others: PlanId[] = ["inicial", "mensal", "anual", "fundador"]
+  const others: PlanId[] = ["inicial", "anual", "fundador"]
 
   return (
     <div className="fade-in">

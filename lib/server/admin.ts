@@ -563,7 +563,7 @@ export async function grantAccess(admin: Account, trainerId: unknown, input: { k
   if (input.kind !== "dias") throw new HttpError(400, "Tipo de liberação inválido.")
   const days = Number(input.days)
   if (!Number.isInteger(days) || days < 1 || days > 3650) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { days: "Use de 1 a 3650 dias." } })
-  const plan = isPlanId(input.plan) && input.plan !== "vitalicio" ? input.plan : "mensal"
+  const plan = isPlanId(input.plan) && input.plan !== "vitalicio" ? input.plan : "inicial"
   await db.tx(async (q) => {
     await q.query(
       `insert into billing (trainer_id, plan, status, source, manual_until, note) values ($1, $2, 'none', 'manual', now() + make_interval(days => $3), $4)
