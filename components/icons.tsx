@@ -127,6 +127,19 @@ const D: Record<string, [string, string?]> = {
   Video: [R(1.5, 5, 15, 14, 5) + P("M17.5 10.5 21 8.3c.7-.4 1.5.1 1.5.9v5.6c0 .8-.8 1.3-1.5.9l-3.5-2.2Z")],
   Volume2: [P("M3 9.2c0-.8.6-1.4 1.4-1.4h2.4l4.6-3.7c.8-.6 1.9-.1 1.9.9v14c0 1-1.1 1.5-1.9.9l-4.6-3.7H4.4c-.8 0-1.4-.6-1.4-1.4Z") + L("M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13", 2.6)],
   VolumeX: [P("M3 9.2c0-.8.6-1.4 1.4-1.4h2.4l4.6-3.7c.8-.6 1.9-.1 1.9.9v14c0 1-1.1 1.5-1.9.9l-4.6-3.7H4.4c-.8 0-1.4-.6-1.4-1.4Z") + L("M16.5 9.5l5 5M21.5 9.5l-5 5", 2.6)],
+  // equipamentos e treino (biblioteca EVO)
+  Kettlebell: [R(4.4, 1.8, 15.2, 10.4, 5.2) + P("M3.6 14.6c0-4 3.6-6.8 8.4-6.8s8.4 2.8 8.4 6.8v3.4c0 2.3-1.9 4.2-4.2 4.2H7.8c-2.3 0-4.2-1.9-4.2-4.2Z"), HR(7.8, 4.6, 8.4, 4.4, 2.2)],
+  WeightPlate: [C(12, 12, 10), HS("M12 5.6a6.4 6.4 0 1 0 0 12.8a6.4 6.4 0 1 0 0-12.8", 1.6) + HC(12, 12, 2.4)],
+  Barbell: [R(1.2, 10.8, 21.6, 2.4, 1.2) + R(3.6, 5.2, 3.6, 13.6, 1.8) + R(16.8, 5.2, 3.6, 13.6, 1.8) + R(7.8, 7.6, 2.4, 8.8, 1.2) + R(13.8, 7.6, 2.4, 8.8, 1.2)],
+  Bench: [R(2.5, 7.5, 19, 4.6, 2.3) + R(4.6, 10.5, 2.8, 10, 1.4) + R(16.6, 10.5, 2.8, 10, 1.4) + R(3, 18.6, 18, 2.4, 1.2)],
+  JumpRope: [R(2.6, 2.2, 4.4, 8.6, 2.2) + R(17, 2.2, 4.4, 8.6, 2.2) + S("M4.8 10.5v2.8a7.2 7.2 0 0 0 14.4 0v-2.8", 2.6)],
+  Bottle: [P("M9.3 1.8h5.4v2.4l1.5 2.4c.4.7.7 1.5.7 2.3V19a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V8.9c0-.8.3-1.6.7-2.3l1.6-2.4Z"), HR(7.4, 11.2, 9.2, 4.2, 1.2)],
+  Sneaker: [P("M2.6 12.8c0-1.4 1.1-2.6 2.6-2.6h2.4l2.3-3.4c.6-.8 1.7-.9 2.4-.1l3.4 3.7 4 1.1c1.6.5 2.7 2 2.7 3.6v1.3c0 1.2-1 2.2-2.2 2.2H4.8c-1.2 0-2.2-1-2.2-2.2Z"), HS("M3.4 15.6h17.4", 1.6) + HS("M10.6 9.6l1.6 1.6M12.8 8l1.6 1.6", 1.4)],
+  Scale: [R(2.5, 2.5, 19, 19, 6), HS("M7.6 10a5.2 5.2 0 0 1 8.8 0", 2.2) + HS("M12 10.6l1.6-2.4", 1.9)],
+  Home: [P("M10.3 3.1c1-.9 2.4-.9 3.4 0l6.8 6c.6.5.9 1.2.9 2V18.5a3 3 0 0 1-3 3H5.6a3 3 0 0 1-3-3v-7.4c0-.8.3-1.5.9-2Z"), HR(9.8, 14, 4.4, 8.5, 2.2)],
+  BarChart: [R(2.5, 2.5, 19, 19, 6), HR(6.6, 12.2, 3, 5.6, 1.5) + HR(10.5, 9.4, 3, 8.4, 1.5) + HR(14.4, 6.6, 3, 11.2, 1.5)],
+  Flame: [P("M12 1.8c.7 3.1 4.3 5.1 6.1 8.7 1.6 3.1.8 7.2-2.4 9.4-1.1.8-2.4 1.3-3.7 1.3s-2.6-.5-3.7-1.3c-3.2-2.2-4-6.3-2.4-9.4.7-1.4 1.8-2.4 2.7-3.6.4 1.5 1.1 2.4 2 3-.3-3.3.4-6 1.4-8.1Z"), HP("M12 12.8c1.7 1.5 2.7 2.8 2.7 4.4a2.7 2.7 0 0 1-5.4 0c0-1.6 1-2.9 2.7-4.4Z")],
+  Heart: [P("M12 21.2c-.4 0-.8-.1-1.2-.4C6.4 17.2 2.3 13.8 2.3 9.3 2.3 6.3 4.7 3.8 7.6 3.8c1.8 0 3.4.9 4.4 2.3 1-1.4 2.6-2.3 4.4-2.3 2.9 0 5.3 2.5 5.3 5.5 0 4.5-4.1 7.9-8.5 11.5-.4.3-.8.4-1.2.4Z")],
   Wallet: [R(1.5, 5, 21, 15.5, 5) + R(4, 2.5, 14, 4.5, 2.2), HC(17, 13, 1.8)],
   CheckCircle2: [circle, HS("m7.6 12.3 3 3 5.8-6", 3)],
 }
@@ -167,3 +180,5 @@ export const ShieldCheck = make("ShieldCheck"), ShieldAlert = make("ShieldAlert"
 export const Monitor = make("Monitor"), Smartphone = make("Smartphone"), Moon = make("Moon"), Sun = make("Sun"), CloudOff = make("CloudOff"), Database = make("Database")
 export const FlaskConical = make("FlaskConical"), Radar = make("Radar"), MapPin = make("MapPin"), Video = make("Video"), Volume2 = make("Volume2"), VolumeX = make("VolumeX")
 export const Wallet = make("Wallet"), CheckCircle2 = make("CheckCircle2")
+export const Kettlebell = make("Kettlebell"), WeightPlate = make("WeightPlate"), Barbell = make("Barbell"), Bench = make("Bench"), JumpRope = make("JumpRope"), Bottle = make("Bottle")
+export const Sneaker = make("Sneaker"), Scale = make("Scale"), Home = make("Home"), BarChart = make("BarChart"), Flame = make("Flame"), Heart = make("Heart")
