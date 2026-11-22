@@ -343,3 +343,18 @@ describe("vendedor automático no WhatsApp", () => {
     expect(Sales.parseEvolution({ event: "connection.update", data: {} })).toBeNull()
   })
 })
+
+describe("exclusão de conta com assinatura", () => {
+  it("cancela a assinatura no Stripe antes de apagar a conta", async () => {
+    const a = await trainer("apagar@evofit.app")
+    await Billing.startCheckout(a, { plan: "inicial" }, "https://app.test", db)
+    const p = calls.sessions.at(-1) as { customer: string }
+    sub("sub_del", p.customer, { trainer_id: a.trainerId, plan: "inicial" })
+    await Billing.handleEvent(event("checkout.session.completed", { mode: "subscription", subscription: "sub_del", customer: p.customer, metadata: { trainer_id: a.trainerId, plan: "inicial" } }), db)
+    calls.cancels = []
+    await Auth.deleteAccount(a, db)
+    expect(calls.cancels).toEqual(["sub_del"])
+    expect((await db.tx((q) => q.query("select 1 from billing where trainer_id = $1", [a.trainerId]))).rows).toHaveLength(0)
+    expect(await Auth.accountFromToken("x", db)).toBeNull()
+  })
+})

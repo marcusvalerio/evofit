@@ -312,3 +312,22 @@ export async function requestLifetime(a: Account, db: Db = getDb()) {
   const msg = `Olá! Quero o plano Vitalício do EVOFIT (${(PLANS.vitalicio.amount / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}) pagando por Pix. Minha conta: ${a.email}`
   return { whatsapp: phone.length >= 10 ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}` : null }
 }
+
+/**
+ * Exclusão de conta: cancela na hora a assinatura do Stripe (se houver) para a pessoa não continuar
+ * sendo cobrada. Se o cancelamento falhar, a exclusão é interrompida.
+ */
+export async function cancelBillingForDeletion(trainerId: string, db: Db = getDb()) {
+  const b = (await db.tx((q) => q.query<Row>("select stripe_subscription_id, status from billing where trainer_id = $1", [trainerId]))).rows[0]
+  const sub = b?.stripe_subscription_id ? String(b.stripe_subscription_id) : null
+  if (sub && b?.status !== "canceled") {
+    try {
+      await stripe().subscriptions.cancel(sub)
+    } catch (e) {
+      // já cancelada no Stripe: segue
+      const code = (e as { code?: string; statusCode?: number })?.code
+      if (code !== "resource_missing") throw new HttpError(502, "Não foi possível cancelar sua assinatura agora. Tente de novo em alguns minutos ou fale com o suporte.")
+    }
+  }
+  await db.tx((q) => q.query("delete from billing where trainer_id = $1", [trainerId]))
+}

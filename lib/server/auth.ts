@@ -3,6 +3,7 @@ import { promisify } from "node:util"
 import { affected, getDb, withTenant, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
 import { MSG, notifyAdmin, sendWhatsApp, trainerContact } from "./whatsapp-bot"
+import { cancelBillingForDeletion } from "./billing"
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>
 
@@ -354,6 +355,8 @@ export async function acceptInvite(code: string, input: { email: unknown; passwo
 
 export async function deleteAccount(account: Account, db: Db = getDb()) {
   if (account.role === "trainer") {
+    // primeiro para a cobrança (se falhar, nada é apagado)
+    await cancelBillingForDeletion(account.trainerId, db)
     // apaga o personal e, em cascata, alunos, fichas, sessões, convites e todos os logins vinculados
     await withTenant({ role: "trainer", trainerId: account.trainerId }, (q) => q.query("delete from trainers where id = $1", [account.trainerId]), db)
     await db.tx(async (q) => {
