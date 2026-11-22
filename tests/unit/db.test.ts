@@ -55,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)

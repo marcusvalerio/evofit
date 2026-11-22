@@ -372,10 +372,11 @@ describe("esqueci minha senha (e-mail)", () => {
     await trainer("reset@evofit.app")
     const old = (await Auth.login({ email: "reset@evofit.app", password: "senha-segura-1" }, db))!.token
     expect(await Auth.requestPasswordReset("ninguem@evofit.app", "https://app.test", db)).toEqual({ emailEnabled: true })
-    expect(mails).toHaveLength(0)
+    const resets = () => mails.filter((m) => m.text.includes("token="))
+    expect(resets()).toHaveLength(0)
     await Auth.requestPasswordReset("Reset@evofit.app", "https://app.test", db)
-    expect(mails[0].to).toEqual(["reset@evofit.app"])
-    const token = decodeURIComponent(mails[0].text.match(/token=([^\s]+)/)![1])
+    expect(resets()[0].to).toEqual(["reset@evofit.app"])
+    const token = decodeURIComponent(resets()[0].text.match(/token=([^\s]+)/)![1])
     await expect(Auth.resetPassword(token, "curta", db)).rejects.toMatchObject({ status: 400 })
     const r = await Auth.resetPassword(token, "nova-senha-123", db)
     expect(await Auth.accountFromToken(r.token, db)).not.toBeNull()
@@ -392,5 +393,32 @@ describe("termos de uso no cadastro", () => {
     const r = (await db.tx((q) => q.query<{ terms_accepted_at: unknown; terms_version: string }>("select terms_accepted_at, terms_version from users where email = 'comaceite@evofit.app'"))).rows[0]
     expect(r.terms_accepted_at).toBeTruthy()
     expect(r.terms_version).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+})
+
+describe("monitoramento e e-mails automáticos", () => {
+  it("agrupa erros iguais, conta repetições e resolve", async () => {
+    const Mon = await import("@/lib/server/monitor")
+    await Mon.resolveError("*", db)
+    await Mon.logError({ source: "servidor", route: "GET /api/x/0f8fad5b-d9cb-469f-a165-70867728950e", message: "Falhou 123" }, db)
+    await Mon.logError({ source: "servidor", route: "GET /api/x/9c858901-8a57-4791-81fe-4c455b099bc9", message: "Falhou 456" }, db)
+    const list = await Mon.listErrors(10, db)
+    expect(list).toHaveLength(1)
+    expect(list[0]).toMatchObject({ count: 2, route: "GET /api/x/:id" })
+    await Mon.resolveError(list[0].fingerprint, db)
+    expect(await Mon.listErrors(10, db)).toHaveLength(0)
+    expect(await Mon.healthCheck(db)).toMatchObject({ ok: true, db: "ok" })
+  })
+
+  it("boas-vindas e lembrete do teste por e-mail, uma vez só", async () => {
+    const sentMails: { to: string[]; subject: string }[] = []
+    Object.assign(process.env, { RESEND_API_KEY: "re_x", EMAIL_FROM: "EVOFIT <a@evofit.test>" })
+    Email.setEmailFetch((async (_u: string, init: RequestInit) => (sentMails.push(JSON.parse(String(init.body))), new Response("{}"))) as unknown as typeof fetch)
+    const a = await trainer("ciclo@evofit.app")
+    expect(sentMails.find((m) => m.to[0] === "ciclo@evofit.app")?.subject).toContain("Bem-vindo")
+    await db.tx((q) => q.query("update users set created_at = now() - interval '6 days' where trainer_id = $1", [a.trainerId]))
+    await Bot.trialReminders(db)
+    await Bot.trialReminders(db)
+    expect(sentMails.filter((m) => m.to[0] === "ciclo@evofit.app" && m.subject.includes("acaba em"))).toHaveLength(1)
   })
 })

@@ -5,6 +5,7 @@ import { hashPassword, temporaryPassword, type Account } from "./auth"
 import { HttpError } from "./workspace"
 import { computeStatus, statusFor } from "./billing"
 import { MSG, sendWhatsApp, trainerContact } from "./whatsapp-bot"
+import { EMAILS, sendLifecycleEmail } from "./email"
 import { PLANS, TRIAL_DAYS, isPlanId, type PlanId } from "../plans"
 
 /**
@@ -561,6 +562,7 @@ export async function grantAccess(admin: Account, trainerId: unknown, input: { k
     })
     const c = await trainerContact(t.id, db)
     if (c.whatsapp) await sendWhatsApp(c.whatsapp, MSG.lifetimeGranted(c.name), "vitalicio_liberado", t.id, db)
+    await sendLifecycleEmail(c.email, "vitalicio_liberado", EMAILS.lifetime(c.name), t.id, db)
     return
   }
   if (input.kind !== "dias") throw new HttpError(400, "Tipo de liberação inválido.")

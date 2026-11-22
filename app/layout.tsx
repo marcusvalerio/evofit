@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next"
 import "@fontsource-variable/geist/wght.css"
 import "@fontsource-variable/sora/wght.css"
 import { Providers } from "@/components/providers"
+import { ErrorReporter } from "@/components/error-reporter"
 import { demoEnabled } from "@/lib/demo-mode"
 import "./globals.css"
 
@@ -31,7 +32,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>
-        <Providers demo={demoEnabled()}>{children}</Providers>
+        <Providers demo={demoEnabled()}>
+          <ErrorReporter />
+          {children}
+        </Providers>
       </body>
     </html>
   )
