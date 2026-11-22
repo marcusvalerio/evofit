@@ -8,6 +8,7 @@ import * as Billing from "@/lib/server/billing"
 import * as Admin from "@/lib/server/admin"
 import * as Bot from "@/lib/server/whatsapp-bot"
 import * as Sales from "@/lib/server/sales-bot"
+import * as Email from "@/lib/server/email"
 import { withTenant } from "@/lib/server/db"
 import { PLANS } from "@/lib/plans"
 
@@ -356,5 +357,30 @@ describe("exclusão de conta com assinatura", () => {
     expect(calls.cancels).toEqual(["sub_del"])
     expect((await db.tx((q) => q.query("select 1 from billing where trainer_id = $1", [a.trainerId]))).rows).toHaveLength(0)
     expect(await Auth.accountFromToken("x", db)).toBeNull()
+  })
+})
+
+describe("esqueci minha senha (e-mail)", () => {
+  const mails: { to: string[]; text: string }[] = []
+  it("sem e-mail configurado, orienta o suporte", async () => {
+    delete process.env.RESEND_API_KEY
+    expect(await Auth.requestPasswordReset("x@y.com", "https://app.test", db)).toEqual({ emailEnabled: false })
+  })
+  it("manda o link, cria a nova senha uma vez e derruba as sessões antigas", async () => {
+    Object.assign(process.env, { RESEND_API_KEY: "re_x", EMAIL_FROM: "EVOFIT <a@evofit.test>" })
+    Email.setEmailFetch((async (_u: string, init: RequestInit) => (mails.push(JSON.parse(String(init.body))), new Response("{}"))) as unknown as typeof fetch)
+    await trainer("reset@evofit.app")
+    const old = (await Auth.login({ email: "reset@evofit.app", password: "senha-segura-1" }, db))!.token
+    expect(await Auth.requestPasswordReset("ninguem@evofit.app", "https://app.test", db)).toEqual({ emailEnabled: true })
+    expect(mails).toHaveLength(0)
+    await Auth.requestPasswordReset("Reset@evofit.app", "https://app.test", db)
+    expect(mails[0].to).toEqual(["reset@evofit.app"])
+    const token = decodeURIComponent(mails[0].text.match(/token=([^\s]+)/)![1])
+    await expect(Auth.resetPassword(token, "curta", db)).rejects.toMatchObject({ status: 400 })
+    const r = await Auth.resetPassword(token, "nova-senha-123", db)
+    expect(await Auth.accountFromToken(r.token, db)).not.toBeNull()
+    expect(await Auth.accountFromToken(old, db)).toBeNull()
+    expect(await Auth.login({ email: "reset@evofit.app", password: "nova-senha-123" }, db)).not.toBeNull()
+    await expect(Auth.resetPassword(token, "outra-senha-123", db)).rejects.toMatchObject({ status: 400 })
   })
 })

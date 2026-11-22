@@ -376,3 +376,54 @@ export async function finishOnboarding(account: Account, db: Db = getDb()) {
   const c = await trainerContact(account.trainerId, db)
   if (c.whatsapp) await sendWhatsApp(c.whatsapp, MSG.welcome(c.name), "boas_vindas", account.trainerId, db)
 }
+
+/* ---------- Recuperação de senha por e-mail ---------- */
+
+const RESET_MINUTES = 60
+
+/**
+ * Pede o link de nova senha. Sempre responde igual (não revela se o e-mail existe).
+ * Só contas com e-mail (personal ou aluno que cadastrou e-mail) recebem o link.
+ */
+export async function requestPasswordReset(email: unknown, origin: string, db: Db = getDb()) {
+  const { emailConfigured, resetEmail, sendEmail } = await import("./email")
+  if (!emailConfigured()) return { emailEnabled: false }
+  const e = typeof email === "string" ? email.trim().toLowerCase().slice(0, 254) : ""
+  if (!e.includes("@")) return { emailEnabled: true }
+  const token = newToken()
+  const ok = await db.tx(async (q) => {
+    const u = (await q.query<{ id: string }>("select id from users where lower(email) = $1 and disabled_at is null", [e])).rows[0]
+    if (!u) return false
+    await q.query("delete from password_resets where user_id = $1", [u.id])
+    await q.query("insert into password_resets (token_hash, user_id, expires_at) values ($1, $2, now() + make_interval(mins => $3))", [hashToken(token), u.id, RESET_MINUTES])
+    return true
+  })
+  if (ok) {
+    const m = resetEmail(`${origin}/redefinir-senha?token=${encodeURIComponent(token)}`)
+    await sendEmail(e, m.subject, m.html, m.text)
+  }
+  return { emailEnabled: true }
+}
+
+/** Cria a nova senha com o link do e-mail. Encerra todas as sessões e já entra. */
+export async function resetPassword(token: unknown, password: unknown, db: Db = getDb()) {
+  if (typeof token !== "string" || token.length < 20 || token.length > 100) throw new HttpError(400, "Link inválido ou vencido. Peça um novo.")
+  const pw = typeof password === "string" ? password : ""
+  const err = validateCredentials("a@b.co", pw).password
+  if (err) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { password: err } })
+  const hash = await hashPassword(pw)
+  return db.tx(async (q) => {
+    const r = (
+      await q.query<{ user_id: string; role: Account["role"] }>(
+        `select p.user_id, u.role from password_resets p join users u on u.id = p.user_id
+         where p.token_hash = $1 and p.used_at is null and p.expires_at > now() and u.disabled_at is null`,
+        [hashToken(token)],
+      )
+    ).rows[0]
+    if (!r) throw new HttpError(400, "Link inválido ou vencido. Peça um novo.")
+    await q.query("update password_resets set used_at = now() where token_hash = $1", [hashToken(token)])
+    await q.query("update users set password_hash = $2, must_change_password = false where id = $1", [r.user_id, hash])
+    await q.query("delete from auth_sessions where user_id = $1", [r.user_id])
+    return { token: await createSession(q, r.user_id, "Nova senha"), role: r.role }
+  })
+}
