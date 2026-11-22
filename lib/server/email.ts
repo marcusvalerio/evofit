@@ -32,7 +32,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 export function resetEmail(link: string) {
   const text = `Recebemos um pedido para criar uma nova senha no EVOFIT.\n\nCrie sua nova senha por este link (vale por 1 hora):\n${link}\n\nSe não foi você, ignore este e-mail: sua senha continua a mesma.`
   const html = `<div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;color:#18181b">
-  <h2 style="color:#0f5257">EVOFIT</h2>
+  <h2 style="color:#1e2224">EVOFIT</h2>
   <p>Recebemos um pedido para criar uma nova senha no EVOFIT.</p>
   <p><a href="${esc(link)}" style="display:inline-block;background:#46b8ba;color:#061718;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">Criar nova senha</a></p>
   <p style="color:#62626a;font-size:13px">O link vale por 1 hora. Se não foi você, ignore este e-mail: sua senha continua a mesma.</p>
@@ -47,7 +47,7 @@ const site = () => (process.env.SITE_URL || "https://evofit-pi.vercel.app").repl
 
 function layout(title: string, paragraphs: string[], cta?: { label: string; href: string }) {
   const html = `<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#18181b;line-height:1.5">
-  <h2 style="color:#0f5257;margin-bottom:4px">EVOFIT</h2>
+  <h2 style="color:#1e2224;margin-bottom:4px">EVOFIT</h2>
   <h3 style="margin-top:0">${esc(title)}</h3>
   ${paragraphs.map((p) => `<p>${esc(p)}</p>`).join("\n  ")}
   ${cta ? `<p><a href="${esc(cta.href)}" style="display:inline-block;background:#46b8ba;color:#061718;padding:12px 20px;border-radius:999px;text-decoration:none;font-weight:bold">${esc(cta.label)}</a></p>` : ""}

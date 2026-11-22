@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 /*
- * EVOFIT Design System — paleta Neutro & Petróleo.
+ * EVOFIT Design System — paleta Grafite & Verde-água.
+ * Dourado só para conquistas (PR, medalhas); coral/vermelho só para alertas.
  *
  * As variáveis --mp-* mantêm os nomes antigos para não quebrar componentes:
  *   --mp-cotton       #F4F4F3  fundo claro (neutro, sem tom esverdeado)
  *   --mp-sandstone    #E9E9E7  superfícies secundárias, trilhos
  *   --mp-otan         #46B8BA  petróleo claro: destaque sobre superfície escura (texto escuro por cima)
- *   --mp-gravy        #0F5257  petróleo: CTA principal (texto branco) e realce de marca no claro
+ *   --mp-gravy        #1E2224  grafite: CTA principal (texto branco) e realce de marca no claro
  *   --mp-cobblestone  #18181B  texto principal, superfícies escuras
  *   --mp-smoke        #62626A  texto secundário
  * No escuro o CTA vira #46B8BA com texto #101012. Âmbar só para avisos (--warning).
@@ -17,11 +18,11 @@
   --mp-cotton: #f4f4f3;
   --mp-sandstone: #e9e9e7;
   --mp-otan: #46b8ba;
-  --mp-gravy: #0f5257;
+  --mp-gravy: #1e2224;
   --mp-cobblestone: #18181b;
   --mp-smoke: #62626a;
 
-  --ember: linear-gradient(90deg, var(--mp-gravy), #1f9aa0 60%, var(--mp-otan));
+  --ember: linear-gradient(90deg, var(--mp-gravy), #2f7f81 60%, var(--mp-otan));
 
   color-scheme: light;
   --bg: var(--mp-cotton);
@@ -33,9 +34,9 @@
   --line: rgb(24 24 27 / 0.1);
   --line-strong: rgb(24 24 27 / 0.22);
   --primary: var(--mp-gravy);
-  --primary-hover: #136a70;
+  --primary-hover: #33393c;
   --on-primary: #ffffff;
-  --accent-text: var(--mp-gravy);
+  --accent-text: #2a7476;
   --accent-soft: rgb(70 184 186 / 0.1);
   --inverse: var(--mp-cobblestone);
   --on-inverse: var(--mp-cotton);
@@ -54,7 +55,7 @@
   --shadow: 0 1px 2px rgb(24 24 27 / 0.05), 0 8px 24px -16px rgb(24 24 27 / 0.22);
   --shadow-lg: 0 30px 80px -30px rgb(24 24 27 / 0.45);
   --radius: 1.25rem;
-  --swell-ink: rgb(15 82 87 / 0.16);
+  --swell-ink: rgb(30 34 36 / 0.16);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -750,7 +751,7 @@
     justify-content: center;
     gap: 0.375rem;
     color: var(--mp-cotton);
-    background: radial-gradient(120% 120% at 30% 20%, rgb(15 82 87 / 0.5), transparent 60%), var(--mp-cobblestone);
+    background: radial-gradient(120% 120% at 30% 20%, rgb(30 34 36 / 0.5), transparent 60%), var(--mp-cobblestone);
     cursor: pointer;
   }
   .video-play {
@@ -1256,7 +1257,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
   width: 60%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(15 82 87 / 0.55), transparent 65%);
+  background: radial-gradient(circle, rgb(30 34 36 / 0.55), transparent 65%);
 }
 .lp-pains { display: grid; gap: 1px; margin-top: 2.5rem; overflow: hidden; border-radius: 1.25rem; background: rgb(244 244 243 / 0.1); }
 @media (min-width: 768px) { .lp-pains { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
@@ -1303,7 +1304,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 /* ---------- O EVOFIT em movimento (gravações reais) ---------- */
 .lp-reel {
   --aura-a: rgb(70 184 186 / 0.55);
-  --aura-b: rgb(15 82 87 / 0.5);
+  --aura-b: rgb(30 34 36 / 0.5);
   position: relative;
   isolation: isolate;
   overflow: clip;
@@ -1542,7 +1543,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
   width: 90%;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgb(15 82 87 / 0.6), transparent 65%);
+  background: radial-gradient(circle, rgb(30 34 36 / 0.6), transparent 65%);
 }
 .evo-student-kicker { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mp-otan); }
 .evo-student-today h2 { margin-top: 0.6rem; font-size: clamp(1.5rem, 6vw, 1.875rem); font-weight: 600; letter-spacing: -0.03em; line-height: 1.08; overflow-wrap: anywhere; }
@@ -1843,7 +1844,21 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 
 /* Card de destaque do plano Vitalício (tela Plano). */
 .evo-plan-hero {
-  background: linear-gradient(135deg, #46b8ba, #1f9aa0 55%, #0f5257);
+  background: linear-gradient(135deg, #46b8ba, #2f7f81 55%, #1e2224);
   color: #061718;
   box-shadow: 0 30px 80px -30px rgb(70 184 186 / 0.7);
 }
+
+/* importação de fichas por planilha */
+.evo-import { display: grid; gap: 0.75rem; }
+.evo-import-drop { display: grid; justify-items: center; gap: 0.35rem; padding: 1.5rem 1rem; border: 2px dashed var(--line-strong); border-radius: 1.25rem; background: var(--surface-2); text-align: center; cursor: pointer; color: var(--fg-muted); }
+.evo-import-drop strong { color: var(--fg); font-size: 1rem; }
+.evo-import-drop span { font-size: 0.8125rem; }
+.evo-import-drop:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.evo-import-preview { display: grid; gap: 0.9rem; }
+.evo-import-preview h3 { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 0.35rem; }
+.evo-import-preview h3 span { font-weight: 600; font-size: 0.8125rem; color: var(--accent-text); }
+.evo-import-preview li { display: flex; justify-content: space-between; gap: 1rem; padding: 0.4rem 0; border-bottom: 1px solid var(--line); font-size: 0.875rem; }
+.evo-import-preview li span:last-child { color: var(--fg-muted); white-space: nowrap; }
+.evo-import-preview em { font-style: normal; font-weight: 700; color: var(--warning); }
+.evo-import-errors { padding: 0.75rem 1rem; border-radius: 1rem; background: var(--danger-soft); color: var(--danger); font-size: 0.875rem; }
