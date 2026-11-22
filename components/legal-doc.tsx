@@ -9,7 +9,7 @@ export function LegalDoc({ title, children }: { title: string; children: React.R
       <p className="mt-2 text-sm text-muted">
         Última atualização: {LEGAL.updated} · Versão {LEGAL.version}
       </p>
-      <div className="mt-8 space-y-6 leading-relaxed [&_h2]:t-h2 [&_h2]:mt-8 [&_li]:ml-5 [&_li]:list-disc [&_p]:text-[0.9375rem] [&_ul]:space-y-1">{children}</div>
+      <div className="mt-8 space-y-6 leading-relaxed [&_h2]:mt-8 [&_h2]:font-display [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:tracking-tight [&_li]:ml-5 [&_li]:list-disc [&_p]:text-[0.9375rem] [&_ul]:space-y-1">{children}</div>
     </article>
   )
 }
