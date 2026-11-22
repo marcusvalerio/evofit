@@ -4,6 +4,7 @@ import { affected, getDb, withTenant, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
 import { MSG, notifyAdmin, sendWhatsApp, trainerContact } from "./whatsapp-bot"
 import { cancelBillingForDeletion } from "./billing"
+import { LEGAL } from "../legal"
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>
 
@@ -123,10 +124,11 @@ export async function logout(token: string | undefined, db: Db = getDb()) {
 
 /* ---------- Cadastro e login ---------- */
 
-export async function signupTrainer(input: { name: unknown; email: unknown; password: unknown }, db: Db = getDb()) {
+export async function signupTrainer(input: { name: unknown; email: unknown; password: unknown; acceptTerms?: unknown }, db: Db = getDb()) {
   const errors: Record<string, string> = { ...validateCredentials(input.email, input.password) }
   const name = typeof input.name === "string" ? input.name.trim() : ""
   if (name.length < 2 || name.length > 80) errors.name = "Informe seu nome (2 a 80 caracteres)."
+  if (input.acceptTerms !== true) errors.accept = "Aceite os Termos de Uso e a Política de Privacidade para continuar."
   if (Object.keys(errors).length) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: errors })
   const email = String(input.email).trim().toLowerCase()
   const hash = await hashPassword(String(input.password))
@@ -142,7 +144,7 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
     await q.query("insert into trainers (id, slug, name) values ($1, $2, $3)", [trainerId, slug, name])
     await q.query("reset role")
     const userId = randomUUID()
-    await q.query("insert into users (id, email, password_hash, role, trainer_id) values ($1, $2, $3, 'trainer', $4)", [userId, email, hash, trainerId])
+    await q.query("insert into users (id, email, password_hash, role, trainer_id, terms_accepted_at, terms_version) values ($1, $2, $3, 'trainer', $4, now(), $5)", [userId, email, hash, trainerId, LEGAL.version])
     return { token: await createSession(q, userId), role: "trainer" as const }
   })
   await notifyAdmin(MSG.newSignup(name, email), "novo_cadastro", "", db)

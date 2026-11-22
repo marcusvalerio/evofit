@@ -46,7 +46,7 @@ const expectStatus = async (p: Promise<unknown>, status: number) => {
 }
 
 async function signup(name: string, email: string) {
-  const { token } = await Auth.signupTrainer({ name, email, password: "senha-segura-1" }, db)
+  const { token } = await Auth.signupTrainer({ name, email, password: "senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 
@@ -73,7 +73,7 @@ describe("banco: migrações e contas", () => {
     expect(await Auth.login({ email: "ANA@exemplo.com", password: "senha-segura-1" }, db)).toMatchObject({ role: "trainer" })
     expect(await Auth.login({ email: "ana@exemplo.com", password: "outra-senha" }, db)).toBeNull()
     expect(await Auth.login({ email: "ninguem@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
-    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "senha-segura-1" }, db), 409)
+    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "senha-segura-1", acceptTerms: true }, db), 409)
     await expectStatus(Auth.signupTrainer({ name: "X", email: "invalido", password: "123" }, db), 400)
   })
 

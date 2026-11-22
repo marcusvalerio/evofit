@@ -54,7 +54,7 @@ const fake = {
 let n = 0
 const event = (type: string, object: unknown) => ({ id: `evt_${++n}`, type, data: { object } }) as unknown as Stripe.Event
 async function trainer(email: string) {
-  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1" }, db)
+  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 const sub = (id: string, customer: string, meta: Record<string, string>) =>
@@ -382,5 +382,15 @@ describe("esqueci minha senha (e-mail)", () => {
     expect(await Auth.accountFromToken(old, db)).toBeNull()
     expect(await Auth.login({ email: "reset@evofit.app", password: "nova-senha-123" }, db)).not.toBeNull()
     await expect(Auth.resetPassword(token, "outra-senha-123", db)).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+describe("termos de uso no cadastro", () => {
+  it("exige o aceite e grava a versão aceita", async () => {
+    await expect(Auth.signupTrainer({ name: "Sem Aceite", email: "semaceite@evofit.app", password: "senha-segura-1" }, db)).rejects.toMatchObject({ status: 400, fields: { accept: expect.any(String) } })
+    await trainer("comaceite@evofit.app")
+    const r = (await db.tx((q) => q.query<{ terms_accepted_at: unknown; terms_version: string }>("select terms_accepted_at, terms_version from users where email = 'comaceite@evofit.app'"))).rows[0]
+    expect(r.terms_accepted_at).toBeTruthy()
+    expect(r.terms_version).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })
