@@ -14,7 +14,7 @@ export default function TexturaPage() {
         {[128, 64, 40].map((s) => (
           <figure key={s} style={{ margin: 0, display: "grid", gap: 8, justifyItems: "center", fontSize: 12, opacity: 0.85 }}>
             <div style={{ width: s, height: s, borderRadius: s * 0.24, overflow: "hidden", position: "relative" }}>
-              <Swell tokens={{ "--texture-ink": "#F4F4F3", "--texture-field": "#0F5257" }} static />
+              <Swell tokens={{ "--texture-ink": "#F4F4F3", "--texture-field": "#1E2224" }} static />
             </div>
             {s}px
           </figure>

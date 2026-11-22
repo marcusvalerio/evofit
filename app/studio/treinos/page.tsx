@@ -11,6 +11,7 @@ import { useToast } from "@/components/providers"
 import type { Workout } from "@/lib/types"
 import { getExercise } from "@/lib/catalog"
 import { ExerciseThumb } from "@/components/exercise"
+import { ImportWorkouts } from "@/components/import-workouts"
 
 export default function TreinosPage() {
   return (
@@ -30,6 +31,7 @@ function Treinos() {
   const [search, setSearch] = useState("")
   const [err, setErr] = useState("")
   const [removing, setRemoving] = useState<Workout | null>(null)
+  const [importing, setImporting] = useState(false)
 
   // ?novo=1 (atalho vindo do painel) abre o formulário diretamente.
   const fromQuery = params.get("novo") === "1"
@@ -58,9 +60,14 @@ function Treinos() {
         title="Fichas de treino"
         description="Monte as fichas com exercícios, séries, repetições, carga e descanso, e atribua aos alunos."
         actions={
-          <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
-            <Plus size={18} aria-hidden /> Nova ficha
-          </button>
+          <>
+            <button type="button" className="btn btn-outline" onClick={() => setImporting(true)}>
+              Importar planilha
+            </button>
+            <button type="button" className="btn btn-primary" onClick={() => setCreating(true)}>
+              <Plus size={18} aria-hidden /> Nova ficha
+            </button>
+          </>
         }
       />
 
@@ -187,6 +194,8 @@ function Treinos() {
           </Field>
         </form>
       </Modal>
+
+      <ImportWorkouts open={importing} onClose={() => setImporting(false)} />
 
       {removing && (
         <ConfirmDialog
