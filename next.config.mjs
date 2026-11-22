@@ -5,6 +5,10 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/api/gif/[id]": ["./public/exercises/img/**", "./node_modules/geist/dist/fonts/geist-sans/Geist-{Bold,SemiBold,BlackItalic}.ttf"],
   },
+  // A página inicial é a landing estática (public/landing).
+  async rewrites() {
+    return { beforeFiles: [{ source: "/", destination: "/landing/index.html" }] }
+  },
   async headers() {
     return [
       {

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EVOFIT · Treinou? Ele viu.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Abertura escura com a foto e a órbita, mergulho para o claro; celular fixo com telas reais; caixa final com a logo de ponta a ponta. */
+:root{
+  --nevoa:#F3F3F1; --branco:#FFFFFF; --grafite:#1E2224; --texto:#33393B; --sub:#687072; --noite:#08090A; --linha:#E2E3E0;
+  --pet:#46B8BA; --pet-tinta:#0F5257; --menta:#CFEDEC; --areia:#E9E3D6; --gelo:#DDE7EE;
+  --titulo:"Sora",system-ui,sans-serif; --corpo:"Geist",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--nevoa);color:var(--texto);font-family:var(--corpo);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+h1,h2,h3{font-family:var(--titulo);font-weight:700;letter-spacing:-.04em;margin:0;text-wrap:balance;color:var(--grafite)}
+p{margin:0}
+a{color:inherit}
+.wrap{max-width:1140px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sub)}
+.btn{display:inline-flex;align-items:center;justify-content:center;height:54px;padding:0 26px;border-radius:999px;font:700 16px var(--corpo);text-decoration:none;border:0;cursor:pointer;transition:transform .35s cubic-bezier(.2,.9,.3,1.3)}
+.btn:hover{transform:translateY(-2px) scale(1.02)}
+.btn:focus-visible,a:focus-visible,button:focus-visible{outline:3px solid var(--pet);outline-offset:3px}
+.claro{background:#F3F3F1;color:var(--noite)}
+.pet{background:var(--pet);color:#04191A}
+.contorno{background:rgba(8,9,10,.35);color:#F3F3F1;box-shadow:inset 0 0 0 1.5px rgba(243,243,241,.35);backdrop-filter:blur(8px)}
+
+/* ---------- Hero: a foto só aparece por dentro da palavra; a rolagem mergulha pelo "O" ---------- */
+.mergulho{height:320vh;position:relative;background:var(--noite)}
+.palco{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;background:var(--noite)}
+.foto{position:absolute;inset:0;overflow:hidden}
+.foto img{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;object-position:58% 42%;filter:contrast(1.1) saturate(.95) brightness(1.25);will-change:transform}
+.recorte{position:absolute;inset:0;background:#000;mix-blend-mode:multiply;display:grid;place-items:center;will-change:transform}
+.recorte h1{color:#fff;font:800 clamp(64px,19.5vw,330px)/.8 var(--titulo);letter-spacing:-.07em;white-space:nowrap;margin:0;transform:translateY(-4%)}
+.veu{position:absolute;inset:0;background:radial-gradient(70% 60% at 50% 55%,rgba(8,9,10,0),rgba(8,9,10,.75));opacity:0;pointer-events:none}
+.topo{position:absolute;top:20px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 max(20px,4vw);z-index:6}
+.marca{display:flex;align-items:center;gap:10px;font:700 22px var(--titulo);letter-spacing:-.045em;color:#F3F3F1;text-decoration:none}
+.marca svg{width:30px;height:30px;color:var(--pet)}
+.topo .link{color:#CFD3D1;text-decoration:none;font-weight:600;font-size:14px;padding:12px 10px}
+.sobe{position:absolute;left:0;right:0;bottom:clamp(36px,7vh,70px);display:flex;flex-direction:column;align-items:center;gap:10px;color:#9AA19F;font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:5;margin:0}
+.sobe span{width:1.5px;height:30px;background:linear-gradient(#9AA19F,transparent);animation:desce 1.8s ease-in-out infinite}
+@keyframes desce{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+.viu{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:0 max(20px,5vw) clamp(40px,9vh,96px);z-index:5;pointer-events:none}
+.viu h2{color:#F3F3F1;font:800 clamp(64px,14vw,230px)/.82 var(--titulo);letter-spacing:-.07em;opacity:0;transform:translateY(60px)}
+.viu h2 em{font-style:normal;color:var(--pet)}
+.viu .baixo{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:24px;margin-top:28px;opacity:0;transform:translateY(30px);pointer-events:auto}
+.viu .baixo p{color:#D5DAD8;font-size:18px;max-width:38ch}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.notif{position:absolute;top:clamp(84px,14vh,140px);right:max(20px,5vw);width:min(380px,calc(100vw - 40px));display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:24px;background:rgba(243,243,241,.86);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);box-shadow:0 30px 80px rgba(0,0,0,.45);z-index:6;opacity:0;transform:translateY(-30px) scale(.96)}
+.notif .ic{width:44px;height:44px;flex:none;border-radius:13px;background:var(--noite);display:grid;place-items:center}
+.notif .ic svg{width:26px;height:26px;color:var(--pet)}
+.notif b{display:block;font:700 15px var(--corpo);color:var(--grafite)}
+.notif span{display:block;font-size:14px;color:var(--texto);line-height:1.35}
+.notif small{font-size:12px;color:var(--sub)}
+
+/* ---------- Esteira de exercícios ---------- */
+.esteira{overflow:hidden;display:flex;flex-direction:column;gap:12px;padding:36px 0 30px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.fila{display:flex;gap:12px;width:max-content;animation:rola var(--t,60s) linear infinite}
+.fila.rev{animation-direction:reverse}
+.fila:hover{animation-play-state:paused}
+.pilula{flex:none;display:flex;align-items:center;gap:12px;height:62px;padding:0 22px 0 10px;border-radius:999px;background:var(--branco);font:600 16px var(--corpo);color:var(--grafite);box-shadow:0 1px 0 rgba(0,0,0,.04);transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.pilula:hover{transform:translateY(-4px) rotate(-2deg)}
+.pilula img{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#fff;box-shadow:inset 0 0 0 1px var(--linha)}
+@keyframes rola{to{transform:translateX(-50%)}}
+
+/* ---------- Filme: celular parado, as telas trocam com a rolagem ---------- */
+.filme{height:520vh;position:relative}
+.filme-palco{position:sticky;top:0;height:100vh;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:56px;max-width:1140px;margin:0 auto;padding:0 max(20px,4vw)}
+.fone{position:relative;width:min(330px,72vw);aspect-ratio:390/844;border-radius:48px;background:#0b0c0d;padding:11px;box-shadow:0 40px 90px -20px rgba(15,82,87,.35),0 20px 50px rgba(0,0,0,.18);margin-inline:auto;justify-self:center}
+.fone img{position:absolute;inset:11px;width:calc(100% - 22px);height:calc(100% - 22px);object-fit:cover;object-position:top;border-radius:38px;opacity:0;transform:scale(1.05);transition:opacity .6s,transform .9s cubic-bezier(.2,.8,.2,1)}
+.fone img.on{opacity:1;transform:none}
+.textos{position:relative;min-height:380px}
+.cena{position:absolute;top:30px;left:0;right:0;opacity:0;transform:translateY(40px);transition:opacity .5s,transform .8s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;gap:16px}
+.cena.on{opacity:1;transform:none}
+.cena .n{font:700 14px var(--titulo);color:var(--pet-tinta)}
+.cena h2{font-size:clamp(44px,6vw,86px);line-height:.92;letter-spacing:-.06em}
+.cena p{font-size:19px;color:var(--sub);max-width:32ch}
+.trilho{position:absolute;bottom:0;left:0;display:flex;gap:8px}
+.trilho i{width:28px;height:4px;border-radius:9px;background:#D7D9D6;transition:background .4s,width .4s}
+.trilho i.on{background:var(--grafite);width:54px}
+
+/* ---------- Faixas ---------- */
+section.faixa{padding:130px 0 90px}
+.cab{display:flex;flex-direction:column;gap:12px;max-width:680px;margin-bottom:44px}
+.cab h2{font-size:clamp(36px,5vw,64px);line-height:.98;letter-spacing:-.055em}
+.cab p{color:var(--sub);font-size:18px}
+.dois{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cartao{border-radius:32px;padding:34px;display:flex;flex-direction:column;gap:14px;min-width:0;transition:transform .5s cubic-bezier(.2,.9,.3,1.2)}
+.cartao:hover{transform:translateY(-6px) rotate(-.4deg)}
+.cartao h3{font-size:32px;letter-spacing:-.05em}
+.cartao ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:16px}
+.cartao li{display:flex;gap:10px}
+.cartao li::before{content:"";flex:none;width:8px;height:8px;border-radius:9px;background:currentColor;margin-top:9px;opacity:.7}
+.cartao .tag{align-self:flex-start;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--grafite);color:#fff}
+.escuro{background:var(--grafite);color:#E7EAE8}
+.escuro h3{color:#F3F3F1}
+
+.precos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.preco{background:var(--branco);border-radius:30px;padding:30px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.preco.dest{box-shadow:inset 0 0 0 2px var(--grafite)}
+.preco .valor{font:700 48px/1 var(--titulo);letter-spacing:-.05em;color:var(--grafite)}
+.preco .valor small{font:500 15px var(--corpo);color:var(--sub);letter-spacing:0}
+.preco .tag{align-self:flex-start;font-size:12px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--menta);color:var(--pet-tinta)}
+.preco p{font-size:15px;color:var(--sub)}
+.nota{margin-top:18px;font-size:14px;color:var(--sub)}
+
+.faq{display:flex;flex-direction:column;gap:10px;max-width:780px}
+details{background:var(--branco);border-radius:22px;padding:20px 24px}
+summary{cursor:pointer;font-weight:600;font-size:17px;color:var(--grafite);list-style:none;display:flex;justify-content:space-between;gap:16px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";font:600 24px/1 var(--titulo)}
+details[open] summary::after{content:"−"}
+details p{margin-top:10px;color:var(--sub)}
+
+/* ---------- Final: caixa com física, logo de ponta a ponta ---------- */
+.fim{position:relative;height:min(100vh,900px);min-height:640px;background:var(--noite);overflow:hidden}
+.fim-txt{position:absolute;top:clamp(56px,10vh,110px);left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:24px;text-align:center;z-index:2;pointer-events:none;padding:0 20px}
+.fim-txt h2{color:#F3F3F1;font-size:clamp(46px,8vw,120px);line-height:.9;letter-spacing:-.065em}
+.fim-txt h2 em{font-style:normal;color:var(--pet)}
+.fim-txt .ctas{pointer-events:auto}
+.fisica{position:absolute;inset:0;z-index:1;touch-action:pan-y}
+.corpo{position:absolute;left:0;top:0;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;-webkit-user-select:none;will-change:transform}
+.corpo:active{cursor:grabbing}
+.corpo.letra{font:800 100px/1 var(--titulo);letter-spacing:-.04em;color:#F3F3F1}
+.corpo.letra.o{color:var(--pet)}
+.corpo.tl{border-radius:24%}
+.corpo.tl svg{width:60%;height:60%}
+.fim-dica{position:absolute;right:24px;bottom:18px;z-index:2;color:#6F7674;font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+footer{padding:36px 0 52px;font-size:14px;color:var(--sub)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--texto)}
+
+@media (max-width:860px){
+  .filme-palco{grid-template-columns:1fr;grid-template-rows:auto auto;align-content:center;gap:18px}
+  .fone{width:min(220px,54vw)}
+  .textos{min-height:240px;text-align:center}
+  .cena{top:20px;align-items:center}.cena p{font-size:16px;margin-inline:auto}
+  .trilho{left:50%;transform:translateX(-50%)}
+  .dois,.precos{grid-template-columns:1fr}
+  .notif{top:76px;right:20px}
+  .viu .baixo p{font-size:16px}
+  .fim-dica{display:none}
+}
+
+/* ---------- medalhas ---------- */
+.medalhas{height:420vh;position:relative;background:var(--noite);color:#F3F3F1}
+.md-palco{position:sticky;top:0;height:100vh;overflow:hidden;display:grid;place-items:center;perspective:1200px}
+.md-raios{position:absolute;inset:-50%;background:repeating-conic-gradient(from 0deg,rgb(70 184 186/.07) 0 6deg,transparent 6deg 18deg);transform:rotate(calc(var(--p,0)*240deg));opacity:calc(.3 + var(--p,0)*.7);mask:radial-gradient(circle,#000 10%,transparent 60%);-webkit-mask:radial-gradient(circle,#000 10%,transparent 60%)}
+.md-aura{position:absolute;width:70vmin;height:70vmin;border-radius:50%;background:radial-gradient(circle,var(--cor,#46B8BA) 0,transparent 65%);opacity:.35;filter:blur(30px);transition:background .6s}
+.md-anel{position:absolute;width:min(92vmin,820px);height:min(92vmin,820px);transform:rotate(calc(var(--p,0)*-150deg))}
+.md-anel .om{position:absolute;left:50%;top:50%;width:clamp(56px,9vmin,92px);margin:calc(clamp(56px,9vmin,92px)/-2);transform-style:preserve-3d}
+.md-anel .om .in{transform:rotate(calc(var(--p,0)*150deg));transition:filter .5s,transform .6s cubic-bezier(.2,1.6,.4,1),opacity .5s;filter:grayscale(1) brightness(.35);opacity:.6}
+.md-anel .om.on .in{filter:drop-shadow(0 0 18px rgb(255 255 255/.25));opacity:1;transform:rotate(calc(var(--p,0)*150deg)) scale(1.15)}
+.md-centro{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:18px;text-align:center;padding:0 20px}
+.md-grande{width:clamp(170px,30vmin,300px);transform:rotateY(calc(var(--p,0)*1080deg));transform-style:preserve-3d;filter:drop-shadow(0 30px 60px rgb(0 0 0/.6));position:relative}
+.md-grande svg{display:block;width:100%;height:auto}
+.md-grande .flash{position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgb(255 255 255/.75) 50%,transparent 65%);background-size:300% 100%;background-position:calc(var(--p,0)*1200% + 100%) 0;mix-blend-mode:overlay;clip-path:path("M50 4 92 17v37c0 27-19 44-42 55C27 98 8 81 8 54V17Z");pointer-events:none}
+.md-nome{font:800 clamp(30px,5.4vw,72px)/.95 var(--titulo);letter-spacing:-.05em;min-height:1em}
+.md-sub{color:#9AA3A2;font-size:clamp(15px,1.5vw,18px);max-width:440px}
+.md-cont{font:700 13px var(--corpo);letter-spacing:.2em;text-transform:uppercase;color:var(--pet)}
+.md-cont b{font-size:15px;color:#F3F3F1}
+.md-topo{position:absolute;top:clamp(40px,9vh,90px);left:0;right:0;text-align:center;z-index:3;padding:0 20px}
+.md-topo h2{color:#F3F3F1;font-size:clamp(34px,5vw,68px);line-height:.95;letter-spacing:-.055em}
+.md-topo h2 em{font-style:normal;color:var(--pet)}
+.md-faisca{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--cor,#46B8BA);z-index:2;pointer-events:none;animation:fx 1s ease-out forwards}
+@keyframes fx{to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+@media (max-width:700px){.md-anel{width:118vmin;height:118vmin}}
+@media (prefers-reduced-motion:reduce){
+  .mergulho{height:100vh}.filme{height:auto}.fila,.sobe span{animation:none}
+  .viu h2,.viu .baixo,.notif{opacity:1!important;transform:none!important}
+  .recorte{display:none}
+}
+</style>
+</head>
+<body>
+<main>
+<section class="mergulho" id="mergulho" aria-label="Início">
+  <div class="palco">
+    <div class="foto"><img id="foto" src="/landing/img/hero.jpg" alt="Atleta com a barra nas costas, em preto e branco"></div>
+    <div class="recorte" id="recorte"><h1 aria-label="Treinou?">TREIN<span id="oo">O</span>U?</h1></div>
+    <div class="veu" id="veu"></div>
+    <div class="topo">
+      <a class="marca" href="#mergulho" aria-label="EVOFIT, início"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="currentColor"><rect x="0.00" y="35.95" width="13.28" height="3.05" rx="1.53"/><rect x="0.00" y="47.96" width="13.28" height="4.07" rx="2.04"/><rect x="0.00" y="61.00" width="13.28" height="3.05" rx="1.53"/><rect x="17.34" y="22.58" width="13.28" height="3.32" rx="1.66"/><rect x="17.34" y="34.44" width="13.28" height="4.34" rx="2.17"/><rect x="17.34" y="47.32" width="13.28" height="5.36" rx="2.68"/><rect x="17.34" y="61.22" width="13.28" height="4.34" rx="2.17"/><rect x="17.34" y="74.10" width="13.28" height="3.32" rx="1.66"/><rect x="34.69" y="9.03" width="13.28" height="3.59" rx="1.79"/><rect x="34.69" y="20.56" width="13.28" height="4.60" rx="2.30"/><rect x="34.69" y="33.11" width="13.28" height="5.62" rx="2.81"/><rect x="34.69" y="46.68" width="13.28" height="6.64" rx="3.32"/><rect x="34.69" y="61.27" width="13.28" height="5.62" rx="2.81"/><rect x="34.69" y="74.83" width="13.28" height="4.60" rx="2.30"/><rect x="34.69" y="87.38" width="13.28" height="3.59" rx="1.79"/><rect x="52.03" y="9.03" width="13.28" height="3.59" rx="1.79"/><rect x="52.03" y="20.56" width="13.28" height="4.60" rx="2.30"/><rect x="52.03" y="33.11" width="13.28" height="5.62" rx="2.81"/><rect x="52.03" y="46.68" width="13.28" height="6.64" rx="3.32"/><rect x="52.03" y="61.27" width="13.28" height="5.62" rx="2.81"/><rect x="52.03" y="74.83" width="13.28" height="4.60" rx="2.30"/><rect x="52.03" y="87.38" width="13.28" height="3.59" rx="1.79"/><rect x="69.38" y="22.58" width="13.28" height="3.32" rx="1.66"/><rect x="69.38" y="34.44" width="13.28" height="4.34" rx="2.17"/><rect x="69.38" y="47.32" width="13.28" height="5.36" rx="2.68"/><rect x="69.38" y="61.22" width="13.28" height="4.34" rx="2.17"/><rect x="69.38" y="74.10" width="13.28" height="3.32" rx="1.66"/><rect x="86.72" y="35.95" width="13.28" height="3.05" rx="1.53"/><rect x="86.72" y="47.96" width="13.28" height="4.07" rx="2.04"/><rect x="86.72" y="61.00" width="13.28" height="3.05" rx="1.53"/></g></svg>evofit</a>
+      <span><a class="link" href="#precos">Preços</a> <a class="link" href="/entrar">Entrar</a></span>
+    </div>
+    <div class="notif" id="notif" role="status">
+      <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="mchk" maskUnits="userSpaceOnUse" x="-2" y="-2" width="28" height="28"><rect x="-2" y="-2" width="28" height="28" fill="#000"/><circle cx="12" cy="12" r="10" fill="#fff"/><path d="m7.6 12.3 3 3 5.8-6" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></mask></defs><rect x="-2" y="-2" width="28" height="28" fill="currentColor" mask="url(#mchk)"/></svg></span>
+      <span><b>EVOFIT</b><span>Ana terminou o Treino A: 20 de 20 séries, 2 kg a mais no supino.</span><small>agora</small></span>
+    </div>
+    <div class="viu" id="viu">
+      <h2 id="viut">Ele<br><em>viu.</em></h2>
+      <div class="baixo" id="baixo">
+        <p>Seu treino no celular. Seu personal do outro lado. Cada série chega até ele na hora.</p>
+        <div class="ctas"><a class="btn claro" href="/criar-conta">Sou personal</a><a class="btn contorno" href="#pra-quem">Sou aluno</a></div>
+      </div>
+    </div>
+    <p class="sobe" id="sobe">role<span></span></p>
+  </div>
+</section>
+
+<div class="esteira" aria-hidden="true">
+  <div class="fila" id="fila1" style="--t:70s"></div>
+  <div class="fila rev" id="fila2" style="--t:80s"></div>
+</div>
+
+<section class="filme" id="filme" aria-label="Como funciona">
+  <div class="filme-palco">
+    <div class="fone">
+      <img class="on" src="/landing/img/tela-alunohome.jpg" alt="Tela inicial do aluno com o treino do dia">
+      <img src="/landing/img/tela-treino.jpg" alt="Treino em andamento, com séries marcadas e descanso contando">
+      <img src="/landing/img/tela-exercicios.jpg" alt="Biblioteca de exercícios demonstrados">
+      <img src="/landing/img/tela-radar.jpg" alt="Radar de evasão do personal mostrando quem sumiu">
+      <img src="/landing/img/tela-avaliacao.jpg" alt="Gráficos de evolução da avaliação física">
+    </div>
+    <div class="textos">
+      <div class="cena on"><span class="n">01</span><h2>Abriu.<br>Tá lá.</h2><p>O treino do dia, montado pelo seu personal. Com a carga que você usou da última vez.</p></div>
+      <div class="cena"><span class="n">02</span><h2>Um toque.<br>Série feita.</h2><p>O descanso conta sozinho. Você só se preocupa com a próxima.</p></div>
+      <div class="cena"><span class="n">03</span><h2>Esqueceu?<br>Olha aqui.</h2><p>876 exercícios demonstrados. E o vídeo do seu personal, quando ele quiser gravar.</p></div>
+      <div class="cena"><span class="n">04</span><h2>Sumiu?<br>Ele nota.</h2><p>Do outro lado, o personal vê quem está faltando antes que a rotina se perca.</p></div>
+      <div class="cena"><span class="n">05</span><h2>Evoluiu?<br>Tá provado.</h2><p>Carga, medidas e percentual de gordura viram linha. Dá pra ver de onde você saiu.</p></div>
+      <div class="trilho" id="trilho"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</section>
+
+
+<section class="medalhas" id="medalhas" aria-labelledby="md-t">
+  <div class="md-palco" id="mdPalco">
+    <div class="md-raios"></div><div class="md-aura" id="mdAura"></div>
+    <div class="md-topo"><h2 id="md-t">Cada treino<br>vira <em>medalha.</em></h2></div>
+    <div class="md-anel" id="mdAnel"></div>
+    <div class="md-centro">
+      <div class="md-grande" id="mdGrande"><div class="flash"></div></div>
+      <div class="md-cont"><b id="mdN">0</b> de 12 conquistas</div>
+      <div class="md-nome" id="mdNome">Primeiro passo</div>
+      <p class="md-sub" id="mdSub">O primeiro treino concluído. Todo mundo começa aqui.</p>
+    </div>
+  </div>
+</section>
+
+<section class="faixa" id="pra-quem" aria-labelledby="pq-t">
+  <div class="wrap">
+    <div class="cab"><span class="eyebrow">Pra quem é</span><h2 id="pq-t">Um treina. O outro orienta. Os dois no mesmo lugar.</h2></div>
+    <div class="dois">
+      <div class="cartao" style="background:var(--menta);color:var(--pet-tinta)">
+        <span class="tag" style="background:var(--pet-tinta)">Aluno</span>
+        <h3 style="color:var(--pet-tinta)">Você só treina.</h3>
+        <ul><li>A ficha chega pronta do seu personal.</li><li>Marca as séries, o descanso conta sozinho.</li><li>Vê sua evolução em gráfico.</li><li>De graça pra você. Peça o acesso ao seu personal.</li></ul>
+      </div>
+      <div class="cartao escuro">
+        <span class="tag" style="background:var(--pet);color:#04191A">Personal</span>
+        <h3>Você vê tudo.</h3>
+        <ul><li>Monta fichas com 876 exercícios demonstrados.</li><li>Recebe cada treino feito, na hora.</li><li>Radar de quem está sumindo e quanto de mensalidade está em risco.</li><li>Avaliação física com cálculo automático.</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="faixa" id="precos" aria-labelledby="pr-t" style="padding-top:20px">
+  <div class="wrap">
+    <div class="cab"><span class="eyebrow">Preços</span><h2 id="pr-t">Simples assim.</h2></div>
+    <div class="precos">
+      <div class="preco"><span class="eyebrow">Aluno</span><span class="valor">R$ 0</span><p>Quando seu personal usa o EVOFIT, o app é de graça pra você.</p></div>
+      <div class="preco"><span class="eyebrow">Inicial</span><span class="valor">R$ 49,90<small> /mês</small></span><p>Pra personal. Alunos ilimitados. Cancele quando quiser.</p></div>
+      <div class="preco dest"><span class="tag">Anual · economize 20%</span><span class="valor">R$ 479,90<small> /ano</small></span><p>Sai por menos de R$ 40 por mês.</p></div>
+    </div>
+    <p class="nota">7 dias grátis pra testar, sem cartão.</p>
+  </div>
+</section>
+
+<section class="faixa" aria-labelledby="fq-t" style="padding-top:20px">
+  <div class="wrap">
+    <div class="cab"><span class="eyebrow">Dúvidas</span><h2 id="fq-t">Perguntas rápidas.</h2></div>
+    <div class="faq">
+      <details><summary>O aluno precisa pagar?</summary><p>Não. Quem assina é o personal. O aluno usa de graça, pelo celular, sem baixar nada.</p></details>
+      <details><summary>O EVOFIT monta treino sozinho?</summary><p>Não. Quem prescreve é o personal. O EVOFIT organiza, entrega e acompanha.</p></details>
+      <details><summary>Consigo trazer meus alunos de outro app?</summary><p>Sim. Você cadastra os alunos e monta as fichas a partir da biblioteca. A gente te ajuda na mudança.</p></details>
+      <details><summary>Meus dados ficam com quem?</summary><p>Com você. Cada personal só vê os próprios alunos, e cada aluno só vê o que é dele.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="fim" id="fim" aria-labelledby="fim-t">
+  <div class="fim-txt">
+    <h2 id="fim-t">Cada série<br><em>conta.</em></h2>
+    <div class="ctas"><a class="btn pet" href="/criar-conta">Começar 7 dias grátis</a><a class="btn contorno" href="/entrar">Entrar</a></div>
+  </div>
+  <div class="fisica" id="fisica" role="img" aria-label="A palavra evofit e ícones de treino que caem e podem ser arrastados"></div>
+  <p class="fim-dica">arraste e jogue</p>
+</section>
+</main>
+<footer><div class="wrap"><span>© 2026 EVOFIT · <a href="/termos">Termos de uso</a> · <a href="/privacidade">Política de privacidade</a></span><span>Foto: Sven Mieke via <a href="https://unsplash.com/photos/jO6vBWX9h9Y">Unsplash</a></span></div></footer>
+
+<script>
+(function(){
+var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+var $ = function(id){ return document.getElementById(id); };
+var clamp = function(v,a,b){ return Math.max(a,Math.min(b,v)); };
+var ease = function(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; };
+
+/* ícones EVO (os mesmos do app): desenho branco numa máscara, pintado com a cor */
+var EVO = {"Dumbbell": "<rect x=\"2\" y=\"7.5\" width=\"5\" height=\"9\" rx=\"2.4\" fill=\"#fff\"/><rect x=\"17\" y=\"7.5\" width=\"5\" height=\"9\" rx=\"2.4\" fill=\"#fff\"/><rect x=\"6\" y=\"10.8\" width=\"12\" height=\"2.4\" rx=\"1.2\" fill=\"#fff\"/>", "Trophy": "<path d=\"M6.5 2.5h11a1.5 1.5 0 0 1 1.5 1.5v4a7 7 0 0 1-14 0V4a1.5 1.5 0 0 1 1.5-1.5Z\" fill=\"#fff\"/><path d=\"M5.4 5.5H4a2 2 0 0 0 0 4c.8 0 1.4-.2 1.8-.6M18.6 5.5H20a2 2 0 0 1 0 4c-.8 0-1.4-.2-1.8-.6\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M12 15v3\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"6.5\" y=\"18.4\" width=\"11\" height=\"3.6\" rx=\"1.8\" fill=\"#fff\"/>undefined", "Medal": "<path d=\"M8 2.5 12 9l4-6.5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><circle cx=\"12\" cy=\"15\" r=\"7.2\" fill=\"#fff\"/><path d=\"M12 11.8v6.2M9.4 14.6 12 11.8\" fill=\"none\" stroke=\"#000\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Timer": "<circle cx=\"12\" cy=\"13.3\" r=\"8.8\" fill=\"#fff\"/><rect x=\"9\" y=\"1.4\" width=\"6\" height=\"3\" rx=\"1.5\" fill=\"#fff\"/><path d=\"M12 9.2v4.4l2.6 1.7\" fill=\"none\" stroke=\"#000\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Ruler": "<path d=\"M3.4 15.7 15.7 3.4a2 2 0 0 1 2.8 0l2.1 2.1a2 2 0 0 1 0 2.8L8.3 20.6a2 2 0 0 1-2.8 0l-2.1-2.1a2 2 0 0 1 0-2.8Z\" fill=\"#fff\"/><path d=\"M8.5 11.5l1.6 1.6M11.5 8.5l1.6 1.6M14.5 5.5l1.6 1.6\" fill=\"none\" stroke=\"#000\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Activity": "<path d=\"M2.5 12h4l3-7 5 14 3-7h4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Flag": "<path d=\"M5 21.5V3.5\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"M6.5 3h11.6c1 0 1.6 1.1 1 1.9L16.8 8l2.3 3.1c.6.8 0 1.9-1 1.9H6.5Z\" fill=\"#fff\"/>", "CalendarCheck": "<rect x=\"2.8\" y=\"4.4\" width=\"18.4\" height=\"17.6\" rx=\"5.5\" fill=\"#fff\"/><path d=\"M8 2.5v4M16 2.5v4\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><path d=\"m8.6 15 2.2 2.2 4.6-4.6\" fill=\"none\" stroke=\"#000\" stroke-width=\"2.4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Radar": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#fff\"/><circle cx=\"12\" cy=\"12\" r=\"6.4\" fill=\"#000\"/>", "BadgeCheck": "<path d=\"M12 1.8 14.6 4l3.4-.3.8 3.3 3 1.7-1.4 3.1 1.4 3.1-3 1.7-.8 3.3-3.4-.3L12 22.2 9.4 20l-3.4.3-.8-3.3-3-1.7L3.6 12 2.2 8.9l3-1.7.8-3.3 3.4.3Z\" fill=\"#fff\"/><path d=\"m8 12.2 2.8 2.8L16 9.6\" fill=\"none\" stroke=\"#000\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Users": "<circle cx=\"8.8\" cy=\"8\" r=\"4.3\" fill=\"#fff\"/><path d=\"M8.8 13.6c4.3 0 7.3 2.4 7.3 5.4 0 1.2-.9 2-2 2H3.5c-1.1 0-2-.8-2-2 0-3 3-5.4 7.3-5.4Z\" fill=\"#fff\"/><circle cx=\"17.3\" cy=\"6.6\" r=\"3.2\" fill=\"#fff\"/><path d=\"M17.6 11.6c3 0 5 1.7 5 4 0 .9-.6 1.5-1.5 1.5h-3.3c-.2-2.2-1.2-4.1-2.8-5.3.8-.1 1.6-.2 2.6-.2Z\" fill=\"#fff\"/>", "PlayCircle": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#fff\"/><path d=\"M9.8 7.9v8.2c0 .9 1 1.4 1.7.9l6-4.1c.6-.4.6-1.4 0-1.8l-6-4.1c-.7-.5-1.7 0-1.7.9Z\" fill=\"#000\"/>", "Clock": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#fff\"/><path d=\"M12 7v5l3 2\" fill=\"none\" stroke=\"#000\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Video": "<rect x=\"1.5\" y=\"5\" width=\"15\" height=\"14\" rx=\"5\" fill=\"#fff\"/><path d=\"M17.5 10.5 21 8.3c.7-.4 1.5.1 1.5.9v5.6c0 .8-.8 1.3-1.5.9l-3.5-2.2Z\" fill=\"#fff\"/>", "CheckCircle2": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#fff\"/><path d=\"m7.6 12.3 3 3 5.8-6\" fill=\"none\" stroke=\"#000\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "UserRound": "<circle cx=\"12\" cy=\"7.6\" r=\"5\" fill=\"#fff\"/><path d=\"M12 13.5c5.2 0 8.8 2.8 8.8 6.2 0 1.3-1 2.3-2.3 2.3H5.5c-1.3 0-2.3-1-2.3-2.3 0-3.4 3.6-6.2 8.8-6.2Z\" fill=\"#fff\"/>", "Kettlebell": "<path d=\"M5.4 10.6V8a5.2 5.2 0 0 1 5.2-5.2h2.8A5.2 5.2 0 0 1 18.6 8v2.6Z\" fill=\"#fff\"/><path d=\"M5.6 10.6c1.6-1.1 3.8-1.7 6.4-1.7s4.8.6 6.4 1.7c1.3 1.1 2 2.8 2 4.8v1.6a4.6 4.6 0 0 1-4.6 4.6H8.2A4.6 4.6 0 0 1 3.6 17v-1.6c0-2 .7-3.7 2-4.8Z\" fill=\"#fff\"/><path d=\"M8 9.9V8.6a2.5 2.5 0 0 1 2.5-2.5h3A2.5 2.5 0 0 1 16 8.6v1.3c-1.2-.4-2.5-.6-4-.6s-2.8.2-4 .6Z\" fill=\"#000\"/>", "Barbell": "<rect x=\"1.6\" y=\"6.5\" width=\"3.4\" height=\"11\" rx=\"1.6\" fill=\"#fff\"/><rect x=\"5.4\" y=\"8.5\" width=\"2.4\" height=\"7\" rx=\"1.2\" fill=\"#fff\"/><rect x=\"16.2\" y=\"8.5\" width=\"2.4\" height=\"7\" rx=\"1.2\" fill=\"#fff\"/><rect x=\"19\" y=\"6.5\" width=\"3.4\" height=\"11\" rx=\"1.6\" fill=\"#fff\"/><rect x=\"7\" y=\"10.9\" width=\"10\" height=\"2.2\" rx=\"1.1\" fill=\"#fff\"/>", "WeightPlate": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#fff\"/><circle cx=\"12\" cy=\"12\" r=\"2.2\" fill=\"#000\"/><rect x=\"8\" y=\"4.4\" width=\"8\" height=\"2.6\" rx=\"1.3\" fill=\"#000\"/><rect x=\"8\" y=\"17\" width=\"8\" height=\"2.6\" rx=\"1.3\" fill=\"#000\"/>", "Bench": "<rect x=\"2.2\" y=\"6.5\" width=\"19.6\" height=\"4.4\" rx=\"2.2\" fill=\"#fff\"/><rect x=\"5\" y=\"10\" width=\"2.8\" height=\"8\" rx=\"1.4\" fill=\"#fff\"/><rect x=\"16.2\" y=\"10\" width=\"2.8\" height=\"8\" rx=\"1.4\" fill=\"#fff\"/><rect x=\"3.2\" y=\"16.8\" width=\"6.4\" height=\"2.8\" rx=\"1.4\" fill=\"#fff\"/><rect x=\"14.4\" y=\"16.8\" width=\"6.4\" height=\"2.8\" rx=\"1.4\" fill=\"#fff\"/>", "JumpRope": "<rect x=\"3\" y=\"2\" width=\"4\" height=\"8\" rx=\"2\" fill=\"#fff\"/><rect x=\"17\" y=\"2\" width=\"4\" height=\"8\" rx=\"2\" fill=\"#fff\"/><path d=\"M5 10v3.2a7 7 0 0 0 14 0V10\" fill=\"none\" stroke=\"#fff\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "MedicineBall": "<circle cx=\"12\" cy=\"12\" r=\"9.4\" fill=\"#fff\"/><path d=\"M3.4 9.6c5.8 2 11.4 2 17.2 0M3.4 14.4c5.8-2 11.4-2 17.2 0\" fill=\"none\" stroke=\"#000\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "Shaker": "<rect x=\"7\" y=\"2\" width=\"10\" height=\"4.2\" rx=\"1.8\" fill=\"#fff\"/><path d=\"M6.6 7.4h10.8l-1.1 12.6a2.2 2.2 0 0 1-2.2 2H9.9a2.2 2.2 0 0 1-2.2-2Z\" fill=\"#fff\"/><rect x=\"9\" y=\"12\" width=\"6\" height=\"2.8\" rx=\"1.4\" fill=\"#000\"/>", "PlyoBox": "<path d=\"M2.5 8.2 5.6 3.4A2 2 0 0 1 7.3 2.5h9.4a2 2 0 0 1 1.7.9l3.1 4.8v11.3a2.5 2.5 0 0 1-2.5 2.5H5a2.5 2.5 0 0 1-2.5-2.5Z\" fill=\"#fff\"/><path d=\"M3 8.4h18\" fill=\"none\" stroke=\"#000\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/><rect x=\"8.6\" y=\"12.4\" width=\"6.8\" height=\"3.6\" rx=\"1.8\" fill=\"#000\"/>", "YogaMat": "<circle cx=\"7.2\" cy=\"14.8\" r=\"5\" fill=\"#fff\"/><rect x=\"7.2\" y=\"9.8\" width=\"14\" height=\"10\" rx=\"2\" fill=\"#fff\"/><circle cx=\"7.2\" cy=\"14.8\" r=\"2\" fill=\"#000\"/><path d=\"M12.6 9.8v10\" fill=\"none\" stroke=\"#000\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>", "PullUpBar": "<rect x=\"1.6\" y=\"3.6\" width=\"20.8\" height=\"3.2\" rx=\"1.6\" fill=\"#fff\"/><rect x=\"5\" y=\"5\" width=\"3\" height=\"16\" rx=\"1.5\" fill=\"#fff\"/><rect x=\"16\" y=\"5\" width=\"3\" height=\"16\" rx=\"1.5\" fill=\"#fff\"/>", "Sneaker": "<path d=\"M1.8 14.2c0-3.4.9-6.9 2.6-8.4l2.4 1.7c1.6 1.1 3.4 1.1 4.8-.1l1.2-1 4.8 4.4c2.8.5 4.6 1.8 4.6 4.6v1.8a2.4 2.4 0 0 1-2.4 2.4H4.2a2.4 2.4 0 0 1-2.4-2.4Z\" fill=\"#fff\"/><rect x=\"1\" y=\"15.3\" width=\"22\" height=\"1.8\" rx=\"0.9\" fill=\"#000\"/>", "Bottle": "<path d=\"M9.3 1.8h5.4v2.4l1.5 2.4c.4.7.7 1.5.7 2.3V19a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V8.9c0-.8.3-1.6.7-2.3l1.6-2.4Z\" fill=\"#fff\"/><rect x=\"7.4\" y=\"11.2\" width=\"9.2\" height=\"4.2\" rx=\"1.2\" fill=\"#000\"/>", "Flame": "<path d=\"M12 1.8c.7 3.1 4.3 5.1 6.1 8.7 1.6 3.1.8 7.2-2.4 9.4-1.1.8-2.4 1.3-3.7 1.3s-2.6-.5-3.7-1.3c-3.2-2.2-4-6.3-2.4-9.4.7-1.4 1.8-2.4 2.7-3.6.4 1.5 1.1 2.4 2 3-.3-3.3.4-6 1.4-8.1Z\" fill=\"#fff\"/><path d=\"M12 12.8c1.7 1.5 2.7 2.8 2.7 4.4a2.7 2.7 0 0 1-5.4 0c0-1.6 1-2.9 2.7-4.4Z\" fill=\"#000\"/>", "Heart": "<path d=\"M12 21.2c-.4 0-.8-.1-1.2-.4C6.4 17.2 2.3 13.8 2.3 9.3 2.3 6.3 4.7 3.8 7.6 3.8c1.8 0 3.4.9 4.4 2.3 1-1.4 2.6-2.3 4.4-2.3 2.9 0 5.3 2.5 5.3 5.5 0 4.5-4.1 7.9-8.5 11.5-.4.3-.8.4-1.2.4Z\" fill=\"#fff\"/>undefined"};
+var PAL = [["#CFEDEC","#0F5257"],["#46B8BA","#04191A"],["#E9E3D6","#5B4A2E"],["#DDE7EE","#2C4A63"],["#1E2224","#46B8BA"]];
+var uid = 0;
+function icon(name, fg){ var id="m"+(uid++); return '<svg viewBox="0 0 24 24" aria-hidden="true"><defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="-2" y="-2" width="28" height="28"><rect x="-2" y="-2" width="28" height="28" fill="#000"/>'+EVO[name]+'</mask></defs><rect x="-2" y="-2" width="28" height="28" fill="'+fg+'" mask="url(#'+id+')"/></svg>'; }
+var NAMES = ["Kettlebell", "Dumbbell", "Barbell", "WeightPlate", "MedicineBall", "Trophy", "JumpRope", "Shaker", "Medal", "PlyoBox", "Bench", "Timer", "Sneaker", "Flame", "YogaMat", "Bottle", "PullUpBar"];
+
+/* ---------- esteira: cada exercício com a própria foto do catálogo ---------- */
+var EX = [["Agachamento","Barbell_Squat"],["Supino reto","Barbell_Bench_Press_-_Medium_Grip"],["Levantamento terra","Barbell_Deadlift"],["Remada curvada","Bent_Over_Barbell_Row"],["Prancha","Plank"],["Leg press 45°","Leg_Press"],["Desenvolvimento","Dumbbell_Shoulder_Press"],["Puxada frontal","Wide-Grip_Lat_Pulldown"],["Elevação pélvica","Barbell_Hip_Thrust"],["Avanço","Dumbbell_Lunges"],["Rosca direta","Barbell_Curl"],["Tríceps na polia","Triceps_Pushdown"],["Stiff","Stiff-Legged_Barbell_Deadlift"],["Panturrilha","Standing_Calf_Raises"],["Flexão","Pushups"],["Supino com halteres","Dumbbell_Bench_Press"]];
+function filaHTML(off){ var h="", list=EX.slice(off).concat(EX.slice(0,off)); for (var k=0;k<2;k++) list.forEach(function(e){ h+='<span class="pilula"><img src="/exercises/img/'+e[1]+'-0.webp" alt="" loading="lazy">'+e[0]+'</span>'; }); return h; }
+$("fila1").innerHTML = filaHTML(0); $("fila2").innerHTML = filaHTML(8);
+
+/* ---------- hero: mergulho pelo "O" ---------- */
+var recorte = $("recorte"), oo = $("oo"), mx=.5, my=.5;
+addEventListener("pointermove", function(e){ mx=e.clientX/innerWidth; my=e.clientY/innerHeight; });
+function origemO(){ var t=recorte.style.transform; recorte.style.transform="none"; var r=oo.getBoundingClientRect(), p=recorte.getBoundingClientRect(); recorte.style.transformOrigin=(r.left-p.left+r.width*.14)+"px "+(r.top-p.top+r.height*.5)+"px"; recorte.style.transform=t; }
+origemO(); addEventListener("resize", origemO); if (document.fonts && document.fonts.ready) document.fonts.ready.then(origemO);
+
+/* ---------- filme ---------- */
+var imgs = document.querySelectorAll(".fone img"), cenas = document.querySelectorAll(".cena"), trilho = $("trilho").children, atual = 0;
+function cena(n){ if (n===atual) return; atual=n; for (var k=0;k<cenas.length;k++){ cenas[k].classList.toggle("on",k===n); imgs[k].classList.toggle("on",k===n); trilho[k].classList.toggle("on",k===n); } }
+function prog(el){ var r=el.getBoundingClientRect(); return clamp(-r.top/(r.height-innerHeight),0,1); }
+
+/* ---------- final: física de caixas com a logo de ponta a ponta ---------- */
+var fis = $("fisica"), B = [], drag = null, caiu = false, FW = 0, FH = 0;
+function montar(){
+  fis.innerHTML = ""; B = [];
+  var r = fis.getBoundingClientRect(); FW = r.width; FH = r.height;
+  var letras = "evofit".split(""), WR = {e:.62,v:.62,o:.64,f:.42,i:.3,t:.44};
+  var soma = letras.reduce(function(a,c){ return a+WR[c]; },0);
+  var S = (FW*.98)/soma; // a palavra ocupa a largura toda
+  var x = FW*.01;
+  letras.forEach(function(c,i){
+    var w = WR[c]*S, h = S*.74;
+    var el = document.createElement("div"); el.className = "corpo letra"+(c==="o"?" o":""); el.textContent = c;
+    el.style.fontSize = S+"px"; el.style.width = w+"px"; el.style.height = h+"px"; el.style.lineHeight = h+"px";
+    fis.appendChild(el);
+    B.push({el:el,x:x,y:-h-i*h*.35-200,w:w,h:h,vx:0,vy:0,rot:(i%2?1:-1)*8,vr:0,m:2});
+    x += w;
+  });
+  var n = FW < 700 ? 18 : 36, t = Math.max(46, Math.min(80, FW/20));
+  for (var k=0;k<n;k++){
+    var p=PAL[k%PAL.length], el2=document.createElement("div"); el2.className="corpo tl"; el2.style.background=p[0]; el2.style.width=t+"px"; el2.style.height=t+"px"; el2.innerHTML=icon(NAMES[k%NAMES.length],p[1]);
+    fis.appendChild(el2);
+    B.push({el:el2,x:Math.random()*(FW-t),y:-1100-k*55,w:t,h:t,vx:(Math.random()-.5)*200,vy:0,rot:Math.random()*40-20,vr:(Math.random()-.5)*90,m:1});
+  }
+  B.forEach(function(b){
+    b.el.addEventListener("pointerdown", function(e){ e.preventDefault(); b.el.setPointerCapture(e.pointerId); var rr=fis.getBoundingClientRect(); drag={b:b,ox:e.clientX-rr.left-b.x,oy:e.clientY-rr.top-b.y,lx:e.clientX,ly:e.clientY,t:performance.now()}; });
+    b.el.addEventListener("pointermove", function(e){ if(!drag||drag.b!==b) return; var rr=fis.getBoundingClientRect(), now=performance.now(), dt=Math.max(8,now-drag.t)/1000; b.vx=(e.clientX-drag.lx)/dt; b.vy=(e.clientY-drag.ly)/dt; b.x=e.clientX-rr.left-drag.ox; b.y=e.clientY-rr.top-drag.oy; b.rot=clamp(b.vx*.02,-30,30); drag.lx=e.clientX; drag.ly=e.clientY; drag.t=now; });
+    var up=function(){ if(drag&&drag.b===b){ b.vx=clamp(b.vx,-3200,3200); b.vy=clamp(b.vy,-3200,3200); b.vr=b.vx*.08; drag=null; } };
+    b.el.addEventListener("pointerup", up); b.el.addEventListener("pointercancel", up);
+  });
+  if (reduce){ var xx=FW*.01; B.forEach(function(b){ if (b.m===2){ b.x=xx; xx+=b.w; b.y=FH-b.h; b.rot=0; } else { b.y=FH-B[0].h-b.h; b.rot=0; } }); desenhar(); }
+}
+function fisica(dt){
+  var g = 2600;
+  B.forEach(function(b){
+    if (drag && drag.b===b) return;
+    b.vy += g*dt; b.x += b.vx*dt; b.y += b.vy*dt; b.rot += b.vr*dt;
+    if (b.x<0){ b.x=0; b.vx=Math.abs(b.vx)*.5; }
+    if (b.x+b.w>FW){ b.x=FW-b.w; b.vx=-Math.abs(b.vx)*.5; }
+    if (b.y+b.h>FH){ b.y=FH-b.h; b.vy=Math.abs(b.vy)>220?-b.vy*.32:0; b.vx*=.86; b.vr*=.7; b.rot*=.82; }
+  });
+  for (var it=0; it<3; it++) for (var a=0;a<B.length;a++) for (var c=a+1;c<B.length;c++){
+    var A=B[a], C=B[c];
+    var ox=Math.min(A.x+A.w,C.x+C.w)-Math.max(A.x,C.x), oy=Math.min(A.y+A.h,C.y+C.h)-Math.max(A.y,C.y);
+    if (ox>0 && oy>0){
+      var fa = drag&&drag.b===A ? 0 : C.m/(A.m+C.m), fc = drag&&drag.b===C ? 0 : A.m/(A.m+C.m);
+      if (drag&&drag.b===A) fc=1; if (drag&&drag.b===C) fa=1;
+      if (ox<oy){ var d=(A.x+A.w/2)<(C.x+C.w/2)?-1:1; A.x+=d*ox*fa; C.x-=d*ox*fc; var v=(A.vx+C.vx)/2; A.vx=v; C.vx=v; }
+      else { var top=A.y<C.y?A:C, bot=top===A?C:A, ft=top===A?fa:fc, fb=top===A?fc:fa; top.y-=oy*ft; bot.y+=oy*fb; if (top.vy>0) top.vy=0; top.vx*=.92; top.vr*=.6; }
+    }
+  }
+}
+function desenhar(){ B.forEach(function(b){ b.el.style.transform="translate("+b.x.toFixed(1)+"px,"+b.y.toFixed(1)+"px) rotate("+b.rot.toFixed(1)+"deg)"; }); }
+montar();
+var rz; addEventListener("resize", function(){ clearTimeout(rz); rz=setTimeout(function(){ montar(); caiu=false; },250); });
+
+/* ---------- laço ---------- */
+var last = performance.now(), T = 0;
+function loop(now){
+  var dt = Math.min(.033,(now-last)/1000); last=now; T+=dt;
+  // hero: a palavra cresce pelo "O" até a foto tomar a tela
+  var hp = prog($("mergulho"));
+  if (!reduce && hp < 1){
+    var z = ease(clamp(hp/.55,0,1));
+    var ro = 1-clamp((hp-.36)/.14,0,1);
+    recorte.style.transform = "scale("+(1+Math.pow(z,2.2)*24).toFixed(3)+")";
+    recorte.style.opacity = ro; recorte.style.visibility = ro>0 ? "visible" : "hidden";
+    $("foto").style.transform = "scale("+(1.12-z*.08)+") translate("+((mx-.5)*-18)+"px,"+((my-.5)*-12)+"px)";
+    $("veu").style.opacity = clamp((hp-.5)/.15,0,1);
+    $("sobe").style.opacity = 1-clamp(hp*6,0,1);
+    var v = ease(clamp((hp-.55)/.18,0,1)), n = ease(clamp((hp-.68)/.14,0,1));
+    $("viut").style.opacity = v; $("viut").style.transform = "translateY("+((1-v)*60)+"px)";
+    $("baixo").style.opacity = v; $("baixo").style.transform = "translateY("+((1-v)*30)+"px)";
+    $("notif").style.opacity = n; $("notif").style.transform = "translateY("+((1-n)*-30)+"px) scale("+(.96+.04*n)+")";
+  }
+  // filme
+  var fp = prog($("filme")); cena(Math.min(4, Math.floor(fp*5)));
+  // final
+  var fr = $("fim").getBoundingClientRect();
+  if (!caiu && fr.top < innerHeight*.6){ caiu = true; }
+  if (caiu && !reduce && fr.bottom > -100 && fr.top < innerHeight+100){ fisica(dt); desenhar(); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+</script>
+
+<script>
+(function(){
+var MT={bronze:["#f2c29a","#c27a48","#6e3a1c"],prata:["#ffffff","#c9ced4","#5f666e"],ouro:["#fff1b0","#e6b422","#7d5800"],petroleo:["#c8f1f1","#46b8ba","#083032"]};
+var MS=[["Primeiro passo","bronze","1º","O primeiro treino concluído. Todo mundo começa aqui."],["Pegou o ritmo","prata","4","Quatro semanas sem furar. Virou hábito."],["10 treinos","bronze","10","Dez vezes que você apareceu."],["Recorde","ouro","PR","Bateu sua melhor carga. O app registrou."],["Madrugador","prata","7h","Treinou antes das sete. Respeito."],["Coruja","bronze","21h","Treinou depois das nove. Ninguém segura."],["Volta por cima","petroleo","↺","Sumiu, voltou e não parou mais."],["10 toneladas","prata","10t","Somando tudo, você já levantou dez toneladas."],["Mês completo","ouro","30","Trinta dias seguidos de treino."],["Imparável","ouro","12","Doze semanas sem quebrar a sequência."],["100 treinos","ouro","100","Cem treinos. Isso já é outra pessoa."],["Lenda","petroleo","52","Um ano inteiro de treino. Lenda."]];
+var uid=0;
+function shield(t,g){var c=MT[t],id="md"+(uid++);return '<svg viewBox="0 0 100 112" aria-hidden="true"><defs><linearGradient id="'+id+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="'+c[0]+'"/><stop offset=".5" stop-color="'+c[1]+'"/><stop offset="1" stop-color="'+c[2]+'"/></linearGradient></defs><path d="M50 4 92 17v37c0 27-19 44-42 55C27 98 8 81 8 54V17Z" fill="'+c[2]+'"/><path d="M50 8 88 20v34c0 24-17 40-38 50C29 94 12 78 12 54V20Z" fill="url(#'+id+')"/><path d="M50 14 82 24v30c0 20-14 34-32 42C32 88 18 74 18 54V24Z" fill="none" stroke="'+c[2]+'" stroke-opacity=".35" stroke-width="1.5"/><text x="50" y="'+(g.length>2?63:66)+'" text-anchor="middle" font-family="Sora,system-ui,sans-serif" font-weight="800" font-size="'+(g.length>2?26:32)+'" fill="'+c[2]+'">'+g+'</text></svg>';}
+var sec=document.getElementById("medalhas"),palco=document.getElementById("mdPalco"),anel=document.getElementById("mdAnel"),gr=document.getElementById("mdGrande"),nome=document.getElementById("mdNome"),sub=document.getElementById("mdSub"),nN=document.getElementById("mdN"),aura=document.getElementById("mdAura");
+var oms=MS.map(function(m,i){var a=i/MS.length*Math.PI*2,d=document.createElement("div");d.className="om";d.style.transform="translate("+(Math.cos(a)*50)+"%,0)";d.innerHTML='<div class="in">'+shield(m[1],m[2])+'</div>';anel.appendChild(d);return {el:d,a:a};});
+function pos(){var R=anel.offsetWidth/2;oms.forEach(function(o){o.el.style.transform="translate3d("+(Math.cos(o.a)*R)+"px,"+(Math.sin(o.a)*R)+"px,0)";});}
+pos();addEventListener("resize",pos);
+var atual=-1,flash=gr.querySelector(".flash");
+function mostra(i){if(i===atual)return;atual=i;var m=MS[Math.max(0,i)];gr.innerHTML=shield(m[1],m[2]);gr.appendChild(flash);nome.textContent=m[0];sub.textContent=m[3];nN.textContent=Math.max(0,i+1);aura.style.setProperty("--cor",MT[m[1]][1]);palco.style.setProperty("--cor",MT[m[1]][1]);
+  oms.forEach(function(o,k){o.el.classList.toggle("on",k<=i);});
+  if(i>=0&&!matchMedia("(prefers-reduced-motion: reduce)").matches){for(var k=0;k<18;k++){var f=document.createElement("i");f.className="md-faisca";var a=Math.random()*Math.PI*2,r=120+Math.random()*220;f.style.left="50%";f.style.top="50%";f.style.setProperty("--dx",Math.cos(a)*r+"px");f.style.setProperty("--dy",Math.sin(a)*r+"px");palco.appendChild(f);setTimeout(f.remove.bind(f),1100);}}}
+function tick(){var r=sec.getBoundingClientRect(),p=Math.min(1,Math.max(0,-r.top/(r.height-innerHeight)));palco.style.setProperty("--p",p.toFixed(4));if(r.top<innerHeight&&r.bottom>0)mostra(Math.min(MS.length-1,Math.floor(p*MS.length*1.02)));}
+mostra(0);addEventListener("scroll",tick,{passive:true});tick();
+})();
+</script>
+</body>
+</html>
