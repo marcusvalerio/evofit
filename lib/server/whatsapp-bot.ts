@@ -94,7 +94,7 @@ export const MSG = {
   newSubscription: (email: string, plan: string) => `💰 *EVOFIT* · Nova assinatura: ${plan}\nConta: ${email}`,
   paymentFailed: (email: string) => `⚠️ *EVOFIT* · Pagamento pendente\nConta: ${email}`,
   newSignup: (name: string, email: string) => `🆕 *EVOFIT* · Novo personal cadastrado\n${name} (${email})`,
-  welcome: (name: string) => `Olá, ${name}! 👋 Bem-vindo(a) ao *EVOFIT*. Seus 7 dias grátis já começaram: cadastre seus alunos, monte as fichas e libere o app pra eles. Qualquer dúvida, é só responder aqui.`,
+  welcome: (name: string) => `Olá, ${name}! 👋 Bem-vindo(a) ao *EVOFIT*. Seu plano grátis já está ativo, com tudo liberado para até 2 alunos: cadastre seus alunos, monte as fichas e libere o app pra eles. Qualquer dúvida, é só responder aqui.`,
   trialEnding: (name: string, days: number) => `Oi, ${name}! Seu teste grátis do *EVOFIT* acaba em ${days} dia${days > 1 ? "s" : ""}. Pra continuar sem perder nada, escolha seu plano em Studio → Plano. 💪`,
   trialEnded: (name: string) => `Oi, ${name}! Seu teste grátis do *EVOFIT* terminou. Seus dados e os dos seus alunos estão guardados: escolha um plano em Studio → Plano pra voltar a usar.`,
 }

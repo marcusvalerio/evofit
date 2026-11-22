@@ -64,7 +64,7 @@ export function replyFor(intent: Intent, name: string, first: boolean): string {
 ✅ *App do aluno* grátis, pelo celular, sem baixar nada
 ✅ Seu perfil na busca de personais, pra *novos alunos te acharem*
 
-Quer ver na prática? Cria sua conta e testa *7 dias grátis*, sem cartão:
+Quer ver na prática? Cria sua conta e testa grátis com 2 alunos e tudo liberado, sem cartão:
 👉 ${signup()}`
     case "planos":
       return `Os planos do *EVOFIT* (alunos ilimitados em todos):
@@ -73,7 +73,7 @@ Quer ver na prática? Cria sua conta e testa *7 dias grátis*, sem cartão:
 • *Anual*: ${brl(PLANS.anual.amount)}/ano (sai ≈ R$ 39,99/mês)
 • *Vitalício*: ${brl(PLANS.vitalicio.amount)} uma única vez, no Pix 🔥
 
-O aluno usa de graça. E você começa com *7 dias grátis*, sem cartão:
+O aluno usa de graça. E você começa grátis com 2 alunos e tudo liberado, sem cartão:
 👉 ${signup()}
 
 Tem um *código Fundador*? Ele dá o Anual por ${brl(PLANS.fundador.amount)} com 3 meses de bônus. Quer que eu te explique o Vitalício? Responde *4*.`
@@ -84,7 +84,7 @@ Tem um *código Fundador*? Ele dá o Anual por ${brl(PLANS.fundador.amount)} com
 2. Coloca nome, e-mail e senha
 3. Cadastra seu primeiro aluno e monta a ficha
 
-São *7 dias grátis*, sem cartão. Se travar em qualquer passo, me chama aqui que eu te ajudo.`
+É grátis com até 2 alunos, sem cartão. Se travar em qualquer passo, me chama aqui que eu te ajudo.`
     case "vitalicio":
       return `O *Vitalício* é a oferta de lançamento 🔥
 
@@ -99,11 +99,11 @@ As vagas são limitadas. Já avisei a equipe e vamos te mandar a chave Pix por a
     case "aluno":
       return `Pro aluno é *grátis* 🎉 Ele treina pelo celular, sem baixar nada: vê a ficha do dia, a demonstração de cada exercício, marca as séries e o descanso conta sozinho. Tudo que ele faz aparece na hora pra você.
 
-Quem assina é o personal. Quer testar 7 dias grátis? 👉 ${signup()}`
+Quem assina é o personal. Quer testar grátis com 2 alunos? 👉 ${signup()}`
     case "migrar":
       return `Dá pra trocar sem dor de cabeça 💪 Você cria sua conta, cadastra os alunos e a gente te ajuda a passar as fichas. E no EVOFIT você ganha o que os apps comuns não têm: radar de evasão, mapa de equilíbrio da ficha e perfil na busca de personais.
 
-Testa 7 dias grátis lado a lado: 👉 ${signup()}
+Testa grátis com 2 alunos, lado a lado: 👉 ${signup()}
 Quer ajuda da equipe pra migrar? Responde *5*.`
     case "obrigado":
       return `Eu que agradeço${oi}! 🙌 Qualquer dúvida é só chamar. Seu teste grátis te espera: ${signup()}`

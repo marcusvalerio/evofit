@@ -53,13 +53,10 @@ export async function statusFor(q: Queryable, trainerId: string): Promise<Billin
 
 /** Regra de acesso a partir da linha de billing e da data de cadastro (sem consultar o banco). */
 export function computeStatus(b: Row | undefined, createdAt: unknown, now = Date.now()): BillingStatus {
-  const extra = Number(b?.trial_extra_days ?? 0)
-  const trialEnd = createdAt ? new Date(new Date(createdAt as string).getTime() + (TRIAL_DAYS + extra) * 86400_000) : null
   const status = (b?.status as BillingStatus["status"]) ?? "none"
   const lifetime = !!b?.lifetime
   const periodEnd = asIso(b?.current_period_end)
   const manualUntil = asIso(b?.manual_until)
-  const inTrial = !!trialEnd && trialEnd.getTime() > now
   const manual = b?.source === "manual" && !!manualUntil && Date.parse(manualUntil) > now
   const paid = lifetime || manual || status === "active" || status === "past_due" || (status === "canceled" && !!periodEnd && Date.parse(periodEnd) > now)
   return {
@@ -68,11 +65,18 @@ export function computeStatus(b: Row | undefined, createdAt: unknown, now = Date
     lifetime,
     source: b?.source === "manual" ? "manual" : "stripe",
     currentPeriodEnd: b?.source === "manual" ? manualUntil : periodEnd,
-    trialEndsAt: trialEnd?.toISOString() ?? null,
-    inTrial,
-    hasAccess: paid || inTrial,
+    // Plano grátis: sem prazo; o limite é de alunos (FREE_MAX_STUDENTS), aplicado ao salvar.
+    trialEndsAt: null,
+    inTrial: !paid,
+    paid,
+    hasAccess: true,
     stripeReady: stripeReady(),
   }
+}
+
+/** O personal tem plano pago? Sem isso, vale o limite do plano grátis. */
+export async function trainerIsPaid(trainerId: string, db: Db = getDb()) {
+  return db.tx(async (q) => (await statusFor(q, trainerId)).paid)
 }
 
 /** O personal pode usar o Studio? Admins sempre podem. */

@@ -5,7 +5,7 @@ import { BadgeCheck, Check, ExternalLink, Info } from "@/components/icons"
 import { Field, Modal, PageHeader, cx } from "@/components/ui"
 import { useDemoState } from "@/lib/store"
 import { postJson } from "@/lib/account-client"
-import { PLANS, TRIAL_DAYS, brl, type BillingStatus, type Plan, type PlanId } from "@/lib/plans"
+import { PLANS, FREE_MAX_STUDENTS, brl, type BillingStatus, type Plan, type PlanId } from "@/lib/plans"
 
 const dmy = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(iso))
 const per = (p: Plan) => (p.interval === "month" ? "/mês" : p.interval === "year" ? (p.bonusMonths ? ` por ${12 + p.bonusMonths} meses` : "/ano") : " pagamento único")
@@ -121,9 +121,7 @@ function Plano() {
                   ? `Plano ${current.name}: pagamento pendente. Atualize o cartão para não perder o acesso.`
                   : current && status.status === "canceled"
                     ? `Plano ${current.name} cancelado${status.currentPeriodEnd ? ` · acesso até ${dmy(status.currentPeriodEnd)}` : ""}.`
-                    : status.inTrial && status.trialEndsAt
-                      ? `Teste grátis até ${dmy(status.trialEndsAt)}. Escolha um plano para continuar depois disso.`
-                      : "Seu teste grátis terminou. Escolha um plano para continuar usando o Studio."}
+                    : `Plano grátis: tudo liberado para até ${FREE_MAX_STUDENTS} alunos ativos. Os planos para mais alunos chegam em breve.`}
           </p>
           {!status.stripeReady && <p className="mt-2 text-sm text-warning">Os pagamentos ainda não foram configurados neste ambiente.</p>}
           {subscribed && !status.lifetime && status.source !== "manual" && (
@@ -135,7 +133,7 @@ function Plano() {
       )}
       {!isAccount && (
         <p className="card mb-6 flex items-center gap-2 p-4 text-sm text-muted">
-          <Info size={18} aria-hidden /> Você está na demonstração. Crie sua conta para testar {TRIAL_DAYS} dias grátis e assinar.
+          <Info size={18} aria-hidden /> Você está na demonstração. Crie sua conta e teste grátis com até {FREE_MAX_STUDENTS} alunos.
         </p>
       )}
 
@@ -191,7 +189,7 @@ function Plano() {
       )}
       {subscribed && !status?.lifetime && <p className="mt-3 text-sm text-muted">Para trocar de plano ou cancelar, use “Gerenciar assinatura”.</p>}
       <p className="mt-6 text-xs text-muted">
-        Pagamento processado pelo Stripe. {TRIAL_DAYS} dias grátis ao criar a conta, sem cartão. Assinaturas renovam automaticamente e podem ser canceladas a qualquer momento.
+        Pagamento processado pelo Stripe. Plano grátis com até {FREE_MAX_STUDENTS} alunos, sem cartão. Assinaturas renovam automaticamente e podem ser canceladas a qualquer momento.
       </p>
 
       <Modal

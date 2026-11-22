@@ -30,7 +30,10 @@ export const PLANS: Record<PlanId, Plan> = {
 
 export const PLAN_IDS = Object.keys(PLANS) as PlanId[]
 export const isPlanId = (v: unknown): v is PlanId => typeof v === "string" && v in PLANS
+/** Antigo teste de 7 dias: mantido só para o histórico do admin. */
 export const TRIAL_DAYS = 7
+/** Plano grátis: todas as funções liberadas, até este número de alunos ativos. */
+export const FREE_MAX_STUDENTS = 2
 
 export const brl = (cents: number) => (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 
@@ -43,6 +46,8 @@ export interface BillingStatus {
   currentPeriodEnd: string | null
   trialEndsAt: string | null
   inTrial: boolean
+  /** Tem plano pago (assinatura, vitalício ou liberação manual). Sem isso, vale o plano grátis. */
+  paid: boolean
   /** Pode usar o Studio (assinatura ativa, vitalício ou dentro do teste). */
   hasAccess: boolean
   stripeReady: boolean

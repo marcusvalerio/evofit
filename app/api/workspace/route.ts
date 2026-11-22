@@ -1,6 +1,6 @@
 import { withTenant } from "@/lib/server/db"
 import { isAdmin } from "@/lib/server/admin"
-import { trainerHasAccess } from "@/lib/server/billing"
+import { trainerHasAccess, trainerIsPaid } from "@/lib/server/billing"
 import { assertSameOrigin, handle, json, readJson, requireAccount } from "@/lib/server/http"
 import { applyChanges, loadWorkspace } from "@/lib/server/workspace"
 import type { Account } from "@/lib/server/auth"
@@ -27,6 +27,8 @@ export const PATCH = handle(async (req) => {
   if (a.role === "trainer" && !isAdmin(a) && !(await trainerHasAccess(a.trainerId)))
     throw new HttpError(402, "Seu teste grátis terminou. Escolha um plano em Studio → Plano para continuar.")
   const body = await readJson(req, 1024 * 1024)
-  await withTenant(tenant(a), (q) => applyChanges(q, tenant(a), (body.changes ?? {}) as Changes))
+  const changes = (body.changes ?? {}) as Changes
+  const paid = a.role === "trainer" && changes.students?.upsert.length ? await trainerIsPaid(a.trainerId as string) : undefined
+  await withTenant(tenant(a), (q) => applyChanges(q, tenant(a), changes, { paid }))
   return json({ ok: true })
 })
