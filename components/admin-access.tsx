@@ -631,3 +631,69 @@ export function SalesLeads() {
     </section>
   )
 }
+
+type ErrRow = { fingerprint: string; source: string; route: string; message: string; stack: string; count: number; firstAt: string; lastAt: string }
+
+/** Erros do sistema (servidor e navegador), agrupados. */
+export function ErrorsPanel() {
+  const toast = useToast()
+  const [errs, setErrs] = useState<ErrRow[] | null>(null)
+  const load = useCallback(async () => {
+    const r = await fetch("/api/admin/errors", { credentials: "same-origin", cache: "no-store" }).catch(() => null)
+    if (r?.ok) setErrs(((await r.json()) as { errors: ErrRow[] }).errors)
+  }, [])
+  useEffect(() => {
+    const t = setTimeout(load, 0)
+    return () => clearTimeout(t)
+  }, [load])
+  const resolve = async (fingerprint: string) => {
+    const r = await postJson("/api/admin/errors", { fingerprint }).catch(() => null)
+    if (!r?.ok) toast("Sem conexão.", "info")
+    await load()
+  }
+  return (
+    <section aria-labelledby="err-title" className="card p-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 id="err-title" className="t-h2 flex items-center gap-2">
+          <Activity size={18} aria-hidden /> Erros do sistema
+        </h2>
+        {!!errs?.length && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => void resolve("*")}>
+            Limpar tudo
+          </button>
+        )}
+      </div>
+      <p className="text-sm text-muted">Falhas no servidor e no navegador dos usuários, agrupadas. Para saber se o site caiu, cadastre {`/api/health`} num monitor grátis (ex.: UptimeRobot).</p>
+      {!errs ? (
+        <div className="skeleton mt-3 h-16" role="status" aria-label="Carregando" />
+      ) : errs.length === 0 ? (
+        <p className="mt-3 text-sm text-primary">Nenhum erro registrado. 🎉</p>
+      ) : (
+        <ul className="mt-3 grid max-h-96 gap-2 overflow-y-auto">
+          {errs.map((e) => (
+            <li key={e.fingerprint} className="rounded-xl border border-line p-3 text-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold break-words">{e.message}</p>
+                  <p className="text-muted">
+                    <span className="badge mr-1">{e.source}</span>
+                    {e.route || "—"} · {e.count}× · último {ddmm(e.lastAt)}
+                  </p>
+                </div>
+                <button type="button" className="btn btn-ghost btn-sm shrink-0" onClick={() => void resolve(e.fingerprint)}>
+                  Resolvido
+                </button>
+              </div>
+              {e.stack && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer text-xs text-muted">Detalhes técnicos</summary>
+                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap text-[11px] text-muted">{e.stack}</pre>
+                </details>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  )
+}

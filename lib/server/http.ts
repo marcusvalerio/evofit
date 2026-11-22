@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { accountFromToken, SESSION_DAYS, type Account } from "./auth"
 import { DbNotConfigured, dbConfigured } from "./db"
 import { HttpError, toHttp } from "./workspace"
+import { logError } from "./monitor"
 
 export const SESSION_COOKIE = "evofit_session"
 /** Cookie legível pelo navegador só para saber que existe uma conta logada (não dá acesso a nada). */
@@ -69,6 +70,8 @@ export function handle(fn: (req: Request, ctx: { params: Promise<Record<string, 
       const e = toHttp(raw, "operação")
       if (e instanceof HttpError) return json({ error: e.message, fields: (e as HttpError & { fields?: unknown }).fields }, e.status)
       console.error(raw)
+      const err = raw instanceof Error ? raw : new Error(String(raw))
+      await logError({ source: "servidor", route: `${req.method} ${new URL(req.url).pathname}`, message: err.message, stack: err.stack })
       return json({ error: "Erro inesperado. Tente novamente." }, 500)
     }
   }

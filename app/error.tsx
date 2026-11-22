@@ -3,11 +3,13 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { resetDemo } from "@/lib/store"
 import { useDemoEnabled } from "@/components/providers"
+import { reportError } from "@/components/error-reporter"
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const demo = useDemoEnabled()
   useEffect(() => {
     console.error(error)
+    reportError(error.message, error.stack ?? "")
   }, [error])
   return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">

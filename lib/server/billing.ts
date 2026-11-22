@@ -4,7 +4,8 @@ import { PLANS, TRIAL_DAYS, isPlanId, type BillingStatus } from "../plans"
 import type { Account } from "./auth"
 import { getDb, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
-import { MSG, notifyAdmin } from "./whatsapp-bot"
+import { MSG, notifyAdmin, trainerContact } from "./whatsapp-bot"
+import { EMAILS, sendLifecycleEmail } from "./email"
 
 /**
  * Cobrança com Stripe Checkout (assinaturas e pagamento único) e portal do cliente.
@@ -269,7 +270,12 @@ export async function handleEvent(event: Stripe.Event, db: Db = getDb()) {
     const n = notice as { kind: "nova_assinatura" | "pagamento_pendente"; trainerId: string; plan?: string; ref?: string }
     const u = await db.tx((q) => q.query<{ email: string | null }>("select email from users where trainer_id = $1 and role = 'trainer' limit 1", [n.trainerId]))
     const email = u.rows[0]?.email ?? n.trainerId
-    if (n.kind === "nova_assinatura") await notifyAdmin(MSG.newSubscription(email, isPlanId(n.plan) ? PLANS[n.plan].name : "assinatura"), n.kind, "", db)
+    if (n.kind === "nova_assinatura") {
+      const planName = isPlanId(n.plan) ? PLANS[n.plan].name : "assinatura"
+      await notifyAdmin(MSG.newSubscription(email, planName), n.kind, "", db)
+      const c = await trainerContact(n.trainerId, db)
+      await sendLifecycleEmail(email, "assinatura", n.plan === "vitalicio" ? EMAILS.lifetime(c.name) : EMAILS.subscribed(c.name, planName), event.id, db)
+    }
     else await notifyAdmin(MSG.paymentFailed(email), n.kind, n.ref ?? "", db)
   }
 }

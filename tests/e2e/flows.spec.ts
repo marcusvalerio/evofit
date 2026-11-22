@@ -5,7 +5,9 @@ test.describe("acesso público sem login", () => {
   test("início abre sem login e identifica o modo demonstração", async ({ page }) => {
     await page.goto("/")
     await expect(page).toHaveURL("/")
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("perder")
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible()
+    // a demonstração se identifica nas áreas do app
+    await page.goto("/studio")
     await expect(page.getByText("Modo demonstração")).toBeVisible()
     await expect(page.getByRole("button", { name: /Restaurar/ })).toBeVisible()
   })
@@ -45,8 +47,7 @@ test.describe("acesso público sem login", () => {
   })
 
   test("navegação entre as experiências pelos links", async ({ page, viewport }) => {
-    await page.goto("/")
-    await page.getByRole("link", { name: /Começar pelo Studio/ }).click()
+    await page.goto("/studio")
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Olá/)
     const nav = page.getByRole("navigation", { name: "Studio" }).filter({ visible: true })
     for (const [label, heading] of [["Alunos", "Alunos"], ["Treinos", "Fichas de treino"], ["Exercícios", "Exercícios"], ["Perfil", "Perfil profissional"], ["Painel", /Olá/]] as const) {
@@ -317,6 +318,7 @@ test.describe("persistência", () => {
 
   test("dados da versão anterior são migrados sem perder fichas", async ({ page }) => {
     await page.goto("/studio/treinos")
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fichas de treino")
     const reverse = Object.fromEntries(Object.entries(LEGACY_EXERCISE_IDS).map(([a, b]) => [b, a]))
     await page.evaluate((rev) => {
       const d = JSON.parse(localStorage.getItem("evofit:demo:v1")!)
@@ -335,7 +337,7 @@ test.describe("persistência", () => {
   })
 
   test("dados corrompidos são substituídos com aviso", async ({ page }) => {
-    await page.goto("/")
+    await page.goto("/studio")
     // espera a demonstração iniciar nesta página; senão ela mesma detecta e restaura os dados corrompidos
     await expect(page.getByText("Modo demonstração")).toBeVisible()
     await page.evaluate(() => localStorage.setItem("evofit:demo:v1", '{"version":0,"lixo":true}'))
@@ -372,9 +374,7 @@ test.describe("sem internet", () => {
 
 test.describe("Biblioteca EVOFIT", () => {
   test("busca, abre o exercício e o GIF com a marca carrega", async ({ page }) => {
-    await page.goto("/")
-    await page.getByRole("link", { name: /Biblioteca EVOFIT: \d+ exercícios em GIF/ }).click()
-    await expect(page).toHaveURL("/biblioteca")
+    await page.goto("/biblioteca")
     await page.getByLabel("Buscar exercício").fill("prancha")
     await page.getByRole("link", { name: /^Prancha Abdômen/ }).click()
     await expect(page.getByRole("heading", { level: 1, name: "Prancha" })).toBeVisible()

@@ -148,6 +148,8 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
     return { token: await createSession(q, userId), role: "trainer" as const }
   })
   await notifyAdmin(MSG.newSignup(name, email), "novo_cadastro", "", db)
+  const { EMAILS, sendLifecycleEmail } = await import("./email")
+  await sendLifecycleEmail(email, "boas_vindas", EMAILS.welcome(name.split(" ")[0]), email, db)
   return created
 }
 

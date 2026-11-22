@@ -17,6 +17,14 @@ async function signup(page: Page, name: string, email: string) {
   await page.getByLabel(/Sou responsável pelos dados/).check()
   await page.getByRole("button", { name: "Criar conta" }).click()
   await expect(page).toHaveURL("/studio")
+  // boas-vindas da conta nova: perfil, primeiro aluno (pula) e plano
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Vamos deixar tudo pronto")
+  await page.getByLabel("Cidade").fill("Natal")
+  await page.getByLabel("UF").fill("RN")
+  await page.getByRole("button", { name: "Continuar" }).click()
+  await page.getByRole("button", { name: "Pular por agora" }).click()
+  await page.getByRole("button", { name: "Começar a usar" }).click()
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/Olá/)
   await expect(page.getByText("Conta de personal")).toBeVisible()
 }
 
@@ -134,6 +142,7 @@ test.describe("conta real", () => {
     await del.getByLabel(/Digite .* para confirmar/).fill(email)
     await del.getByRole("button", { name: "Excluir tudo" }).click()
     await expect(page).toHaveURL("/")
+    await page.goto("/studio")
     await expect(page.getByText("Modo demonstração")).toBeVisible()
     const r = await page.request.post("/api/auth/login", { data: { email: `aluno-${email}`, password: PASSWORD } })
     expect(r.status()).toBe(401)
@@ -144,10 +153,11 @@ test.describe("conta real", () => {
     await signup(page, "Lia Personal", email)
     await page.getByRole("button", { name: "Sair" }).first().click()
     await expect(page).toHaveURL("/")
+    await page.goto("/studio")
     await expect(page.getByText("Modo demonstração")).toBeVisible()
 
     await page.goto("/entrar")
-    await page.getByLabel("E-mail").fill(email)
+    await page.getByLabel("E-mail ou usuário").fill(email)
     await page.getByLabel("Senha", { exact: true }).fill("senha-errada-000")
     await page.getByRole("button", { name: "Entrar" }).click()
     await expect(page.getByRole("alert").filter({ hasText: "Usuário, e-mail ou senha incorretos." })).toBeVisible()
@@ -250,7 +260,10 @@ test.describe("administração", () => {
     await expect(tr.getByText("Modo demonstração").first()).toBeVisible()
     await tr.goto("/entrar")
     await tr.getByText("Esqueci minha senha").click()
-    await expect(tr.getByText(/fale com o suporte do EVOFIT/)).toBeVisible()
+    await tr.getByLabel("E-mail da sua conta").fill(email)
+    await tr.getByRole("button", { name: /Enviar link para criar nova senha/ }).click()
+    // sem e-mail configurado (testes), a tela orienta procurar o suporte
+    await expect(tr.getByText(/Fale com o suporte do EVOFIT/)).toBeVisible()
     await tr.getByLabel("E-mail ou usuário").fill(email)
     await tr.getByLabel("Senha", { exact: true }).fill(temp)
     await tr.getByRole("button", { name: "Entrar" }).click()

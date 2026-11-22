@@ -1,5 +1,6 @@
 import { getDb, withTenant, type Db } from "./db"
 import { computeStatus } from "./billing"
+import { EMAILS, sendLifecycleEmail } from "./email"
 
 /**
  * Mensagens automáticas de WhatsApp pela Evolution API (código aberto, roda num servidor seu).
@@ -123,17 +124,13 @@ export async function trialReminders(db: Db = getDb(), now = Date.now()) {
     if (paid || !st.trialEndsAt) continue
     const left = (Date.parse(st.trialEndsAt) - now) / 86400_000
     const id = String(r.trainer_id)
-    let kind = "", text = ""
+    const ending = left > 0 && left <= 2
+    if (!ending && !(left <= 0 && left > -2)) continue
     const c = await trainerContact(id, db)
-    if (!c.whatsapp) continue
-    if (left > 0 && left <= 2) {
-      kind = "teste_acabando"
-      text = MSG.trialEnding(c.name, Math.ceil(left))
-    } else if (left <= 0 && left > -2) {
-      kind = "teste_acabou"
-      text = MSG.trialEnded(c.name)
-    } else continue
-    if ((await sendWhatsApp(c.whatsapp, text, kind, `${id}:${st.trialEndsAt.slice(0, 10)}`, db)) === "enviado") sent++
+    const kind = ending ? "teste_acabando" : "teste_acabou"
+    const ref = `${id}:${st.trialEndsAt.slice(0, 10)}`
+    if (c.whatsapp && (await sendWhatsApp(c.whatsapp, ending ? MSG.trialEnding(c.name, Math.ceil(left)) : MSG.trialEnded(c.name), kind, ref, db)) === "enviado") sent++
+    if (c.email && (await sendLifecycleEmail(c.email, kind, ending ? EMAILS.trialEnding(c.name, Math.ceil(left)) : EMAILS.trialEnded(c.name), ref, db)) === "enviado") sent++
   }
   return { checked: rows.length, sent }
 }
