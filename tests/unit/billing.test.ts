@@ -8,6 +8,7 @@ import * as Billing from "@/lib/server/billing"
 import * as Admin from "@/lib/server/admin"
 import * as Bot from "@/lib/server/whatsapp-bot"
 import * as Sales from "@/lib/server/sales-bot"
+import * as Email from "@/lib/server/email"
 import { withTenant } from "@/lib/server/db"
 import { PLANS } from "@/lib/plans"
 
@@ -53,7 +54,7 @@ const fake = {
 let n = 0
 const event = (type: string, object: unknown) => ({ id: `evt_${++n}`, type, data: { object } }) as unknown as Stripe.Event
 async function trainer(email: string) {
-  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1" }, db)
+  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 const sub = (id: string, customer: string, meta: Record<string, string>) =>
@@ -341,5 +342,55 @@ describe("vendedor automático no WhatsApp", () => {
     expect(m).toMatchObject({ number: "5521955556666", name: "Ana", text: "preço?", fromMe: false })
     expect(Sales.parseEvolution({ event: "messages.upsert", data: { key: { remoteJid: "123@g.us" }, message: { conversation: "x" } } })).toBeNull()
     expect(Sales.parseEvolution({ event: "connection.update", data: {} })).toBeNull()
+  })
+})
+
+describe("exclusão de conta com assinatura", () => {
+  it("cancela a assinatura no Stripe antes de apagar a conta", async () => {
+    const a = await trainer("apagar@evofit.app")
+    await Billing.startCheckout(a, { plan: "inicial" }, "https://app.test", db)
+    const p = calls.sessions.at(-1) as { customer: string }
+    sub("sub_del", p.customer, { trainer_id: a.trainerId, plan: "inicial" })
+    await Billing.handleEvent(event("checkout.session.completed", { mode: "subscription", subscription: "sub_del", customer: p.customer, metadata: { trainer_id: a.trainerId, plan: "inicial" } }), db)
+    calls.cancels = []
+    await Auth.deleteAccount(a, db)
+    expect(calls.cancels).toEqual(["sub_del"])
+    expect((await db.tx((q) => q.query("select 1 from billing where trainer_id = $1", [a.trainerId]))).rows).toHaveLength(0)
+    expect(await Auth.accountFromToken("x", db)).toBeNull()
+  })
+})
+
+describe("esqueci minha senha (e-mail)", () => {
+  const mails: { to: string[]; text: string }[] = []
+  it("sem e-mail configurado, orienta o suporte", async () => {
+    delete process.env.RESEND_API_KEY
+    expect(await Auth.requestPasswordReset("x@y.com", "https://app.test", db)).toEqual({ emailEnabled: false })
+  })
+  it("manda o link, cria a nova senha uma vez e derruba as sessões antigas", async () => {
+    Object.assign(process.env, { RESEND_API_KEY: "re_x", EMAIL_FROM: "EVOFIT <a@evofit.test>" })
+    Email.setEmailFetch((async (_u: string, init: RequestInit) => (mails.push(JSON.parse(String(init.body))), new Response("{}"))) as unknown as typeof fetch)
+    await trainer("reset@evofit.app")
+    const old = (await Auth.login({ email: "reset@evofit.app", password: "senha-segura-1" }, db))!.token
+    expect(await Auth.requestPasswordReset("ninguem@evofit.app", "https://app.test", db)).toEqual({ emailEnabled: true })
+    expect(mails).toHaveLength(0)
+    await Auth.requestPasswordReset("Reset@evofit.app", "https://app.test", db)
+    expect(mails[0].to).toEqual(["reset@evofit.app"])
+    const token = decodeURIComponent(mails[0].text.match(/token=([^\s]+)/)![1])
+    await expect(Auth.resetPassword(token, "curta", db)).rejects.toMatchObject({ status: 400 })
+    const r = await Auth.resetPassword(token, "nova-senha-123", db)
+    expect(await Auth.accountFromToken(r.token, db)).not.toBeNull()
+    expect(await Auth.accountFromToken(old, db)).toBeNull()
+    expect(await Auth.login({ email: "reset@evofit.app", password: "nova-senha-123" }, db)).not.toBeNull()
+    await expect(Auth.resetPassword(token, "outra-senha-123", db)).rejects.toMatchObject({ status: 400 })
+  })
+})
+
+describe("termos de uso no cadastro", () => {
+  it("exige o aceite e grava a versão aceita", async () => {
+    await expect(Auth.signupTrainer({ name: "Sem Aceite", email: "semaceite@evofit.app", password: "senha-segura-1" }, db)).rejects.toMatchObject({ status: 400, fields: { accept: expect.any(String) } })
+    await trainer("comaceite@evofit.app")
+    const r = (await db.tx((q) => q.query<{ terms_accepted_at: unknown; terms_version: string }>("select terms_accepted_at, terms_version from users where email = 'comaceite@evofit.app'"))).rows[0]
+    expect(r.terms_accepted_at).toBeTruthy()
+    expect(r.terms_version).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 })

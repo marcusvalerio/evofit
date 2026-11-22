@@ -25,6 +25,8 @@ export function PublicShell({ children }: { children: React.ReactNode }) {
           { href: "/criar-conta", label: "Criar conta" },
         ]),
     { href: "/biblioteca", label: "Biblioteca de exercícios" },
+    { href: "/termos", label: "Termos de Uso" },
+    { href: "/privacidade", label: "Privacidade" },
   ]
   return (
     <div className="flex min-h-dvh flex-col">

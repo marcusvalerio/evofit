@@ -24,7 +24,7 @@ export default function CriarContaPage() {
     if (Object.keys(f).length) return
     setBusy(true)
     setError(null)
-    const r = await postJson("/api/auth/signup", v).catch(() => null)
+    const r = await postJson("/api/auth/signup", { ...v, acceptTerms: accept }).catch(() => null)
     if (r?.ok) return hardNavigate("/studio")
     setBusy(false)
     setFields(r?.data.fields ?? {})
@@ -54,7 +54,17 @@ export default function CriarContaPage() {
         <PasswordField value={v.password} onChange={(password) => setV({ ...v, password })} error={fields.password} autoComplete="new-password" hint="Mínimo de 8 caracteres." />
         <label className="flex cursor-pointer items-start gap-3 text-sm">
           <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-[var(--primary)]" checked={accept} onChange={(e) => setAccept(e.target.checked)} aria-invalid={fields.accept ? true : undefined} />
-          <span>Sou responsável pelos dados dos meus alunos cadastrados aqui e só os incluirei com o consentimento deles.</span>
+          <span>
+            Li e aceito os{" "}
+            <Link href="/termos" target="_blank" className="font-semibold text-accent underline">
+              Termos de Uso
+            </Link>{" "}
+            e a{" "}
+            <Link href="/privacidade" target="_blank" className="font-semibold text-accent underline">
+              Política de Privacidade
+            </Link>
+            . Sou responsável pelos dados dos meus alunos e só os incluirei com o consentimento deles.
+          </span>
         </label>
         {fields.accept && <p className="field-error -mt-2">{fields.accept}</p>}
         <FormError message={error} />

@@ -46,7 +46,7 @@ const expectStatus = async (p: Promise<unknown>, status: number) => {
 }
 
 async function signup(name: string, email: string) {
-  const { token } = await Auth.signupTrainer({ name, email, password: "senha-segura-1" }, db)
+  const { token } = await Auth.signupTrainer({ name, email, password: "senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 
@@ -55,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -73,7 +73,7 @@ describe("banco: migrações e contas", () => {
     expect(await Auth.login({ email: "ANA@exemplo.com", password: "senha-segura-1" }, db)).toMatchObject({ role: "trainer" })
     expect(await Auth.login({ email: "ana@exemplo.com", password: "outra-senha" }, db)).toBeNull()
     expect(await Auth.login({ email: "ninguem@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
-    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "senha-segura-1" }, db), 409)
+    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "senha-segura-1", acceptTerms: true }, db), 409)
     await expectStatus(Auth.signupTrainer({ name: "X", email: "invalido", password: "123" }, db), 400)
   })
 

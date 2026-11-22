@@ -3,6 +3,8 @@ import { promisify } from "node:util"
 import { affected, getDb, withTenant, type Db, type Queryable } from "./db"
 import { HttpError } from "./workspace"
 import { MSG, notifyAdmin, sendWhatsApp, trainerContact } from "./whatsapp-bot"
+import { cancelBillingForDeletion } from "./billing"
+import { LEGAL } from "../legal"
 
 const scrypt = promisify(scryptCb) as (pw: string, salt: Buffer, len: number, opts: { N: number; r: number; p: number; maxmem: number }) => Promise<Buffer>
 
@@ -122,10 +124,11 @@ export async function logout(token: string | undefined, db: Db = getDb()) {
 
 /* ---------- Cadastro e login ---------- */
 
-export async function signupTrainer(input: { name: unknown; email: unknown; password: unknown }, db: Db = getDb()) {
+export async function signupTrainer(input: { name: unknown; email: unknown; password: unknown; acceptTerms?: unknown }, db: Db = getDb()) {
   const errors: Record<string, string> = { ...validateCredentials(input.email, input.password) }
   const name = typeof input.name === "string" ? input.name.trim() : ""
   if (name.length < 2 || name.length > 80) errors.name = "Informe seu nome (2 a 80 caracteres)."
+  if (input.acceptTerms !== true) errors.accept = "Aceite os Termos de Uso e a Política de Privacidade para continuar."
   if (Object.keys(errors).length) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: errors })
   const email = String(input.email).trim().toLowerCase()
   const hash = await hashPassword(String(input.password))
@@ -141,7 +144,7 @@ export async function signupTrainer(input: { name: unknown; email: unknown; pass
     await q.query("insert into trainers (id, slug, name) values ($1, $2, $3)", [trainerId, slug, name])
     await q.query("reset role")
     const userId = randomUUID()
-    await q.query("insert into users (id, email, password_hash, role, trainer_id) values ($1, $2, $3, 'trainer', $4)", [userId, email, hash, trainerId])
+    await q.query("insert into users (id, email, password_hash, role, trainer_id, terms_accepted_at, terms_version) values ($1, $2, $3, 'trainer', $4, now(), $5)", [userId, email, hash, trainerId, LEGAL.version])
     return { token: await createSession(q, userId), role: "trainer" as const }
   })
   await notifyAdmin(MSG.newSignup(name, email), "novo_cadastro", "", db)
@@ -354,6 +357,8 @@ export async function acceptInvite(code: string, input: { email: unknown; passwo
 
 export async function deleteAccount(account: Account, db: Db = getDb()) {
   if (account.role === "trainer") {
+    // primeiro para a cobrança (se falhar, nada é apagado)
+    await cancelBillingForDeletion(account.trainerId, db)
     // apaga o personal e, em cascata, alunos, fichas, sessões, convites e todos os logins vinculados
     await withTenant({ role: "trainer", trainerId: account.trainerId }, (q) => q.query("delete from trainers where id = $1", [account.trainerId]), db)
     await db.tx(async (q) => {
@@ -372,4 +377,55 @@ export async function finishOnboarding(account: Account, db: Db = getDb()) {
   await db.tx((q) => q.query("update users set onboarded_at = coalesce(onboarded_at, now()) where id = $1", [account.userId]))
   const c = await trainerContact(account.trainerId, db)
   if (c.whatsapp) await sendWhatsApp(c.whatsapp, MSG.welcome(c.name), "boas_vindas", account.trainerId, db)
+}
+
+/* ---------- Recuperação de senha por e-mail ---------- */
+
+const RESET_MINUTES = 60
+
+/**
+ * Pede o link de nova senha. Sempre responde igual (não revela se o e-mail existe).
+ * Só contas com e-mail (personal ou aluno que cadastrou e-mail) recebem o link.
+ */
+export async function requestPasswordReset(email: unknown, origin: string, db: Db = getDb()) {
+  const { emailConfigured, resetEmail, sendEmail } = await import("./email")
+  if (!emailConfigured()) return { emailEnabled: false }
+  const e = typeof email === "string" ? email.trim().toLowerCase().slice(0, 254) : ""
+  if (!e.includes("@")) return { emailEnabled: true }
+  const token = newToken()
+  const ok = await db.tx(async (q) => {
+    const u = (await q.query<{ id: string }>("select id from users where lower(email) = $1 and disabled_at is null", [e])).rows[0]
+    if (!u) return false
+    await q.query("delete from password_resets where user_id = $1", [u.id])
+    await q.query("insert into password_resets (token_hash, user_id, expires_at) values ($1, $2, now() + make_interval(mins => $3))", [hashToken(token), u.id, RESET_MINUTES])
+    return true
+  })
+  if (ok) {
+    const m = resetEmail(`${origin}/redefinir-senha?token=${encodeURIComponent(token)}`)
+    await sendEmail(e, m.subject, m.html, m.text)
+  }
+  return { emailEnabled: true }
+}
+
+/** Cria a nova senha com o link do e-mail. Encerra todas as sessões e já entra. */
+export async function resetPassword(token: unknown, password: unknown, db: Db = getDb()) {
+  if (typeof token !== "string" || token.length < 20 || token.length > 100) throw new HttpError(400, "Link inválido ou vencido. Peça um novo.")
+  const pw = typeof password === "string" ? password : ""
+  const err = validateCredentials("a@b.co", pw).password
+  if (err) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: { password: err } })
+  const hash = await hashPassword(pw)
+  return db.tx(async (q) => {
+    const r = (
+      await q.query<{ user_id: string; role: Account["role"] }>(
+        `select p.user_id, u.role from password_resets p join users u on u.id = p.user_id
+         where p.token_hash = $1 and p.used_at is null and p.expires_at > now() and u.disabled_at is null`,
+        [hashToken(token)],
+      )
+    ).rows[0]
+    if (!r) throw new HttpError(400, "Link inválido ou vencido. Peça um novo.")
+    await q.query("update password_resets set used_at = now() where token_hash = $1", [hashToken(token)])
+    await q.query("update users set password_hash = $2, must_change_password = false where id = $1", [r.user_id, hash])
+    await q.query("delete from auth_sessions where user_id = $1", [r.user_id])
+    return { token: await createSession(q, r.user_id, "Nova senha"), role: r.role }
+  })
 }

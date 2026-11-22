@@ -6,7 +6,7 @@ export const POST = handle(async (req) => {
   assertSameOrigin(req)
   const body = await readJson(req, 4096)
   if (!(await throttle(`signup:${clientIp(req)}`, 10, 60))) throw new HttpError(429, "Muitas tentativas. Aguarde alguns minutos.")
-  const { token, role } = await signupTrainer({ name: body.name, email: body.email, password: body.password })
+  const { token, role } = await signupTrainer({ name: body.name, email: body.email, password: body.password, acceptTerms: body.acceptTerms })
   await setSessionCookie(token)
   return json({ ok: true, role })
 })
