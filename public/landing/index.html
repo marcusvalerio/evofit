@@ -31,16 +31,16 @@ a{color:inherit}
 .contorno{background:rgba(8,9,10,.35);color:#F3F3F1;box-shadow:inset 0 0 0 1.5px rgba(243,243,241,.35);backdrop-filter:blur(8px)}
 
 /* ---------- Hero: a foto só aparece por dentro da palavra; a rolagem mergulha pelo "O" ---------- */
-.mergulho{height:320vh;position:relative;background:var(--noite)}
+.mergulho{height:220vh;position:relative;background:var(--noite)}
 .palco{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden;background:var(--noite)}
 .foto{position:absolute;inset:0;overflow:hidden}
-.foto img{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;object-position:58% 42%;filter:contrast(1.1) saturate(.95) brightness(1.25);will-change:transform}
-.recorte{position:absolute;inset:0;background:#000;mix-blend-mode:multiply;display:grid;place-items:center;will-change:transform}
-.recorte h1{color:#fff;font:800 clamp(64px,19.5vw,330px)/.8 var(--titulo);letter-spacing:-.07em;white-space:nowrap;margin:0;transform:translateY(-4%)}
+.foto canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.recorte{position:absolute;inset:0;background:radial-gradient(60% 40% at 50% 50%,rgb(8 9 10/.75),transparent);display:grid;place-items:center;will-change:transform}
+.recorte h1{color:#F3F3F1;font:800 clamp(64px,19.5vw,330px)/.8 var(--titulo);letter-spacing:-.07em;white-space:nowrap;margin:0;transform:translateY(-4%)}
 .veu{position:absolute;inset:0;background:radial-gradient(70% 60% at 50% 55%,rgba(8,9,10,0),rgba(8,9,10,.75));opacity:0;pointer-events:none}
 .topo{position:absolute;top:20px;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:0 max(20px,4vw);z-index:6}
 .marca{display:flex;align-items:center;gap:10px;font:700 22px var(--titulo);letter-spacing:-.045em;color:#F3F3F1;text-decoration:none}
-.marca svg{width:30px;height:30px;color:var(--pet)}
+.marca svg{width:30px;height:24px;color:var(--pet)}.marca svg.wm{width:auto;height:18px}
 .topo .link{color:#CFD3D1;text-decoration:none;font-weight:600;font-size:14px;padding:12px 10px}
 .sobe{position:absolute;left:0;right:0;bottom:clamp(36px,7vh,70px);display:flex;flex-direction:column;align-items:center;gap:10px;color:#9AA19F;font-size:12px;letter-spacing:.18em;text-transform:uppercase;z-index:5;margin:0}
 .sobe span{width:1.5px;height:30px;background:linear-gradient(#9AA19F,transparent);animation:desce 1.8s ease-in-out infinite}
@@ -181,11 +181,11 @@ footer a{color:var(--texto)}
 <main>
 <section class="mergulho" id="mergulho" aria-label="Início">
   <div class="palco">
-    <div class="foto"><img id="foto" src="/landing/img/hero.jpg" alt="Atleta com a barra nas costas, em preto e branco"></div>
+    <div class="foto"><canvas id="foto" aria-hidden="true"></canvas></div>
     <div class="recorte" id="recorte"><h1 aria-label="Treinou?">TREIN<span id="oo">O</span>U?</h1></div>
     <div class="veu" id="veu"></div>
     <div class="topo">
-      <a class="marca" href="#mergulho" aria-label="EVOFIT, início"><svg viewBox="0 0 100 100" aria-hidden="true"><g fill="currentColor"><rect x="0.00" y="35.95" width="13.28" height="3.05" rx="1.53"/><rect x="0.00" y="47.96" width="13.28" height="4.07" rx="2.04"/><rect x="0.00" y="61.00" width="13.28" height="3.05" rx="1.53"/><rect x="17.34" y="22.58" width="13.28" height="3.32" rx="1.66"/><rect x="17.34" y="34.44" width="13.28" height="4.34" rx="2.17"/><rect x="17.34" y="47.32" width="13.28" height="5.36" rx="2.68"/><rect x="17.34" y="61.22" width="13.28" height="4.34" rx="2.17"/><rect x="17.34" y="74.10" width="13.28" height="3.32" rx="1.66"/><rect x="34.69" y="9.03" width="13.28" height="3.59" rx="1.79"/><rect x="34.69" y="20.56" width="13.28" height="4.60" rx="2.30"/><rect x="34.69" y="33.11" width="13.28" height="5.62" rx="2.81"/><rect x="34.69" y="46.68" width="13.28" height="6.64" rx="3.32"/><rect x="34.69" y="61.27" width="13.28" height="5.62" rx="2.81"/><rect x="34.69" y="74.83" width="13.28" height="4.60" rx="2.30"/><rect x="34.69" y="87.38" width="13.28" height="3.59" rx="1.79"/><rect x="52.03" y="9.03" width="13.28" height="3.59" rx="1.79"/><rect x="52.03" y="20.56" width="13.28" height="4.60" rx="2.30"/><rect x="52.03" y="33.11" width="13.28" height="5.62" rx="2.81"/><rect x="52.03" y="46.68" width="13.28" height="6.64" rx="3.32"/><rect x="52.03" y="61.27" width="13.28" height="5.62" rx="2.81"/><rect x="52.03" y="74.83" width="13.28" height="4.60" rx="2.30"/><rect x="52.03" y="87.38" width="13.28" height="3.59" rx="1.79"/><rect x="69.38" y="22.58" width="13.28" height="3.32" rx="1.66"/><rect x="69.38" y="34.44" width="13.28" height="4.34" rx="2.17"/><rect x="69.38" y="47.32" width="13.28" height="5.36" rx="2.68"/><rect x="69.38" y="61.22" width="13.28" height="4.34" rx="2.17"/><rect x="69.38" y="74.10" width="13.28" height="3.32" rx="1.66"/><rect x="86.72" y="35.95" width="13.28" height="3.05" rx="1.53"/><rect x="86.72" y="47.96" width="13.28" height="4.07" rx="2.04"/><rect x="86.72" y="61.00" width="13.28" height="3.05" rx="1.53"/></g></svg>evofit</a>
+      <a class="marca" href="#mergulho" aria-label="EVOFIT, início"><svg viewBox="0 11 100 78" aria-hidden="true"><path fill="currentColor" d="M21.97 14.55A7.30 7.30 0 0 1 27.66 11.82L72.34 11.82A7.30 7.30 0 0 1 78.03 14.55L98.39 39.90A7.30 7.30 0 0 1 100.00 44.47L100.00 80.88A7.30 7.30 0 0 1 92.70 88.18L67.24 88.18A7.30 7.30 0 0 1 60.02 81.95L54.71 46.43A4.76 4.76 0 0 0 50.00 42.36L50.00 42.36A4.76 4.76 0 0 0 45.29 46.43L39.98 81.95A7.30 7.30 0 0 1 32.76 88.18L7.30 88.18A7.30 7.30 0 0 1 0.00 80.88L0.00 44.47A7.30 7.30 0 0 1 1.61 39.90Z"/></svg><svg class="wm" viewBox="0 -837 3826 854" aria-hidden="true"><path fill="#F3F3F1" d="M368 17Q262 17 179.0 -21.0Q96 -59 48.0 -128.0Q0 -197 0 -289Q0 -379 46.5 -447.0Q93 -515 173.5 -552.5Q254 -590 354 -590Q459 -590 533.0 -545.5Q607 -501 646.5 -418.5Q686 -336 686 -224H187V-355H554L487 -310Q483 -349 467.0 -376.5Q451 -404 424.5 -418.0Q398 -432 362 -432Q321 -432 292.0 -416.0Q263 -400 247.5 -371.5Q232 -343 232 -307Q232 -256 254.5 -221.0Q277 -186 323.0 -167.5Q369 -149 437 -149Q499 -149 560.0 -164.0Q621 -179 671 -208V-66Q610 -26 534.5 -4.5Q459 17 368 17Z M1157.0 -110 1080.0 -111 1267.0 -573H1510.0L1246.0 0H985.0L721.0 -573H974.0Z M1918.0 17Q1807.0 17 1723.0 -21.0Q1639.0 -59 1592.0 -127.5Q1545.0 -196 1545.0 -286Q1545.0 -378 1592.0 -446.5Q1639.0 -515 1723.0 -552.5Q1807.0 -590 1919.0 -590Q2030.0 -590 2114.0 -552.5Q2198.0 -515 2244.5 -446.5Q2291.0 -378 2291.0 -286Q2291.0 -196 2244.5 -127.5Q2198.0 -59 2114.0 -21.0Q2030.0 17 1918.0 17ZM1919.0 -151Q1964.0 -151 1995.5 -167.0Q2027.0 -183 2043.5 -213.5Q2060.0 -244 2060.0 -286Q2060.0 -329 2043.5 -359.5Q2027.0 -390 1995.5 -406.0Q1964.0 -422 1919.0 -422Q1874.0 -422 1842.0 -406.0Q1810.0 -390 1793.5 -359.5Q1777.0 -329 1777.0 -287Q1777.0 -244 1793.5 -213.5Q1810.0 -183 1842.0 -167.0Q1874.0 -151 1919.0 -151Z M2781.0 -618Q2716.0 -618 2693.0 -596.5Q2670.0 -575 2670.0 -530V0H2441.0V-520Q2441.0 -607 2477.0 -666.5Q2513.0 -726 2583.0 -756.5Q2653.0 -787 2754.0 -787Q2797.0 -787 2832.5 -781.5Q2868.0 -776 2909.0 -765V-599Q2878.0 -608 2847.0 -613.0Q2816.0 -618 2781.0 -618ZM2326.0 -355V-523H2894.0V-355Z M2959.0 -584 3074.0 -560 3188.0 -584V0H2959.0ZM3074.0 -622Q3016.0 -622 2980.0 -651.0Q2944.0 -680 2944.0 -729Q2944.0 -779 2980.0 -808.0Q3016.0 -837 3074.0 -837Q3134.0 -837 3169.5 -808.0Q3205.0 -779 3205.0 -729Q3205.0 -680 3169.5 -651.0Q3134.0 -622 3074.0 -622Z M3240.0 -405V-504L3354.0 -556L3454.0 -728H3584.0V-573H3816.0V-405H3584.0V-262Q3584.0 -204 3606.5 -180.0Q3629.0 -156 3695.0 -156Q3736.0 -156 3768.0 -162.5Q3800.0 -169 3826.0 -179V-10Q3794.0 0 3745.0 8.5Q3696.0 17 3642.0 17Q3544.0 17 3480.5 -13.0Q3417.0 -43 3385.5 -99.0Q3354.0 -155 3354.0 -231V-405Z"/></svg></a>
       <span><a class="link" href="#precos">Preços</a> <a class="link" href="/entrar">Entrar</a></span>
     </div>
     <div class="notif" id="notif" role="status">
@@ -381,6 +381,13 @@ function desenhar(){ B.forEach(function(b){ b.el.style.transform="translate("+b.
 montar();
 var rz; addEventListener("resize", function(){ clearTimeout(rz); rz=setTimeout(function(){ montar(); caiu=false; },250); });
 
+/* ---------- textura: palitos que incham numa onda, verde-água sobre o escuro ---------- */
+var tc=$("foto"),tx=tc.getContext("2d");
+function textura(T){var w=tc.clientWidth,h=tc.clientHeight,d=Math.min(2,devicePixelRatio||1);if(tc.width!==Math.round(w*d)){tc.width=Math.round(w*d);tc.height=Math.round(h*d)}
+ tx.setTransform(d,0,0,d,0,0);tx.clearRect(0,0,w,h);var cols=Math.max(12,Math.round(w/34)),rows=Math.max(16,Math.round(h/30)),cw=w/cols,rh=h/rows,bw=cw*.62;
+ for(var i=0;i<cols;i++)for(var j=0;j<rows;j++){var x=(i+.5)*cw,y=(j+.5)*rh,dx=x/w-.5,dy=y/h-.5,r=Math.sqrt(dx*dx+dy*dy),k=.5+.5*Math.sin(r*14-T*2.2+Math.sin(i*.4+T*.6)),hh=rh*(.12+.7*k*k);
+  tx.fillStyle=k>.82?"#9AD8D6":"#46B8BA";tx.globalAlpha=.35+.65*k;var rr=Math.min(bw,hh)/2;tx.beginPath();tx.roundRect(x-bw/2,y-hh/2,bw,hh,rr);tx.fill()}
+ tx.globalAlpha=1}
 /* ---------- laço ---------- */
 var last = performance.now(), T = 0;
 function loop(now){
@@ -390,9 +397,8 @@ function loop(now){
   if (!reduce && hp < 1){
     var z = ease(clamp(hp/.55,0,1));
     var ro = 1-clamp((hp-.36)/.14,0,1);
-    recorte.style.transform = "scale("+(1+Math.pow(z,2.2)*24).toFixed(3)+")";
+    recorte.style.transform = "none";
     recorte.style.opacity = ro; recorte.style.visibility = ro>0 ? "visible" : "hidden";
-    $("foto").style.transform = "scale("+(1.12-z*.08)+") translate("+((mx-.5)*-18)+"px,"+((my-.5)*-12)+"px)";
     $("veu").style.opacity = clamp((hp-.5)/.15,0,1);
     $("sobe").style.opacity = 1-clamp(hp*6,0,1);
     var v = ease(clamp((hp-.55)/.18,0,1)), n = ease(clamp((hp-.68)/.14,0,1));
@@ -400,6 +406,7 @@ function loop(now){
     $("baixo").style.opacity = v; $("baixo").style.transform = "translateY("+((1-v)*30)+"px)";
     $("notif").style.opacity = n; $("notif").style.transform = "translateY("+((1-n)*-30)+"px) scale("+(.96+.04*n)+")";
   }
+  textura(T);
   // filme
   var fp = prog($("filme")); cena(Math.min(4, Math.floor(fp*5)));
   // final
