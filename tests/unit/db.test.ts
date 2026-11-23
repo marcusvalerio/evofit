@@ -46,7 +46,7 @@ const expectStatus = async (p: Promise<unknown>, status: number) => {
 }
 
 async function signup(name: string, email: string) {
-  const { token } = await Auth.signupTrainer({ name, email, password: "senha-segura-1", acceptTerms: true }, db)
+  const { token } = await Auth.signupTrainer({ name, email, password: "Senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 
@@ -70,16 +70,16 @@ describe("banco: migrações e contas", () => {
     expect(h).toMatch(/^scrypt\$/)
     expect(await Auth.verifyPassword("abc12345", h)).toBe(true)
     expect(await Auth.verifyPassword("errada123", h)).toBe(false)
-    expect(await Auth.login({ email: "ANA@exemplo.com", password: "senha-segura-1" }, db)).toMatchObject({ role: "trainer" })
+    expect(await Auth.login({ email: "ANA@exemplo.com", password: "Senha-segura-1" }, db)).toMatchObject({ role: "trainer" })
     expect(await Auth.login({ email: "ana@exemplo.com", password: "outra-senha" }, db)).toBeNull()
-    expect(await Auth.login({ email: "ninguem@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
-    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "senha-segura-1", acceptTerms: true }, db), 409)
+    expect(await Auth.login({ email: "ninguem@exemplo.com", password: "Senha-segura-1" }, db)).toBeNull()
+    await expectStatus(Auth.signupTrainer({ name: "Outra", email: "Ana@Exemplo.com", password: "Senha-segura-1", acceptTerms: true }, db), 409)
     await expectStatus(Auth.signupTrainer({ name: "X", email: "invalido", password: "123" }, db), 400)
   })
 
   it("sessão inválida ou após logout não autentica", async () => {
     expect(await Auth.accountFromToken("token-inventado", db)).toBeNull()
-    const r = await Auth.login({ email: "bia@exemplo.com", password: "senha-segura-1" }, db)
+    const r = await Auth.login({ email: "bia@exemplo.com", password: "Senha-segura-1" }, db)
     expect(await Auth.accountFromToken(r!.token, db)).toMatchObject({ email: "bia@exemplo.com" })
     await Auth.logout(r!.token, db)
     expect(await Auth.accountFromToken(r!.token, db)).toBeNull()
@@ -147,6 +147,21 @@ describe("dados do personal no banco", () => {
     await expectStatus(run({ sessions: { upsert: [{ id: "s1", studentId: "al-carlos", workoutId: "tr-a", workoutName: "x", startedAt: new Date().toISOString(), finishedAt: null, status: "em_andamento", sets: [], note: "", checkin: null }], delete: [] } }), 403)
     // nada foi gravado pelas tentativas recusadas
     expect(await load(ana)).toEqual(d)
+  })
+})
+
+describe("plano grátis", () => {
+  it("sem plano pago, aceita até 2 alunos ativos; com plano, sem limite", async () => {
+    const t = await signup("Livre", "livre@exemplo.com")
+    const base = (await load(ana)).students[0]
+    const aluno = (id: string) => ({ ...base, id, name: `Aluno ${id}`, status: "ativo" as const })
+    const run = (ids: string[], paid: boolean) => withTenant(tenant(t), (q) => applyChanges(q, tenant(t), { students: { upsert: ids.map(aluno), delete: [] } }, { paid }), db)
+    await run(["a1", "a2"], false)
+    await expectStatus(run(["a3"], false), 402)
+    await run(["a3"], true)
+  })
+  it("conta nova exige senha forte", async () => {
+    await expectStatus(Auth.signupTrainer({ name: "Fraca", email: "fraca@exemplo.com", password: "senhasemforca", acceptTerms: true }, db), 400)
   })
 })
 
@@ -332,7 +347,7 @@ describe("aluno com convite", () => {
 
   it("excluir conta do personal apaga tudo, inclusive o login do aluno", async () => {
     await Auth.deleteAccount(ana, db)
-    expect(await Auth.login({ email: "ana@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
+    expect(await Auth.login({ email: "ana@exemplo.com", password: "Senha-segura-1" }, db)).toBeNull()
     expect(await Auth.login({ email: "carlos@exemplo.com", password: "senha-do-aluno" }, db)).toBeNull()
     const left = await db.tx(async (q) => {
       await q.query("reset role")
@@ -409,11 +424,11 @@ describe("administração", () => {
   })
 
   it("senha provisória para o personal: derruba sessões e exige troca", async () => {
-    const before = await Auth.login({ email: "caio@exemplo.com", password: "senha-segura-1" }, db)
+    const before = await Auth.login({ email: "caio@exemplo.com", password: "Senha-segura-1" }, db)
     const { login, password } = await Admin.resetTrainerPassword(bia, caio.trainerId, db)
     expect(login).toBe("caio@exemplo.com")
     expect(await Auth.accountFromToken(before!.token, db)).toBeNull()
-    expect(await Auth.login({ email: "caio@exemplo.com", password: "senha-segura-1" }, db)).toBeNull()
+    expect(await Auth.login({ email: "caio@exemplo.com", password: "Senha-segura-1" }, db)).toBeNull()
     const r = await Auth.login({ email: "caio@exemplo.com", password }, db)
     expect(r).toMatchObject({ role: "trainer", mustChangePassword: true })
     const acc = (await Auth.accountFromToken(r!.token, db))!
@@ -482,7 +497,7 @@ describe("contato público e admin pelo banco", () => {
   })
 
   it("users.is_admin dá acesso ao painel sem ADMIN_EMAILS", async () => {
-    const r = await Auth.login({ email: "bia@exemplo.com", password: "senha-segura-1" }, db)
+    const r = await Auth.login({ email: "bia@exemplo.com", password: "Senha-segura-1" }, db)
     expect(Admin.isAdmin(await Auth.accountFromToken(r!.token, db), "")).toBe(false)
     await db.tx((q) => q.query("update users set is_admin = true where lower(email) = 'bia@exemplo.com'"))
     expect(Admin.isAdmin(await Auth.accountFromToken(r!.token, db), "")).toBe(true)

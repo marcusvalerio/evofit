@@ -124,8 +124,17 @@ export async function logout(token: string | undefined, db: Db = getDb()) {
 
 /* ---------- Cadastro e login ---------- */
 
+/** Senha forte para conta nova: 10+ caracteres, maiúscula, minúscula, número e símbolo. */
+export function strongPasswordError(pw: unknown): string | undefined {
+  if (typeof pw !== "string") return "Crie uma senha."
+  if (pw.length < 10 || !/[a-z]/.test(pw) || !/[A-Z]/.test(pw) || !/\d/.test(pw) || !/[^A-Za-z0-9]/.test(pw))
+    return "Use 10 caracteres ou mais, com letra maiúscula, minúscula, número e símbolo."
+}
+
 export async function signupTrainer(input: { name: unknown; email: unknown; password: unknown; acceptTerms?: unknown }, db: Db = getDb()) {
   const errors: Record<string, string> = { ...validateCredentials(input.email, input.password) }
+  const weak = !errors.password && strongPasswordError(input.password)
+  if (weak) errors.password = weak
   const name = typeof input.name === "string" ? input.name.trim() : ""
   if (name.length < 2 || name.length > 80) errors.name = "Informe seu nome (2 a 80 caracteres)."
   if (input.acceptTerms !== true) errors.accept = "Aceite os Termos de Uso e a Política de Privacidade para continuar."

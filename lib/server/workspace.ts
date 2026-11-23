@@ -5,6 +5,7 @@ import { isoDayOf } from "../date"
 import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
 import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
+import { FREE_MAX_STUDENTS } from "../plans"
 import type { Changes, MediaRow } from "../sync"
 import { affected, type Queryable, type Tenant } from "./db"
 
@@ -196,7 +197,7 @@ async function upsertSession(q: Queryable, ctx: Ctx, s: Session) {
 }
 
 /** Aplica as mudanças enviadas pelo app, revalidando formato, regras e permissões. RLS é a segunda barreira. */
-export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
+export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes, opts: { paid?: boolean } = {}) {
   checkSize(c.students?.upsert, LIMIT.students, "alunos")
   checkSize(c.exercises?.upsert, LIMIT.exercises, "exercícios")
   checkSize(c.workouts?.upsert, LIMIT.workouts, "fichas")
@@ -246,6 +247,12 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes) {
        on conflict (trainer_id, id) do update set name = excluded.name, goal = excluded.goal, level = excluded.level, weekly_target = excluded.weekly_target, notes = excluded.notes, status = excluded.status, phone = excluded.phone, monthly_fee = excluded.monthly_fee, due_day = excluded.due_day`,
       [ctx.trainerId, s.id, s.name, s.goal, s.level, s.weeklyTarget, s.notes, s.status, s.createdAt, s.phone, s.monthlyFee, s.dueDay],
     )
+  }
+
+  // Plano grátis: até FREE_MAX_STUDENTS alunos ativos. Quem chama informa se o personal tem plano pago.
+  if (c.students?.upsert.length && opts.paid === false) {
+    const n = Number((await q.query<{ n: string }>("select count(*) as n from students where status = 'ativo'")).rows[0]?.n ?? 0)
+    if (n > FREE_MAX_STUDENTS) throw new HttpError(402, `O plano grátis vai até ${FREE_MAX_STUDENTS} alunos ativos. Arquive um aluno ou aguarde os planos, que chegam em breve.`)
   }
 
   for (const e of c.exercises?.upsert ?? []) {

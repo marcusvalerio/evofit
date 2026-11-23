@@ -6,12 +6,12 @@ import { dismissNotice, resetDemo, retryLoad, useDemoState } from "@/lib/store"
 import { logout } from "@/lib/account-client"
 import { ConfirmDialog, cx } from "./ui"
 import { useDemoEnabled, useToast } from "./providers"
-import { MARK_SHAPES } from "@/lib/brand-mark"
+import { MARK_SHAPES, WORDMARK } from "@/lib/brand-mark"
 
-/** Símbolo EVOFIT: os palitos inchados da textura Swell, como um pulso de esforço. */
+/** Símbolo EVOFIT: o V da evolução, sempre inteiro. */
 export function BrandMark({ size = 26, className }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className={cx("shrink-0 text-primary", className)} aria-hidden>
+    <svg width={size} height={size * 0.78} viewBox="0 11 100 78" className={cx("shrink-0 text-primary", className)} aria-hidden>
       <g fill="currentColor" dangerouslySetInnerHTML={{ __html: MARK_SHAPES }} />
     </svg>
   )
@@ -21,7 +21,9 @@ export function Brand({ className, suffix }: { className?: string; suffix?: stri
   return (
     <Link href="/" className={cx("inline-flex min-h-11 items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
       <BrandMark />
-      <span className="t-brand text-[1.4375rem] leading-none text-fg">evofit</span>
+      <svg viewBox={WORDMARK.viewBox} className="h-[1.05rem] w-auto text-fg" aria-hidden>
+        <path fill="currentColor" d={WORDMARK.d} />
+      </svg>
       {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
     </Link>
   )

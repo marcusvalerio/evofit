@@ -54,7 +54,7 @@ const fake = {
 let n = 0
 const event = (type: string, object: unknown) => ({ id: `evt_${++n}`, type, data: { object } }) as unknown as Stripe.Event
 async function trainer(email: string) {
-  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "senha-segura-1", acceptTerms: true }, db)
+  const { token } = await Auth.signupTrainer({ name: "Personal Teste", email, password: "Senha-segura-1", acceptTerms: true }, db)
   return (await Auth.accountFromToken(token, db))!
 }
 const sub = (id: string, customer: string, meta: Record<string, string>) =>
@@ -70,14 +70,10 @@ beforeEach(() => {
 })
 
 describe("cobrança (Stripe)", () => {
-  it("conta nova começa no teste grátis de 7 dias", async () => {
+  it("conta nova começa no plano grátis, sem prazo", async () => {
     const a = await trainer("teste1@evofit.app")
     const s = await Billing.billingStatus(a, db)
-    expect(s.plan).toBeNull()
-    expect(s.hasAccess).toBe(true)
-    const days = (Date.parse(s.trialEndsAt!) - Date.now()) / 86400_000
-    expect(days).toBeGreaterThan(6.9)
-    expect(days).toBeLessThanOrEqual(7)
+    expect(s).toMatchObject({ plan: null, hasAccess: true, paid: false, trialEndsAt: null })
   })
 
   it("abre checkout de assinatura com o preço do plano e ativa pelo webhook", async () => {
@@ -171,13 +167,13 @@ describe("admin central: acesso, Pix e monitoramento", () => {
     const a = await trainer("onb@evofit.app")
     expect(a.onboarded).toBe(false)
     await Auth.finishOnboarding(a, db)
-    const { token } = (await Auth.login({ email: "onb@evofit.app", password: "senha-segura-1" }, db, "iPhone · Safari"))!
+    const { token } = (await Auth.login({ email: "onb@evofit.app", password: "Senha-segura-1" }, db, "iPhone · Safari"))!
     expect((await Auth.accountFromToken(token, db))!.onboarded).toBe(true)
   })
 
   it("login fica no histórico com o aparelho", async () => {
     const a = await trainer("log@evofit.app")
-    await Auth.login({ email: "log@evofit.app", password: "senha-segura-1" }, db, Auth.deviceLabel("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/604.1"))
+    await Auth.login({ email: "log@evofit.app", password: "Senha-segura-1" }, db, Auth.deviceLabel("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0) Safari/604.1"))
     const logs = await Admin.recentLogins(a.trainerId, 10, db)
     expect(logs[0]).toMatchObject({ role: "trainer", device: "iPhone · Safari", who: "log@evofit.app" })
     expect(logs.length).toBe(2) // cadastro + login
@@ -202,17 +198,12 @@ describe("admin central: acesso, Pix e monitoramento", () => {
     expect((await Billing.billingStatus(a, db)).lifetime).toBe(false)
   })
 
-  it("teste vencido bloqueia; admin estende teste ou libera por dias", async () => {
+  it("plano grátis não vence; admin libera plano por dias", async () => {
     const a = await trainer("venceu@evofit.app")
     const adm = await admin()
     await db.tx((q) => q.query("update users set created_at = now() - interval '30 days' where trainer_id = $1", [a.trainerId]))
-    expect(await Billing.trainerHasAccess(a.trainerId, db)).toBe(false)
-    await Admin.extendTrial(adm, a.trainerId, 5, db)
-    const s = await Billing.billingStatus(a, db)
-    expect(s.inTrial).toBe(true)
-    expect((Date.parse(s.trialEndsAt!) - Date.now()) / 86400_000).toBeGreaterThan(4)
-    await db.tx((q) => q.query("update billing set trial_extra_days = 0 where trainer_id = $1", [a.trainerId]))
-    expect(await Billing.trainerHasAccess(a.trainerId, db)).toBe(false)
+    expect(await Billing.trainerHasAccess(a.trainerId, db)).toBe(true)
+    expect(await Billing.trainerIsPaid(a.trainerId, db)).toBe(false)
     await Admin.grantAccess(adm, a.trainerId, { kind: "dias", days: 30, plan: "anual", note: "cortesia" }, db)
     const g = await Billing.billingStatus(a, db)
     expect(g).toMatchObject({ hasAccess: true, plan: "anual", source: "manual" })
@@ -276,17 +267,14 @@ describe("robô de WhatsApp (Evolution API)", () => {
     expect((await Bot.botLog(5, db))[0].to).toBe("•••7777")
   })
 
-  it("lembrete de fim do teste vai uma vez para quem tem WhatsApp no perfil", async () => {
+  it("plano grátis não manda lembrete de fim de teste", async () => {
     const a = await trainer("lembrete@evofit.app")
     await withTenant({ role: "trainer", trainerId: a.trainerId }, (q) => q.query("update trainers set whatsapp = '21977776666' where id = $1", [a.trainerId]), db)
     await db.tx((q) => q.query("update users set created_at = now() - interval '6 days' where trainer_id = $1", [a.trainerId]))
     const before = sent.length
     await Bot.trialReminders(db)
     const mine = sent.slice(before).filter((m) => m.body.number === "5521977776666")
-    expect(mine).toHaveLength(1)
-    expect(mine[0].body.text).toContain("acaba em 1 dia")
-    await Bot.trialReminders(db)
-    expect(sent.filter((m) => m.body.number === "5521977776666")).toHaveLength(1)
+    expect(mine).toHaveLength(0)
   })
 })
 
@@ -370,7 +358,7 @@ describe("esqueci minha senha (e-mail)", () => {
     Object.assign(process.env, { RESEND_API_KEY: "re_x", EMAIL_FROM: "EVOFIT <a@evofit.test>" })
     Email.setEmailFetch((async (_u: string, init: RequestInit) => (mails.push(JSON.parse(String(init.body))), new Response("{}"))) as unknown as typeof fetch)
     await trainer("reset@evofit.app")
-    const old = (await Auth.login({ email: "reset@evofit.app", password: "senha-segura-1" }, db))!.token
+    const old = (await Auth.login({ email: "reset@evofit.app", password: "Senha-segura-1" }, db))!.token
     expect(await Auth.requestPasswordReset("ninguem@evofit.app", "https://app.test", db)).toEqual({ emailEnabled: true })
     const resets = () => mails.filter((m) => m.text.includes("token="))
     expect(resets()).toHaveLength(0)
@@ -388,7 +376,7 @@ describe("esqueci minha senha (e-mail)", () => {
 
 describe("termos de uso no cadastro", () => {
   it("exige o aceite e grava a versão aceita", async () => {
-    await expect(Auth.signupTrainer({ name: "Sem Aceite", email: "semaceite@evofit.app", password: "senha-segura-1" }, db)).rejects.toMatchObject({ status: 400, fields: { accept: expect.any(String) } })
+    await expect(Auth.signupTrainer({ name: "Sem Aceite", email: "semaceite@evofit.app", password: "Senha-segura-1" }, db)).rejects.toMatchObject({ status: 400, fields: { accept: expect.any(String) } })
     await trainer("comaceite@evofit.app")
     const r = (await db.tx((q) => q.query<{ terms_accepted_at: unknown; terms_version: string }>("select terms_accepted_at, terms_version from users where email = 'comaceite@evofit.app'"))).rows[0]
     expect(r.terms_accepted_at).toBeTruthy()
@@ -410,7 +398,7 @@ describe("monitoramento e e-mails automáticos", () => {
     expect(await Mon.healthCheck(db)).toMatchObject({ ok: true, db: "ok" })
   })
 
-  it("boas-vindas e lembrete do teste por e-mail, uma vez só", async () => {
+  it("boas-vindas por e-mail e nenhum lembrete de fim de teste", async () => {
     const sentMails: { to: string[]; subject: string }[] = []
     Object.assign(process.env, { RESEND_API_KEY: "re_x", EMAIL_FROM: "EVOFIT <a@evofit.test>" })
     Email.setEmailFetch((async (_u: string, init: RequestInit) => (sentMails.push(JSON.parse(String(init.body))), new Response("{}"))) as unknown as typeof fetch)
@@ -419,6 +407,6 @@ describe("monitoramento e e-mails automáticos", () => {
     await db.tx((q) => q.query("update users set created_at = now() - interval '6 days' where trainer_id = $1", [a.trainerId]))
     await Bot.trialReminders(db)
     await Bot.trialReminders(db)
-    expect(sentMails.filter((m) => m.to[0] === "ciclo@evofit.app" && m.subject.includes("acaba em"))).toHaveLength(1)
+    expect(sentMails.filter((m) => m.to[0] === "ciclo@evofit.app" && m.subject.includes("acaba em"))).toHaveLength(0)
   })
 })

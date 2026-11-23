@@ -18,7 +18,9 @@ export default function CriarContaPage() {
     const f: Record<string, string> = {}
     if (v.name.trim().length < 2) f.name = "Informe seu nome."
     if (!/^\S+@\S+\.\S+$/.test(v.email.trim())) f.email = "Informe um e-mail válido."
-    if (v.password.length < 8) f.password = "A senha precisa ter pelo menos 8 caracteres."
+    const pw = v.password
+    if (pw.length < 10 || !/[a-z]/.test(pw) || !/[A-Z]/.test(pw) || !/\d/.test(pw) || !/[^A-Za-z0-9]/.test(pw))
+      f.password = "Use 10 caracteres ou mais, com letra maiúscula, minúscula, número e símbolo."
     if (!accept) f.accept = "Confirme para continuar."
     setFields(f)
     if (Object.keys(f).length) return
@@ -51,7 +53,7 @@ export default function CriarContaPage() {
         <Field label="E-mail" error={fields.email}>
           {(p) => <input {...p} className="input" type="email" autoComplete="email" inputMode="email" value={v.email} maxLength={254} onChange={(e) => setV({ ...v, email: e.target.value })} />}
         </Field>
-        <PasswordField value={v.password} onChange={(password) => setV({ ...v, password })} error={fields.password} autoComplete="new-password" hint="Mínimo de 8 caracteres." />
+        <PasswordField value={v.password} onChange={(password) => setV({ ...v, password })} error={fields.password} autoComplete="new-password" hint="10+ caracteres, com maiúscula, minúscula, número e símbolo." />
         <label className="flex cursor-pointer items-start gap-3 text-sm">
           <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-[var(--primary)]" checked={accept} onChange={(e) => setAccept(e.target.checked)} aria-invalid={fields.accept ? true : undefined} />
           <span>

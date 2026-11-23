@@ -60,7 +60,7 @@ function layout(title: string, paragraphs: string[], cta?: { label: string; href
 export const EMAILS = {
   welcome: (name: string) => ({
     subject: "Bem-vindo(a) ao EVOFIT 💪",
-    ...layout(`Olá, ${name}!`, ["Sua conta está pronta e seus 7 dias grátis já começaram, sem cartão.", "Próximos passos: cadastre seus alunos, monte a primeira ficha e gere o acesso do aluno ao app."], { label: "Abrir meu Studio", href: `${site()}/studio` }),
+    ...layout(`Olá, ${name}!`, ["Sua conta está pronta: tudo liberado para até 2 alunos, sem cartão e sem prazo.", "Próximos passos: cadastre seus alunos, monte a primeira ficha e gere o acesso do aluno ao app."], { label: "Abrir meu Studio", href: `${site()}/studio` }),
   }),
   trialEnding: (name: string, days: number) => ({
     subject: `Seu teste do EVOFIT acaba em ${days} dia${days > 1 ? "s" : ""}`,

@@ -6,7 +6,7 @@ import { flush, update, useData } from "@/lib/store"
 import { addStudent, saveProfile, validateProfile, validateStudent } from "@/lib/actions"
 import { postJson, hardNavigate } from "@/lib/account-client"
 import { MODALITY_LABEL, type Modality } from "@/lib/types"
-import { PLANS, TRIAL_DAYS, brl } from "@/lib/plans"
+import { FREE_MAX_STUDENTS } from "@/lib/plans"
 import { Field, cx } from "./ui"
 import { BrandMark } from "./chrome"
 
@@ -143,20 +143,11 @@ export function Onboarding() {
       {step === 2 && (
         <section className="card mt-6 p-5 sm:p-6" aria-labelledby="ob3">
           <h2 id="ob3" className="t-h2 flex items-center gap-2">
-            <BadgeCheck size={20} aria-hidden /> Seus {TRIAL_DAYS} dias grátis começaram
+            <BadgeCheck size={20} aria-hidden /> Tudo liberado pra você testar
           </h2>
-          <p className="mt-1 text-sm text-muted">Use tudo à vontade, sem cartão. Antes de acabar, escolha como quer continuar:</p>
-          <ul className="mt-4 grid gap-2 text-sm">
-            <li className="rounded-xl border border-line p-3">
-              <strong>Inicial</strong> · {brl(PLANS.inicial.amount)}/mês, alunos ilimitados, sem fidelidade.
-            </li>
-            <li className="rounded-xl border border-line p-3">
-              <strong>Anual</strong> · {brl(PLANS.anual.amount)}/ano. Com código Fundador: {brl(PLANS.fundador.amount)} por 15 meses.
-            </li>
-            <li className="evo-plan-hero rounded-xl p-3">
-              <strong>Vitalício</strong> · {brl(PLANS.vitalicio.amount)} uma única vez, via Pix direto com a equipe. Vagas limitadas.
-            </li>
-          </ul>
+          <p className="mt-1 text-sm text-muted">
+            No plano grátis você usa todas as funções com até {FREE_MAX_STUDENTS} alunos, sem cartão e sem prazo. Os planos pra mais alunos chegam em breve.
+          </p>
           <div className="mt-5 grid gap-2 text-sm text-muted">
             <p className="flex items-center gap-2">
               <ClipboardList size={16} aria-hidden /> Próximo passo: monte uma ficha em Treinos.
@@ -185,7 +176,7 @@ export function AccessLocked() {
     <div className="fade-in mx-auto max-w-xl">
       <section className="card p-6 text-center">
         <BadgeCheck size={36} aria-hidden className="mx-auto text-primary" />
-        <h1 className="t-h1 mt-3">Seu teste grátis terminou</h1>
+        <h1 className="t-h1 mt-3">Acesso pausado</h1>
         <p className="mt-2 text-muted">Seus dados e os dos seus alunos estão guardados. Escolha um plano para voltar a usar o Studio. Seus alunos continuam acessando o app normalmente.</p>
         <Link href="/studio/plano" className="btn btn-primary mt-5">
           Ver planos
