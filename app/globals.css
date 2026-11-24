@@ -1966,3 +1966,23 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .side-on { background: rgb(220 237 236 / .9); box-shadow: inset 0 1px 0 rgb(255 255 255 / .8); }
 [data-theme="dark"] .side-glass { background: linear-gradient(180deg, rgb(40 58 62 / .6), rgb(15 28 31 / .55)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .18), inset 0 0 0 1px rgb(255 255 255 / .08); }
 [data-theme="dark"] .side-on { background: rgb(243 243 241 / .95); color: var(--navy); }
+
+/* ---------- Medalhas (Design System) ---------- */
+.medal-shine { transform: skewX(-20deg); animation: medalshine 3.5s ease-in-out infinite; }
+@keyframes medalshine { 0% { transform: skewX(-20deg) translateX(0); } 60%, 100% { transform: skewX(-20deg) translateX(200px); } }
+.medal-drop { animation: medaldrop .9s cubic-bezier(.34,1.56,.64,1) both; filter: drop-shadow(0 16px 20px rgb(15 28 31 / .22)); }
+@keyframes medaldrop { from { opacity: 0; transform: translateY(-60px) rotate(-25deg) scale(.6); } }
+.medal-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+@media (min-width: 640px) { .medal-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.medal-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 12px; border-radius: 20px; background: var(--surface); text-align: center; }
+.medal-card.locked { background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+.medal-card b { font: 800 17px var(--font-display); letter-spacing: -.02em; }
+.medal-card small { font: 500 13px var(--font-label); color: var(--fg-muted); }
+/* Fim do treino: aura de conquista */
+.done-aura { position: relative; overflow: hidden; isolation: isolate; border-radius: 32px; padding: 32px 20px; background: #dcedec; }
+.done-aura i { position: absolute; z-index: -1; width: 70%; aspect-ratio: 1; border-radius: 50%; filter: blur(40px); animation: auraf 14s ease-in-out infinite alternate; }
+.done-aura .c1 { background: #46b8ba; left: -20%; top: -30%; opacity: .7; }
+.done-aura .c2 { background: #e6b422; right: -20%; top: 10%; opacity: .55; animation-duration: 17s; }
+.done-aura .c3 { background: #9ad8d6; left: 10%; bottom: -40%; animation-duration: 12s; }
+.done-aura .c4 { background: #f26b4e; right: 0; bottom: -30%; width: 40%; opacity: .3; animation-duration: 19s; }
+@media (prefers-reduced-motion: reduce) { .medal-shine, .medal-drop, .done-aura i { animation: none; } }

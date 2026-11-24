@@ -28,7 +28,7 @@ export default function HistoricoPage() {
 
   return (
     <div className="fade-in">
-      <h1 className="t-h1">Histórico</h1>
+      <h1 className="t-h1">Evolução</h1>
       <p className="mt-1 text-muted">Sessões concluídas e sua evolução.</p>
 
       <dl className="stagger mt-5 grid grid-cols-3 gap-2">

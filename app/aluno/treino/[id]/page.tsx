@@ -9,6 +9,8 @@ import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/typ
 import { muscleVolume } from "@/lib/volume"
 import { supersets } from "@/lib/superset"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
+import { medalsEarnedBy, type Medal as EvoMedal } from "@/lib/medals"
+import { HexMedal } from "@/components/medal"
 import { inProgressSession, personalRecords, previousSets, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
@@ -40,7 +42,7 @@ export default function TreinoPage() {
 
   if (finishedId) {
     const s = d.sessions.find((x) => x.id === finishedId)
-    if (s) return <Summary session={s} records={personalRecords(d, s)} />
+    if (s) return <Summary session={s} records={personalRecords(d, s)} medals={medalsEarnedBy(d, s)} />
   }
 
   if (!student) {
@@ -452,19 +454,38 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
 /* ---------- Concluído ---------- */
 
-function Summary({ session, records }: { session: Session; records: PersonalRecord[] }) {
+function Summary({ session, records, medals }: { session: Session; records: PersonalRecord[]; medals: EvoMedal[] }) {
   const p = sessionProgress(session)
   const vol = sessionVolume(session)
+  const top = medals[medals.length - 1]
   return (
-    <div className="fade-in py-6 text-center">
-      <div className="relative mx-auto size-20">
+    <div className="fade-in done-aura py-6 text-center">
+      <i className="c1" aria-hidden />
+      <i className="c2" aria-hidden />
+      <i className="c3" aria-hidden />
+      <i className="c4" aria-hidden />
+      <div className="relative mx-auto grid place-items-center">
         <Confetti />
-        <div className="pop glow grid size-20 place-items-center rounded-full bg-primary text-on-primary">
-          <Trophy size={36} aria-hidden />
-        </div>
+        {top ? (
+          <HexMedal level={top.level} size={132} className="medal-drop" />
+        ) : (
+          <div className="pop grid size-20 place-items-center rounded-[20px] bg-primary text-on-primary">
+            <Trophy size={36} aria-hidden />
+          </div>
+        )}
       </div>
-      <p className="t-eyebrow mt-6">Treino concluído</p>
-      <h1 className="t-h1 mt-1">{session.workoutName}</h1>
+      {top ? (
+        <>
+          <span className="badge badge-accent mt-5">Medalha {top.title.toLowerCase()}</span>
+          <h1 className="t-display mt-2 text-[2.5rem]">{top.rule}.</h1>
+          <p className="mt-1 text-muted">{session.workoutName} concluído.</p>
+        </>
+      ) : (
+        <>
+          <p className="t-eyebrow mt-6">Treino concluído</p>
+          <h1 className="t-h1 mt-1">{session.workoutName}</h1>
+        </>
+      )}
       <dl className="stagger mx-auto mt-6 grid max-w-sm grid-cols-3 gap-2">
         {[
           { l: "Duração", v: `${durationMin(session.startedAt, session.finishedAt)} min` },
@@ -498,7 +519,7 @@ function Summary({ session, records }: { session: Session; records: PersonalReco
       )}
       <div className="mx-auto mt-8 flex max-w-sm flex-col gap-2">
         <Link href="/aluno/historico" className="btn btn-primary btn-lg">
-          Ver histórico
+          Ver evolução
         </Link>
         <Link href="/aluno" className="btn btn-outline btn-lg">
           Voltar aos treinos
