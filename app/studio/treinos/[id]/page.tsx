@@ -322,11 +322,13 @@ function Editor({ workout }: { workout: Workout }) {
           <button type="button" className="btn btn-ghost w-full lg:hidden" onClick={() => setRemoving(true)}>
             <Trash2 size={16} aria-hidden /> Excluir ficha
           </button>
+          {/* Respiro para a barra de salvar e a navegação fixas (mobile) */}
+          <div aria-hidden className="h-24 lg:hidden" />
         </aside>
       </div>
 
       {/* Barra de salvar (mobile) */}
-      <div className="glass fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 flex gap-2 border-t border-line px-4 py-3 lg:hidden">
+      <div className="glass fixed inset-x-4 bottom-[calc(5.75rem+env(safe-area-inset-bottom))] z-30 mx-auto flex max-w-[420px] gap-2 rounded-[20px] border border-line p-2 shadow-lg lg:hidden">
         <button type="button" className="btn btn-outline flex-1" onClick={() => setDraft(workout)} disabled={!dirty}>
           Descartar
         </button>

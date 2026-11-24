@@ -24,7 +24,7 @@ export function Brand({ className, suffix }: { className?: string; suffix?: stri
       <svg viewBox={WORDMARK.viewBox} className="h-[1.05rem] w-auto text-fg" aria-hidden>
         <path fill="currentColor" d={WORDMARK.d} />
       </svg>
-      {suffix && <span className="ml-0.5 rounded-full border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
+      {suffix && <span className="ml-0.5 hidden rounded-full min-[420px]:inline border border-line px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted">{suffix}</span>}
     </Link>
   )
 }

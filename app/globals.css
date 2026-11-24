@@ -957,6 +957,11 @@
    Reservamos a área dela com a cor do fundo e os cabeçalhos grudam logo abaixo. */
 :root { --safe-top: env(safe-area-inset-top, 0px); }
 body { padding-top: var(--safe-top); }
+/* Nada vaza na horizontal: o iOS dá largura mínima própria a campos de data e hora. */
+html, body { overflow-x: clip; }
+input, select, textarea { min-width: 0; max-width: 100%; }
+input[type="date"], input[type="time"], input[type="datetime-local"], input[type="month"] { -webkit-appearance: none; appearance: none; width: 100%; display: block; min-height: 2.75rem; text-align: left; }
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; height: var(--safe-top); background: var(--bg); pointer-events: none; }
 
 .pb-safe {
