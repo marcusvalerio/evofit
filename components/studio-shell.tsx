@@ -2,6 +2,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Bell, MessageCircle, BadgeCheck, ClipboardList, Dumbbell, LayoutDashboard, Ruler, Search, ShieldCheck, Smartphone, UserRound, Users, Wallet } from "@/components/icons"
+import { GlassNav } from "./glass-nav"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, cx, LoadingScreen, NotFoundState } from "./ui"
 import { useDemoState } from "@/lib/store"
@@ -96,7 +97,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           {/* Topo (mobile/tablet) */}
           <header className="glass sticky top-[var(--safe-top)] z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
             <Brand suffix="Studio" />
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               {isAdmin && (
                 <Link href="/admin" className="btn btn-ghost btn-icon btn-sm" aria-label="Administração">
                   <ShieldCheck size={17} aria-hidden />
@@ -112,7 +113,12 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 <Smartphone size={17} aria-hidden />
                 <span className="hidden sm:inline">App do aluno</span>
               </Link>
-              <ThemeToggle />
+              <span className="hidden sm:contents">
+                <ThemeToggle />
+              </span>
+              <Link href="/studio/perfil" className=" grid h-11 w-11 place-items-center" aria-label="Perfil">
+                {data ? <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" /> : <UserRound size={18} aria-hidden />}
+              </Link>
             </div>
           </header>
 
@@ -138,28 +144,18 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Navegação inferior (mobile/tablet) */}
-      <nav aria-label="Studio" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
-        <ul className="mx-auto grid max-w-2xl grid-cols-7">
-          {NAV.filter((n) => n.href !== "/studio/plano" && n.href !== "/studio/avisos" && n.href !== "/studio/mensagens").map(({ href, label, icon: Icon, exact }) => {
-            const on = isActive(path, href, exact)
-            return (
-              <li key={href}>
-                <Link
-                  href={href}
-                  aria-current={on ? "page" : undefined}
-                  className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.5625rem] font-semibold tracking-tight transition-colors", on ? "text-accent" : "text-muted")}
-                >
-                  <span className={cx("grid h-7 w-10 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
-                    <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
-                  </span>
-                  {label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+      {/* Navegação inferior de vidro (mobile/tablet) */}
+      <div className="lg:hidden">
+        <GlassNav
+          label="Studio"
+          items={NAV.filter((n) => !["/studio/plano", "/studio/avisos", "/studio/mensagens", "/studio/perfil"].includes(n.href)).map(({ href, label, icon, exact }) => ({
+            href,
+            label: label === "Avaliações" ? "Avaliar" : label,
+            icon,
+            on: isActive(path, href, exact),
+          }))}
+        />
+      </div>
     </div>
   )
 }
