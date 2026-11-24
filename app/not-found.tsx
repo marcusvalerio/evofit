@@ -1,10 +1,12 @@
 import Link from "next/link"
+import { BrandMark } from "@/components/chrome"
 import { PublicShell } from "@/components/public-shell"
 
 export default function NotFound() {
   return (
     <PublicShell>
       <div className="mx-auto max-w-md py-16 text-center">
+        <BrandMark size={72} className="mx-auto mb-6 opacity-40" />
         <p className="t-eyebrow">Erro 404</p>
         <h1 className="t-h1 mt-2">Página não encontrada</h1>
         <p className="mt-2 text-muted">Este endereço não existe ou mudou de lugar.</p>
