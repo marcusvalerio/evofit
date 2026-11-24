@@ -2,22 +2,29 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "@/components/icons"
 import { Field } from "./ui"
-import { Swell } from "./textures/swell"
+import { BrandMark } from "./chrome"
 
-/** Moldura das telas de conta. */
+/** Moldura das telas de conta: aura de abertura com o V ao lado (desktop) ou em cima (celular). */
 export function AuthCard({ eyebrow, title, children, footer }: { eyebrow: string; title: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
-    <>
-    <div className="auth-swell" data-motion="ambient" aria-hidden>
-      <Swell tokens={{ "--texture-ink": "var(--swell-ink)", "--texture-field": "transparent" }} />
+    <div className="auth-split fade-in">
+      <div className="auth-aura" aria-hidden>
+        <i className="b1" />
+        <i className="b2" />
+        <i className="b3" />
+        <i className="b4" />
+        <span className="auth-grain" />
+        <BrandMark size={96} className="auth-v" />
+        <p className="auth-tag">Cada série conta.</p>
+        <span className="auth-beta">Em beta</span>
+      </div>
+      <div className="auth-form">
+        <p className="t-eyebrow">{eyebrow}</p>
+        <h1 className="t-h1 mt-1">{title}</h1>
+        <div className="card mt-6 p-5 sm:p-6">{children}</div>
+        {footer && <div className="mt-5 space-y-2 text-center text-sm text-muted">{footer}</div>}
+      </div>
     </div>
-    <div className="fade-in relative mx-auto w-full max-w-md py-4 sm:py-10">
-      <p className="t-eyebrow">{eyebrow}</p>
-      <h1 className="t-h1 mt-1">{title}</h1>
-      <div className="card mt-6 p-5 sm:p-6">{children}</div>
-      {footer && <div className="mt-5 space-y-2 text-center text-sm text-muted">{footer}</div>}
-    </div>
-    </>
   )
 }
 
