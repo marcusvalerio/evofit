@@ -195,8 +195,8 @@ export function ConfirmDialog({ open, title, message, confirmLabel, danger, onCo
 
 export function EmptyState({ icon: Icon, title, children, action }: { icon: React.ElementType; title: string; children?: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-dashed border-line-strong px-6 py-10 text-center">
-      <div className="mb-3 grid size-12 place-items-center rounded-2xl bg-surface text-muted">
+    <div className="flex flex-col items-center rounded-[20px] bg-surface px-6 py-10 text-center">
+      <div className="mb-3 grid size-14 place-items-center rounded-[20px] bg-[var(--menta)] text-[var(--petroleo)]">
         <Icon size={22} aria-hidden />
       </div>
       <h3 className="t-h2">{title}</h3>
