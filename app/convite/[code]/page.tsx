@@ -13,6 +13,7 @@ export default function ConvitePage() {
   const { code } = useParams<{ code: string }>()
   const [info, setInfo] = useState<{ code: string; info: Info | null; error?: string } | null>(null)
   const [v, setV] = useState({ email: "", password: "" })
+  const [consent, setConsent] = useState(false)
   const [fields, setFields] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -45,7 +46,7 @@ export default function ConvitePage() {
     if (Object.keys(f).length) return
     setBusy(true)
     setError(null)
-    const r = await postJson(`/api/invites/${encodeURIComponent(code)}`, v).catch(() => null)
+    const r = await postJson(`/api/invites/${encodeURIComponent(code)}`, { ...v, consent }).catch(() => null)
     if (r?.ok) return hardNavigate("/aluno")
     setBusy(false)
     setFields(r?.data.fields ?? {})
@@ -75,6 +76,12 @@ export default function ConvitePage() {
           {(p) => <input {...p} className="input" type="email" autoComplete="email" inputMode="email" value={v.email} maxLength={254} onChange={(e) => setV({ ...v, email: e.target.value })} autoFocus />}
         </Field>
         <PasswordField value={v.password} onChange={(password) => setV({ ...v, password })} error={fields.password} autoComplete="new-password" hint="Mínimo de 8 caracteres." />
+        <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm">
+          <input type="checkbox" className="mt-0.5 size-5 shrink-0 accent-[var(--primary)]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+          <span>
+            Quero receber mensagens e avisos do meu personal pelo app <span className="text-muted">(opcional, dá para mudar depois)</span>.
+          </span>
+        </label>
         <FormError message={error} />
         <button type="submit" className="btn btn-primary btn-lg w-full" disabled={busy}>
           {busy && <span className="spinner" aria-hidden />} Criar acesso e ver meus treinos
