@@ -1077,8 +1077,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 
 
 
-/* =====================================================================
- * Camada de produto — classes compartilhadas entre landing, Studio e Aluno.
+/* ============================================================== * Camada de produto — classes compartilhadas entre landing, Studio e Aluno.
  * Mesmos tokens, mesma régua de espaçamento (4/8), mesmos raios.
  * ===================================================================== */
 
@@ -1835,7 +1834,8 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-body-fig svg { width: 100%; max-width: 9.5rem; height: auto; }
 .evo-body.is-compact .evo-body-fig svg { max-width: 5.5rem; }
 .evo-body-fig figcaption { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
-.evo-body-base { fill: color-mix(in srgb, var(--fg) 9%, transparent); }
+.evo-body-outline { fill: color-mix(in srgb, var(--fg) 4%, transparent); stroke: color-mix(in srgb, var(--fg) 22%, transparent); stroke-width: 0.8; stroke-linejoin: round; }
+.evo-body-base { fill: color-mix(in srgb, var(--fg) 8%, transparent); }
 .evo-body-part { fill: color-mix(in srgb, var(--fg) 13%, transparent); transition: fill 0.4s ease; }
 .evo-body-part[data-level="1"] { fill: color-mix(in srgb, var(--mp-otan) 28%, var(--surface)); }
 .evo-body-part[data-level="2"] { fill: color-mix(in srgb, var(--mp-otan) 50%, var(--surface)); }
@@ -2162,3 +2162,14 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 /* reduzir movimento: versão estática */
 .wn-rm *, .wn-rm *::before, .wn-rm *::after { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .wn *, .wn *::before, .wn *::after { animation: none !important; transition: none !important; } }
+=======
+/* Folha de compartilhar nos stories */
+.story-prev { width: min(100%, 15rem); margin: 0 auto; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: var(--navy, #0f1c1f); box-shadow: 0 24px 60px -28px rgb(15 28 31 / .55); }
+.story-prev img, .story-prev-ph { display: block; width: 100%; height: 100%; object-fit: cover; }
+.story-prev-ph { background: linear-gradient(160deg, #2f7f81, #0f1c1f); }
+.story-models { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: .25rem; }
+.story-models.is-3 { grid-template-columns: repeat(3, 1fr); }
+.story-model { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; min-height: 3.5rem; padding: .625rem .75rem; border: 1px solid var(--line-strong); border-radius: 12px; background: var(--surface); color: var(--fg); text-align: left; font: 600 .9375rem/1.2 var(--font-label); transition: border-color .15s, background-color .15s; }
+.story-model span { font: 400 .75rem/1.25 var(--font-sans); color: var(--muted); }
+.story-model[aria-pressed="true"] { border-color: var(--fg); background: color-mix(in srgb, var(--fg) 6%, var(--surface)); box-shadow: inset 0 0 0 1px var(--fg); }
+.story-model:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }

@@ -11,7 +11,8 @@ import { supersets } from "@/lib/superset"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
 import { medalsEarnedBy, type Medal as EvoMedal } from "@/lib/medals"
 import { HexMedal } from "@/components/medal"
-import { shareStory } from "@/lib/story-card"
+import { buildStoryData } from "@/lib/story-card"
+import { StoryShareSheet } from "@/components/story-share"
 import { inProgressSession, personalRecords, previousSets, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
@@ -43,7 +44,7 @@ export default function TreinoPage() {
 
   if (finishedId) {
     const s = d.sessions.find((x) => x.id === finishedId)
-    if (s) return <Summary session={s} records={personalRecords(d, s)} medals={medalsEarnedBy(d, s)} />
+    if (s) return <Summary d={d} session={s} records={personalRecords(d, s)} medals={medalsEarnedBy(d, s)} />
   }
 
   if (!student) {
@@ -469,9 +470,11 @@ function commentAbout(workout: string, sets: { load: number | null; reps: number
 
 /* ---------- Concluído ---------- */
 
-function Summary({ session, records, medals }: { session: Session; records: PersonalRecord[]; medals: EvoMedal[] }) {
+function Summary({ d, session, records, medals }: { d: DemoData; session: Session; records: PersonalRecord[]; medals: EvoMedal[] }) {
   const p = sessionProgress(session)
   const vol = sessionVolume(session)
+  const [sharing, setSharing] = useState(false)
+  const story = useMemo(() => buildStoryData(d, session, records), [d, session, records])
   const top = medals[medals.length - 1]
   return (
     <div className="fade-in done-aura py-6 text-center">
@@ -536,20 +539,8 @@ function Summary({ session, records, medals }: { session: Session; records: Pers
         <button
           type="button"
           className="btn btn-outline btn-lg"
-          onClick={() => {
-            const r = records[0]
-            void shareStory({
-              tag: r ? "Recorde pessoal" : "Treino feito",
-              big: r ? String(r.load).replace(".", ",") : `${p.done}`,
-              unit: r ? "kg" : "séries",
-              line: r ? r.exerciseName : session.workoutName,
-              stats: [
-                { label: "Tempo", value: `${durationMin(session.startedAt, session.finishedAt)} min` },
-                { label: "Séries", value: `${p.done}` },
-                { label: "Volume", value: vol ? `${Math.round(vol).toLocaleString("pt-BR")} kg` : "—" },
-              ],
-            })
-          }}
+          onClick={() => setSharing(true)}
+          aria-haspopup="dialog"
         >
           <Share2 size={18} aria-hidden /> Compartilhar nos stories
         </button>
@@ -560,6 +551,7 @@ function Summary({ session, records, medals }: { session: Session; records: Pers
           Voltar aos treinos
         </Link>
       </div>
+      <StoryShareSheet open={sharing} onClose={() => setSharing(false)} data={story} />
     </div>
   )
 }
