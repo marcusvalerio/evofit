@@ -26,6 +26,8 @@ export interface AccountInfo {
   onboarded?: boolean
   /** Personal com teste, assinatura ou liberação ativa. */
   hasAccess?: boolean
+  /** Quando a conta foi criada (ISO); usado para não mostrar Novidades a conta nova. */
+  createdAt?: string
 }
 
 export type SyncStatus = "idle" | "saving" | "error" | "offline"

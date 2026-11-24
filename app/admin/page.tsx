@@ -34,6 +34,53 @@ const ACTION_LABEL: Record<string, string> = {
   suspender: "Conta suspensa",
   reativar: "Conta reativada",
   tirar_do_diretorio: "Retirado do diretório",
+  push_novidades: "Push das Novidades enviado",
+}
+
+/** Seção discreta: dispara o push das Novidades uma vez por versão. */
+function WhatsNewPush({ reload }: { reload: () => Promise<void> }) {
+  const toast = useToast()
+  const [ask, setAsk] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [result, setResult] = useState<string | null>(null)
+  async function send() {
+    setBusy(true)
+    const r = await postJson<{ sent: number; failed: number; removed: number; total: number }>("/api/admin/novidades", {})
+    setBusy(false)
+    if (!r.ok) {
+      setResult(r.data.error ?? "Não foi possível enviar.")
+      toast(r.data.error ?? "Não foi possível enviar.", "info")
+      return
+    }
+    setResult(`${r.data.sent} enviados de ${r.data.total} · ${r.data.failed} falhas${r.data.removed ? ` · ${r.data.removed} inscrições expiradas removidas` : ""}`)
+    await reload()
+  }
+  return (
+    <section aria-labelledby="nov-title" className="rounded-[20px] border border-line p-5">
+      <h2 id="nov-title" className="t-eyebrow">
+        Comunicação
+      </h2>
+      <p className="mt-2 text-sm text-muted">Avisa no celular de quem ligou as notificações, com texto de aluno ou de personal. Só pode ser enviado uma vez por versão.</p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button type="button" className="btn btn-outline" disabled={busy} onClick={() => setAsk(true)}>
+          {busy ? "Enviando…" : "Enviar push das Novidades"}
+        </button>
+        {result && (
+          <p className="text-sm" role="status">
+            {result}
+          </p>
+        )}
+      </div>
+      <ConfirmDialog
+        open={ask}
+        title="Enviar push das Novidades?"
+        message="Todos os aparelhos inscritos recebem o aviso agora. Não dá para desfazer nem enviar de novo nesta versão."
+        confirmLabel="Enviar agora"
+        onConfirm={() => void send()}
+        onClose={() => setAsk(false)}
+      />
+    </section>
+  )
 }
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0)
@@ -237,6 +284,8 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
         <SalesLeads />
         <WhatsAppBot />
       </div>
+
+      <WhatsNewPush reload={reload} />
     </div>
   )
 }
