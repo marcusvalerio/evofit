@@ -66,16 +66,16 @@ export default function MensagensPage() {
         </ul>
         <section className={cx(!open && "hidden lg:block")} aria-label="Conversa">
           {open && current ? (
-            <>
-              <div className="mb-3 flex items-center gap-2">
-                <button type="button" className="btn btn-ghost btn-icon btn-sm lg:hidden" onClick={() => setOpen(null)} aria-label="Voltar às conversas">
+            <div className="chat-screen">
+              <div className="chat-screen-head mb-3 lg:mb-3">
+                <button type="button" className="btn btn-ghost btn-icon lg:hidden" onClick={() => setOpen(null)} aria-label="Voltar às conversas">
                   <ArrowLeft size={18} aria-hidden />
                 </button>
                 <Avatar name={current.studentName} size="sm" />
                 <b>{current.studentName}</b>
               </div>
               <ChatView me="trainer" other={current.studentName.split(" ")[0]} {...chat} onSend={chat.send} />
-            </>
+            </div>
           ) : (
             <EmptyState icon={MessageCircle} title="Escolha uma conversa">
               Toque num aluno para abrir a conversa.

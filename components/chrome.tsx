@@ -17,9 +17,9 @@ export function BrandMark({ size = 26, className }: { size?: number; className?:
   )
 }
 
-export function Brand({ className, suffix }: { className?: string; suffix?: string }) {
+export function Brand({ className, suffix, href = "/" }: { className?: string; suffix?: string; href?: string }) {
   return (
-    <Link href="/" className={cx("inline-flex min-h-11 items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
+    <Link href={href} className={cx("inline-flex min-h-11 items-center gap-2 rounded-md", className)} aria-label="EVOFIT — início">
       <BrandMark />
       <svg viewBox={WORDMARK.viewBox} className="h-[1.05rem] w-auto text-fg" aria-hidden>
         <path fill="currentColor" d={WORDMARK.d} />

@@ -624,7 +624,7 @@
     border-radius: 12px;
   }
   .fade-in {
-    animation: fade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: fade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
   }
 
   /* ---------- Demonstração de exercício (quadros de início e fim alternando) ---------- */
@@ -1082,7 +1082,8 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 
 
 
-/* ============================================================== * Camada de produto — classes compartilhadas entre landing, Studio e Aluno.
+/* =====================================================================
+ * Camada de produto — classes compartilhadas entre landing, Studio e Aluno.
  * Mesmos tokens, mesma régua de espaçamento (4/8), mesmos raios.
  * ===================================================================== */
 
@@ -2024,7 +2025,7 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .chat-time { display: block; margin-top: 2px; text-align: right; font: 500 11px var(--font-num); opacity: .6; }
 .chat-status { margin: 2px 4px 0 0; text-align: right; font: 600 11px var(--font-label); color: var(--fg-muted); }
 .chat-compose { display: flex; align-items: flex-end; gap: 8px; padding: 12px; background: var(--surface); border-top: 1px solid var(--line); }
-.chat-input { flex: 1; min-height: 44px; max-height: 140px; resize: none; padding: 11px 14px; border-radius: 12px; background: var(--surface-2); color: var(--fg); font: 400 15px/1.4 var(--font-sans); border: 0; }
+.chat-input { flex: 1; min-height: 44px; max-height: 140px; resize: none; padding: 11px 14px; border-radius: 12px; background: var(--surface-2); color: var(--fg); font: 400 16px/1.4 var(--font-sans); border: 0; }
 .chat-input:focus-visible { outline: 2px solid var(--verde-agua); }
 .chat-send { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border-radius: 12px; background: var(--navy); color: var(--limao); transition: opacity .2s, transform .12s; }
 .chat-send:disabled { opacity: .35; }
@@ -2167,7 +2168,6 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 /* reduzir movimento: versão estática */
 .wn-rm *, .wn-rm *::before, .wn-rm *::after { animation: none !important; transition: none !important; }
 @media (prefers-reduced-motion: reduce) { .wn *, .wn *::before, .wn *::after { animation: none !important; transition: none !important; } }
-=======
 /* Folha de compartilhar nos stories */
 .story-prev { width: min(100%, 15rem); margin: 0 auto; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: var(--navy, #0f1c1f); box-shadow: 0 24px 60px -28px rgb(15 28 31 / .55); }
 .story-prev img, .story-prev-ph { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -2178,3 +2178,16 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .story-model span { font: 400 .75rem/1.25 var(--font-sans); color: var(--muted); }
 .story-model[aria-pressed="true"] { border-color: var(--fg); background: color-mix(in srgb, var(--fg) 6%, var(--surface)); box-shadow: inset 0 0 0 1px var(--fg); }
 .story-model:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+
+/* Chat em tela cheia no celular: cabeçalho com voltar, conversa ocupa o resto, campo colado embaixo. */
+.chat-screen-head { display: flex; align-items: center; gap: 8px; }
+@media (max-width: 1023px) {
+  .chat-screen { position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; background: var(--bg); padding-top: var(--safe-top); animation: chat-in .32s var(--ease-out, cubic-bezier(.16,1,.3,1)); }
+  .chat-screen-head { padding: 8px 12px; min-height: 56px; border-bottom: 1px solid var(--line); background: var(--surface); }
+  .chat-screen-sub { padding: 8px 16px 0; }
+  .chat-screen .chat { flex: 1; min-height: 0; border-radius: 0; }
+  .chat-screen .chat-list { max-height: none; }
+  .chat-screen .chat-compose { padding-bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+@keyframes chat-in { from { transform: translateX(24px); opacity: 0 } to { transform: none; opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .chat-screen { animation: none; } }

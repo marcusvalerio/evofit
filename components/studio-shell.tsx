@@ -49,7 +49,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         {/* Sidebar (desktop) */}
         <aside className="side-glass sticky top-3 m-3 hidden h-[calc(100dvh-1.5rem)] w-60 shrink-0 flex-col rounded-[32px] px-3 py-5 lg:flex">
           <div className="px-3">
-            <Brand suffix="Studio" />
+            <Brand suffix="Studio" href="/studio" />
           </div>
           <nav aria-label="Studio" className="mt-8 flex flex-col gap-1">
             {NAV.map(({ href, label, icon: Icon, exact }) => {
@@ -97,7 +97,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Topo (mobile/tablet) */}
           <header className="glass sticky top-[var(--safe-top)] z-30 flex h-14 min-w-0 items-center justify-between gap-2 border-b border-line px-4 lg:hidden">
-            <Brand suffix="Studio" />
+            <Brand suffix="Studio" href="/studio" />
             <div className="flex shrink-0 items-center gap-0.5">
               {isAdmin && (
                 <Link href="/admin" className="btn btn-ghost btn-icon btn-sm" aria-label="Administração">

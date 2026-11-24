@@ -46,7 +46,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
       <DemoBanner />
       <header className="sticky top-[var(--safe-top)] z-30 border-b border-line bg-bg">
         <div className="mx-auto flex h-14 max-w-xl items-center justify-between gap-2 px-4">
-          <Brand suffix="Aluno" />
+          <Brand suffix="Aluno" href="/aluno" />
           <div className="flex items-center gap-1">
             {student && role === "student" && (
               <span className="flex h-10 items-center gap-2 pl-1 pr-2">
