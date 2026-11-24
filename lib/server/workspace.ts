@@ -2,7 +2,8 @@ import type { Assessment, Payment, ContactRequest, DemoData, Exercise, Session, 
 import { SPECIALTIES } from "../types"
 import { DATA_VERSION } from "../seed"
 import { isoDayOf } from "../date"
-import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
+import { isAssessment, isPayment, isExercise, isPhotoOrEmpty, isProfile, isSession, isStudent, isWorkout } from "../validate"
+export { isPhotoOrEmpty }
 import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
 import type { Changes, MediaRow } from "../sync"
@@ -71,6 +72,7 @@ export async function loadWorkspace(q: Queryable, ctx: Ctx): Promise<DemoData> {
       whatsapp: String(t.whatsapp ?? ""),
       instagram: String(t.instagram ?? ""),
       directoryVisible: Boolean(t.directory_visible),
+      photo: typeof t.photo === "string" ? t.photo : null,
     },
     students: students.map(
       (s): Student => ({
@@ -233,9 +235,10 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes, opts: { p
     if (!isProfile(p) || Object.keys(validateProfile(p)).length) throw invalid("perfil")
     if (p.specialties.length > SPECIALTIES.length || p.specialties.some((s) => !(SPECIALTIES as readonly string[]).includes(s))) throw invalid("especialidades")
     if (p.name.length > 80 || p.city.length > 80 || p.region.length > 80 || p.registry.length > 40) throw invalid("perfil")
+    if (!isPhotoOrEmpty(p.photo)) throw invalid("foto (use JPEG, WebP ou PNG de até 300 KB)")
     await q.query(
-      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12, pix_key = $13, whatsapp = $14, instagram = $15 where id = $1`,
-      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible, p.pixKey.trim(), normalizePhone(p.whatsapp), normalizeInstagram(p.instagram)],
+      `update trainers set name = $2, headline = $3, bio = $4, city = $5, state = $6, region = $7, modality = $8, specialties = $9, registry = $10, accent = $11, directory_visible = $12, pix_key = $13, whatsapp = $14, instagram = $15, photo = $16 where id = $1`,
+      [ctx.trainerId, p.name, p.headline, p.bio, p.city, p.state, p.region, p.modality, p.specialties, p.registry, p.accent, p.directoryVisible, p.pixKey.trim(), normalizePhone(p.whatsapp), normalizeInstagram(p.instagram), p.photo ?? null],
     )
   }
 

@@ -25,6 +25,8 @@ export interface TrainerProfile {
   instagram: string
   /** Opt-in explícito para aparecer no diretório público. */
   directoryVisible: boolean
+  /** Foto de perfil (data URL JPEG/WebP/PNG, até 300 KB). Ausente/null = iniciais. */
+  photo?: string | null
 }
 
 /** O que o diretório público pode mostrar: nunca a chave Pix. */

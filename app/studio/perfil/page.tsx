@@ -1,10 +1,11 @@
 "use client"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import Link from "next/link"
-import { Check, ExternalLink, Eye, EyeOff, Inbox, Trash2 } from "@/components/icons"
+import { Camera, Check, ExternalLink, Eye, EyeOff, Inbox, Trash2 } from "@/components/icons"
 import { update, useData, useIsDemo } from "@/lib/store"
 import type { AccentChoice, Modality, TrainerProfile } from "@/lib/types"
 import { MODALITY_LABEL, SPECIALTIES } from "@/lib/types"
+import { PHOTO_MAX } from "@/lib/validate"
 import { removeContactRequest, saveProfile, validateProfile } from "@/lib/actions"
 import { fmtDate, fmtTime } from "@/lib/date"
 import { Avatar, ConfirmDialog, Field, PageHeader, cx, revealFirstError } from "@/components/ui"
@@ -163,12 +164,14 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
             </p>
           </section>
 
+          <PhotoBlock name={v.name} accent={v.accent} photo={v.photo ?? null} onChange={(photo) => set("photo", photo)} />
+
           <section className="card p-5" aria-labelledby="cor-title">
             <h2 id="cor-title" className="t-h2">
               Cor do perfil
             </h2>
             <div className="mt-3 flex items-center gap-3">
-              <Avatar name={v.name || "?"} accent={v.accent} size="lg" />
+              <Avatar name={v.name || "?"} accent={v.accent} src={v.photo} size="lg" />
               <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Cor de destaque">
                 {ACCENTS.map((a) => (
                   <button
@@ -251,5 +254,83 @@ function ProfileForm({ profile }: { profile: TrainerProfile }) {
         }}
       />
     </div>
+  )
+}
+
+const READ_MAX = 15 * 1024 * 1024
+const PHOTO_SIDE = 320
+
+/** Corta o quadrado central e reduz para 320×320 em JPEG (qualidade 0.82). */
+async function toSquareJpeg(file: File): Promise<string> {
+  const url = URL.createObjectURL(file)
+  try {
+    const img = new Image()
+    img.src = url
+    await img.decode()
+    const side = Math.min(img.naturalWidth, img.naturalHeight)
+    if (!side) throw new Error("decode")
+    const canvas = document.createElement("canvas")
+    canvas.width = canvas.height = PHOTO_SIDE
+    const ctx = canvas.getContext("2d")
+    if (!ctx) throw new Error("canvas")
+    ctx.imageSmoothingQuality = "high"
+    ctx.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, PHOTO_SIDE, PHOTO_SIDE)
+    return canvas.toDataURL("image/jpeg", 0.82)
+  } finally {
+    URL.revokeObjectURL(url)
+  }
+}
+
+function PhotoBlock({ name, accent, photo, onChange }: { name: string; accent: AccentChoice; photo: string | null; onChange: (p: string | null) => void }) {
+  const input = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setError(null)
+    if (!file.type.startsWith("image/")) return setError("Esse arquivo não é uma imagem. Escolha uma foto (JPEG, PNG, WebP ou HEIC).")
+    if (file.size > READ_MAX) return setError("Essa imagem é grande demais para ler (mais de 15 MB). Escolha outra ou tire uma nova foto.")
+    setBusy(true)
+    try {
+      const data = await toSquareJpeg(file)
+      if (data.length > PHOTO_MAX) return setError("Não foi possível reduzir essa foto para menos de 300 KB. Tente outra imagem.")
+      onChange(data)
+    } catch {
+      setError("Não foi possível abrir essa imagem. Tente outro arquivo.")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="card p-5" aria-labelledby="foto-title">
+      <h2 id="foto-title" className="t-h2">
+        Foto
+      </h2>
+      <p className="mt-1 text-sm text-muted">Aparece no app e para os seus alunos. Cortamos no centro em formato quadrado.</p>
+      <div className="mt-3 flex items-center gap-4">
+        <Avatar name={name || "?"} accent={accent} src={photo} size="xl" />
+        <div className="flex flex-col gap-2">
+          <button type="button" className="btn btn-outline min-h-11" onClick={() => input.current?.click()} disabled={busy}>
+            <Camera size={18} aria-hidden /> {busy ? "Processando…" : photo ? "Trocar foto" : "Escolher foto"}
+          </button>
+          {photo && (
+            <button type="button" className="btn btn-ghost min-h-11" onClick={() => (setError(null), onChange(null))}>
+              <Trash2 size={18} aria-hidden /> Remover
+            </button>
+          )}
+        </div>
+      </div>
+      <input ref={input} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden onChange={pick} />
+      {error && (
+        <p role="alert" className="mt-3 text-sm font-medium text-danger">
+          {error}
+        </p>
+      )}
+      {photo && !error && <p className="mt-3 text-sm text-muted">Prévia. Toque em Salvar perfil para aplicar.</p>}
+    </section>
   )
 }

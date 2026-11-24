@@ -8,7 +8,7 @@ import { useChatHours, useThread } from "@/lib/chat-client"
 import { hoursText, isOpen } from "@/lib/chat-hours"
 import { ChatView } from "@/components/chat-view"
 import { PushToggle } from "@/components/push-toggle"
-import { EmptyState } from "@/components/ui"
+import { Avatar, EmptyState } from "@/components/ui"
 
 export default function ChatAlunoPage() {
   const { d, student } = useActiveStudent()
@@ -35,6 +35,7 @@ export default function ChatAlunoPage() {
         <button type="button" className="btn btn-ghost btn-icon lg:hidden" aria-label="Voltar" onClick={() => (history.length > 1 ? router.back() : router.push("/aluno"))}>
           <ArrowLeft size={18} aria-hidden />
         </button>
+        <Avatar name={d.profile.name} accent={d.profile.accent} src={d.profile.photo} size="sm" />
         <h1 className="t-h1 max-lg:text-lg">Conversa com {trainer}</h1>
       </div>
       <p className="chat-screen-sub mt-1 text-sm text-muted">Só sobre o seu treino. {hoursText(hours).replace("Recebe", `${trainer} recebe`).replace("Responde", `${trainer} responde`)} Em emergência, procure atendimento.</p>

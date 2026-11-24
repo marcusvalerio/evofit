@@ -24,6 +24,7 @@ export const isProfile = (v: unknown): v is TrainerProfile =>
     whatsapp: isStr,
     instagram: isStr,
     directoryVisible: (b) => typeof b === "boolean",
+    photo: (f) => isPhotoOrEmpty(f),
   })
 
 export const isStudent = (v: unknown): v is Student =>
@@ -118,3 +119,10 @@ export function isDemoData(v: unknown): v is DemoData {
     (v.activeStudentId === null || isStr(v.activeStudentId))
   )
 }
+
+/** Foto de perfil: data URL de imagem, até 300 mil caracteres (mesma regra do banco). */
+export const PHOTO_MAX = 300_000
+const PHOTO_RE = /^data:image\/(jpeg|webp|png);base64,[A-Za-z0-9+/=]+$/
+export const isPhoto = (v: unknown): v is string => typeof v === "string" && v.length <= PHOTO_MAX && PHOTO_RE.test(v)
+/** null/undefined (sem foto) ou foto válida. */
+export const isPhotoOrEmpty = (v: unknown) => v === null || v === undefined || isPhoto(v)

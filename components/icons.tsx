@@ -60,6 +60,7 @@ const D: Record<string, string> = {
   Search: "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4 4\"/>",
   SearchX: "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4 4M9 9l4 4M13 9l-4 4\"/>",
   Pencil: "<path d=\"M15 4.5 19.5 9 9 19.5 4 20l.5-5Z\"/>",
+  Camera: "<path d=\"M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.5-2.5h5.6L16.3 7h2.2A1.5 1.5 0 0 1 20 8.5v9a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.5Z\"/><circle cx=\"12\" cy=\"13\" r=\"3.5\"/>",
   Trash2: "<path d=\"M4 7h16M10 3.5h4M6 7l1 12.2A2 2 0 0 0 9 21h6a2 2 0 0 0 2-1.8L18 7M10 11v6M14 11v6\"/>",
   Archive: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"5\" rx=\"1.5\"/><path d=\"M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4\"/>",
   ArchiveRestore: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"5\" rx=\"1.5\"/><path d=\"M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M12 17v-5M9.5 14.5 12 12l2.5 2.5\"/>",
@@ -167,4 +168,4 @@ export const VolumeX = make("VolumeX"), Wallet = make("Wallet"), CheckCircle2 = 
 export const Bench = make("Bench"), JumpRope = make("JumpRope"), Bottle = make("Bottle"), Sneaker = make("Sneaker"), Scale = make("Scale"), Home = make("Home")
 export const BarChart = make("BarChart"), Flame = make("Flame"), Heart = make("Heart"), MedicineBall = make("MedicineBall"), Shaker = make("Shaker"), PlyoBox = make("PlyoBox")
 export const YogaMat = make("YogaMat"), PullUpBar = make("PullUpBar"), UserRoundPlus = make("UserRoundPlus"), TriangleAlert = make("TriangleAlert")
-export const Bell = make("Bell")
+export const Bell = make("Bell"), Camera = make("Camera")
