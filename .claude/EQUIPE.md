@@ -2,7 +2,10 @@
 
 Quatro agentes (diretor de arte, designer de produto, designer de UX e motion designer) e a skill `/banca`, que chama os quatro de uma vez.
 
-## Instalar na sua pasta pessoal (vale para todos os seus projetos)
+## Já instalado neste repositório
+Os arquivos estão em `.claude/agents/` e `.claude/skills/banca/`. Qualquer sessão do Claude Code neste projeto, inclusive pelo celular, já carrega a equipe e o `/banca`. Para usar em outro projeto, copie essas duas pastas para o `.claude/` dele.
+
+## Instalar na sua pasta pessoal (vale para todos os seus projetos no computador)
 
 No seu computador, copie as pastas para dentro de `~/.claude/`:
 
