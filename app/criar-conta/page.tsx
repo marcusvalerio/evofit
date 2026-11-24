@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { UserPlus } from "@/components/icons"
 import { postJson, hardNavigate } from "@/lib/account-client"
@@ -8,6 +8,12 @@ import { AuthCard, FormError, PasswordField } from "@/components/auth-form"
 
 export default function CriarContaPage() {
   const [v, setV] = useState({ name: "", email: "", password: "" })
+  // vindo da landing: /criar-conta?email=...&perfil=...
+  useEffect(() => {
+    const email = new URLSearchParams(window.location.search).get("email")
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lido só no navegador, depois da hidratação
+    if (email) setV((cur) => (cur.email ? cur : { ...cur, email: email.slice(0, 254) }))
+  }, [])
   const [accept, setAccept] = useState(false)
   const [fields, setFields] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
