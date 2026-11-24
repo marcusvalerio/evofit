@@ -100,10 +100,10 @@ function Alunos() {
                   <div className="flex items-center gap-3">
                     <Avatar name={s.name} />
                     <div className="min-w-0 flex-1">
+                      <span className="badge mb-1">{LEVEL_LABEL[s.level]}</span>
                       <p className="truncate font-semibold">{s.name}</p>
                       <p className="truncate text-sm text-muted">{s.goal || "Sem objetivo definido"}</p>
                     </div>
-                    <span className="badge">{LEVEL_LABEL[s.level]}</span>
                   </div>
                   <dl className="grid grid-cols-3 gap-2 border-t border-line pt-3 text-sm">
                     <div>
