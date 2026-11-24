@@ -1,8 +1,10 @@
 "use client"
 import { GlassNav } from "@/components/glass-nav"
+import Link from "next/link"
+import { useUnread } from "@/lib/chat-client"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { BarChart, Check, Home, LayoutDashboard, UserRound } from "@/components/icons"
+import { BarChart, Check, Home, LayoutDashboard, MessageCircle, UserRound } from "@/components/icons"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
@@ -17,6 +19,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const gated = useLoginGate()
   const [picking, setPicking] = useState(false)
   const student = data?.students.find((s) => s.id === data.activeStudentId && s.status === "ativo")
+  const unread = useUnread("student", student?.id ?? null)
   const inWorkout = path.startsWith("/aluno/treino/")
   const role = mode === "account" ? account?.role : null
 
@@ -55,6 +58,12 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
                 <Avatar name={student.name} size="sm" />
                 <span className="max-w-[7rem] truncate text-sm font-semibold">{student.name.split(" ")[0]}</span>
               </button>
+            )}
+            {student && (
+              <Link href="/aluno/chat" className="btn btn-ghost btn-icon btn-sm relative" aria-label={unread > 0 ? `Conversa com o personal, ${unread} não lida${unread > 1 ? "s" : ""}` : "Conversa com o personal"}>
+                <MessageCircle size={20} aria-hidden />
+                {unread > 0 && <span className="chat-dot" aria-hidden />}
+              </Link>
             )}
             <ThemeToggle />
           </div>
