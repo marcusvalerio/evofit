@@ -26,3 +26,16 @@ describe("medalhas", () => {
     expect(medalsEarnedBy(nine, ten[0], NOW).map((x) => x.level)).toContain("bronze")
   })
 })
+
+import { trainerNotices } from "@/lib/notices"
+describe("avisos do personal", () => {
+  it("dor forte vem primeiro, como prioridade alta", () => {
+    const d = createSeed(NOW)
+    const sid = d.students[0].id
+    const s = { ...done(sid, new Date(NOW.getTime() - 86400000).toISOString(), 99), checkin: { effort: 8, pain: "forte" as const, sleep: null } }
+    const list = trainerNotices({ ...d, sessions: [...d.sessions, s] }, NOW)
+    const dor = list.find((n) => n.kind === "dor")
+    expect(dor?.priority).toBe("alta")
+    expect(list[0].priority).toBe("alta")
+  })
+})
