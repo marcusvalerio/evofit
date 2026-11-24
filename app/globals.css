@@ -1946,3 +1946,9 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-rest-b.on { background: #f3f3f1; color: var(--navy); box-shadow: none; }
 .evo-rest-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--limao); transform-origin: left; transition: transform 1s linear; }
 @media (prefers-reduced-motion: reduce) { .evo-rest-bar { transition: none; } }
+
+/* Barra lateral do Studio (desktop): mesmo vidro da barra de navegação. */
+.side-glass { background: linear-gradient(180deg, rgb(255 255 255 / .66), rgb(255 255 255 / .5)); backdrop-filter: blur(22px) saturate(1.7); -webkit-backdrop-filter: blur(22px) saturate(1.7); box-shadow: inset 0 1px 0 rgb(255 255 255 / .9), inset 0 0 0 1px rgb(255 255 255 / .55), 0 18px 36px -24px rgb(15 28 31 / .4); }
+.side-on { background: rgb(220 237 236 / .9); box-shadow: inset 0 1px 0 rgb(255 255 255 / .8); }
+[data-theme="dark"] .side-glass { background: linear-gradient(180deg, rgb(40 58 62 / .6), rgb(15 28 31 / .55)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .18), inset 0 0 0 1px rgb(255 255 255 / .08); }
+[data-theme="dark"] .side-on { background: rgb(243 243 241 / .95); color: var(--navy); }
