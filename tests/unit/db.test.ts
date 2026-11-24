@@ -9,6 +9,7 @@ import { applyChanges, loadWorkspace } from "@/lib/server/workspace"
 import { diff } from "@/lib/sync"
 import { publicProfiles, sendContact } from "@/lib/server/directory"
 import * as A from "@/lib/actions"
+import * as Chat from "@/lib/server/chat"
 import type { DemoData } from "@/lib/types"
 
 let db: Db
@@ -55,7 +56,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql", "015_messages_consent.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql", "015_messages_consent.sql", "016_messages.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -210,6 +211,24 @@ describe("aluno com convite", () => {
     expect(d.contactRequests).toEqual([])
     expect(d.activeStudentId).toBe("al-carlos")
     expect(d.exerciseMedia.Barbell_Squat?.tip).toBe("Desça devagar")
+  })
+
+  it("chat: personal e aluno conversam; outro aluno não vê; lidas são marcadas", async () => {
+    const ta = tenant(ana) as Extract<ReturnType<typeof tenant>, { role: "trainer" }>
+    const tc = tenant(carlos) as Extract<ReturnType<typeof tenant>, { role: "student" }>
+    await withTenant(ta, (q) => Chat.sendMessage(q, ta, "Bora treinar hoje?", "al-carlos"), db)
+    expect(await withTenant(tc, (q) => Chat.unreadCount(q, tc), db)).toBe(1)
+    const seen = await withTenant(tc, (q) => Chat.openThread(q, tc), db)
+    expect(seen.map((m) => m.body)).toEqual(["Bora treinar hoje?"])
+    expect(await withTenant(tc, (q) => Chat.unreadCount(q, tc), db)).toBe(0)
+    await withTenant(tc, (q) => Chat.sendMessage(q, tc, "Bora!"), db)
+    const threads = await withTenant(ta, (q) => Chat.listThreads(q, ta), db)
+    expect(threads.find((t) => t.studentId === "al-carlos")?.unread).toBe(1)
+    // o aluno não consegue escrever na conversa de outro aluno nem se passar pelo personal
+    await expect(withTenant(tc, (q) => q.query("insert into messages (trainer_id, student_id, sender, body) values ($1, 'al-duda', 'student', 'oi')", [ana.trainerId]), db)).rejects.toThrow()
+    await expect(withTenant(tc, (q) => q.query("insert into messages (trainer_id, student_id, sender, body) values ($1, 'al-carlos', 'trainer', 'oi')", [ana.trainerId]), db)).rejects.toThrow()
+    await expect(withTenant(tc, (q) => q.query("update messages set body = 'mudei'"), db)).rejects.toThrow()
+    await expectStatus(withTenant(tc, (q) => Chat.sendMessage(q, tc, "   "), db), 400)
   })
 
   it("aluno registra o treino; personal acompanha", async () => {
