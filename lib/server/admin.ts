@@ -6,6 +6,8 @@ import { HttpError } from "./workspace"
 import { computeStatus, statusFor } from "./billing"
 import { MSG, sendWhatsApp, trainerContact } from "./whatsapp-bot"
 import { EMAILS, sendLifecycleEmail } from "./email"
+import { broadcastPush, pushConfigured } from "./push"
+import { WHATS_NEW_VERSION, pushTextFor } from "../whats-new"
 import { PLANS, TRIAL_DAYS, isPlanId, type PlanId } from "../plans"
 
 /**
@@ -703,4 +705,16 @@ export async function noteAction(admin: Account, body: Record<string, unknown>, 
     else if (body.op === "delete") await q.query("delete from admin_notes where id = $1", [id])
     else throw new HttpError(400, "Ação inválida.")
   })
+}
+
+/* ---------- Push das Novidades ---------- */
+
+/** Dispara o push das Novidades uma única vez por versão (fica no registro de ações). */
+export async function sendWhatsNewPush(admin: Account, db: Db = getDb()) {
+  const prev = (await db.tx((q) => q.query<{ at: Date | string }>("select at from admin_audit where action = 'push_novidades' and target = $1 limit 1", [WHATS_NEW_VERSION]))).rows[0]
+  if (prev) throw new HttpError(409, `O push das Novidades ${WHATS_NEW_VERSION} já foi enviado em ${new Date(prev.at).toLocaleDateString("pt-BR")}.`)
+  if (!pushConfigured()) throw new HttpError(503, "Push não configurado no servidor (chaves VAPID).")
+  const r = await broadcastPush(pushTextFor, db)
+  await db.tx((q) => audit(q, admin, "push_novidades", WHATS_NEW_VERSION, `${r.sent} enviados, ${r.failed} falhas, ${r.removed} removidos`))
+  return r
 }

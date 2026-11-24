@@ -16,7 +16,7 @@ export const GET = handle(async () => {
   const admin = isAdmin(a)
   // acesso do personal (teste, assinatura ou liberação manual); o aluno não é bloqueado
   const hasAccess = a.role !== "trainer" || admin || (await trainerHasAccess(a.trainerId))
-  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword, isAdmin: admin, onboarded: a.onboarded !== false, hasAccess }, data })
+  return json({ account: { email: a.email, role: a.role, mustChangePassword: a.mustChangePassword, isAdmin: admin, onboarded: a.onboarded !== false, hasAccess, createdAt: a.createdAt }, data })
 })
 
 /** Recebe só o que mudou; o servidor revalida e grava numa transação. */

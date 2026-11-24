@@ -21,6 +21,8 @@ export interface Account {
   isAdmin?: boolean
   /** Personal já passou pelo onboarding (boas-vindas). */
   onboarded?: boolean
+  /** Quando a conta foi criada (ISO). */
+  createdAt?: string
 }
 
 export const SESSION_DAYS = 30
@@ -105,14 +107,14 @@ async function createSession(q: Queryable, userId: string, device = "") {
 export async function accountFromToken(token: string | undefined, db: Db = getDb()): Promise<Account | null> {
   if (!token || token.length > 100) return null
   return db.tx(async (q) => {
-    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean; is_admin: boolean; onboarded_at: unknown }>(
-      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password, u.is_admin, u.onboarded_at from auth_sessions s join users u on u.id = s.user_id
+    const r = await q.query<{ id: string; email: string | null; username: string | null; role: Account["role"]; trainer_id: string; student_id: string | null; must_change_password: boolean; is_admin: boolean; onboarded_at: unknown; created_at?: Date | string | null }>(
+      `select u.id, u.email, u.username, u.role, u.trainer_id, u.student_id, u.must_change_password, u.is_admin, u.onboarded_at, u.created_at from auth_sessions s join users u on u.id = s.user_id
        where s.token_hash = $1 and s.expires_at > now() and u.disabled_at is null`,
       [hashToken(token)],
     )
     const u = r.rows[0]
     return u
-      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password, isAdmin: !!u.is_admin, onboarded: u.role !== "trainer" || !!u.onboarded_at }
+      ? { userId: u.id, email: u.email ?? u.username ?? "", role: u.role, trainerId: u.trainer_id, studentId: u.student_id, mustChangePassword: u.must_change_password, isAdmin: !!u.is_admin, onboarded: u.role !== "trainer" || !!u.onboarded_at, createdAt: u.created_at ? new Date(u.created_at).toISOString() : undefined }
       : null
   })
 }
