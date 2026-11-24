@@ -1,6 +1,6 @@
 "use client"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Activity, Ban, Copy, Database, EyeOff, KeyRound, MoreHorizontal, RotateCcw, Search, ShieldCheck } from "@/components/icons"
+import { Activity, Ban, BarChart as BarChart2, Inbox, SearchX, Copy, Database, EyeOff, KeyRound, MoreHorizontal, RotateCcw, Search, ShieldCheck } from "@/components/icons"
 import { postJson } from "@/lib/account-client"
 import { fmtDate, relativeDays } from "@/lib/date"
 import { useDemoState } from "@/lib/store"
@@ -102,11 +102,11 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
   }))
 
   return (
-    <div className="space-y-10">
+    <div className="evo-admin space-y-12">
       <PageHeader eyebrow="Administração" title="Como está o EVOFIT" description="Números agregados da plataforma. Dados dos alunos nunca aparecem aqui." />
 
-      <section aria-labelledby="ov-title">
-        <h2 id="ov-title" className="sr-only">
+      <section id="visao-geral" aria-labelledby="ov-title" className="evo-admin-anchor">
+        <h2 id="ov-title" className="t-eyebrow mb-3">
           Visão geral
         </h2>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -114,44 +114,51 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
           <Stat label="Ativados" value={`${pct(o.activated, o.trainers)}%`} tone="accent" hint={`${o.activated} com aluno e ficha montada`} />
           <Stat label="Alunos ativos" value={String(o.students)} hint={`${o.studentLogins} com login · ${o.studentsActive7} entraram em 7 dias`} />
           <Stat label="Treinos concluídos" value={String(o.sessions7)} unit="7 dias" hint={`${o.sessions30} em 30 dias`} />
-          <Stat label="Personais ativos" value={String(o.trainersActive7)} unit="7 dias" hint="Entraram no Studio na semana" />
-          <Stat label="Fichas montadas" value={String(o.workouts)} />
-          <Stat label="No diretório" value={String(o.listed)} hint="Perfis públicos em Encontrar personal" />
-          <Stat label="Suspensos" value={String(o.suspended)} tone={o.suspended ? "warning" : undefined} />
         </div>
+        <dl className="evo-admin-mini card mt-3">
+          {[
+            ["Personais ativos · 7 dias", o.trainersActive7],
+            ["Fichas montadas", o.workouts],
+            ["No diretório", o.listed],
+            ["Suspensos", o.suspended],
+          ].map(([k, v]) => (
+            <div key={k}>
+              <dt>{k}</dt>
+              <dd className={cx(k === "Suspensos" && Number(v) > 0 && "text-warning")}>{v}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
-      <BillingStats b={data.billing} />
+      <div id="personais" className="evo-admin-anchor">
+        <TrainersSection trainers={trainers} me={data.me} access={data.access} reload={reload} />
+      </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div id="assinaturas" className="evo-admin-anchor">
+        <BillingStats b={data.billing} />
+      </div>
+
+      <div id="pedidos" className="evo-admin-anchor grid gap-6 lg:grid-cols-2">
         <LifetimeRequests requests={data.requests} reload={reload} />
         <RecentLogins logins={data.logins} />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <IdeasBoard notes={data.notes} reload={reload} />
-        <AdminTeam admins={data.admins} me={account?.email ?? ""} reload={reload} />
-      </div>
-
-      <ErrorsPanel />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <SalesLeads />
-        <WhatsAppBot />
-      </div>
-
-      <section aria-labelledby="signup-title" className="card p-5">
+      <section id="cadastros" aria-labelledby="signup-title" className="evo-admin-anchor card p-5 sm:p-6">
         <h2 id="signup-title" className="t-h2">
           Cadastros de personal por semana
         </h2>
         <p className="mb-4 text-sm text-muted">Últimas 8 semanas; a barra em destaque é a semana atual.</p>
-        <BarChart data={signups} title="Cadastros de personal por semana" unit="cadastros" />
+        {signups.some((w) => w.value > 0) ? (
+          <BarChart data={signups} title="Cadastros de personal por semana" unit="cadastros" />
+        ) : (
+          <EmptyState icon={BarChart2} title="Nenhum cadastro nas últimas 8 semanas">
+            O gráfico aparece assim que entrar o primeiro personal.
+          </EmptyState>
+        )}
       </section>
 
-      <TrainersSection trainers={trainers} me={data.me} access={data.access} reload={reload} />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section aria-labelledby="health-title" className="card p-5">
+      <div id="saude" className="evo-admin-anchor grid gap-6 lg:grid-cols-2">
+        <section aria-labelledby="health-title" className="card p-5 sm:p-6">
           <h2 id="health-title" className="t-h2 flex items-center gap-2">
             <Database size={18} aria-hidden /> Saúde
           </h2>
@@ -189,12 +196,16 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
           </dl>
         </section>
 
-        <section aria-labelledby="audit-title" className="card p-5">
+        <section aria-labelledby="audit-title" className="card p-5 sm:p-6">
           <h2 id="audit-title" className="t-h2 flex items-center gap-2">
             <ShieldCheck size={18} aria-hidden /> Registro de ações
           </h2>
           {audit.length === 0 ? (
-            <p className="mt-4 text-sm text-muted">Nenhuma ação de administração ainda. Toda ação feita aqui fica registrada com quem fez e quando.</p>
+            <div className="mt-4">
+              <EmptyState icon={ShieldCheck} title="Nenhuma ação ainda">
+                Toda ação feita aqui fica registrada com quem fez e quando.
+              </EmptyState>
+            </div>
           ) : (
             <ol className="evo-admin-audit mt-4">
               {audit.map((e, i) => (
@@ -211,6 +222,20 @@ function AdminView({ data, reload }: { data: Payload; reload: () => Promise<void
             </ol>
           )}
         </section>
+      </div>
+
+      <div id="erros" className="evo-admin-anchor">
+        <ErrorsPanel />
+      </div>
+
+      <div id="equipe" className="evo-admin-anchor grid gap-6 lg:grid-cols-2">
+        <IdeasBoard notes={data.notes} reload={reload} />
+        <AdminTeam admins={data.admins} me={account?.email ?? ""} reload={reload} />
+      </div>
+
+      <div id="vendas" className="evo-admin-anchor grid gap-6 lg:grid-cols-2">
+        <SalesLeads />
+        <WhatsAppBot />
       </div>
     </div>
   )
@@ -316,14 +341,42 @@ function TrainersSection({ trainers, me, access, reload }: { trainers: TrainerRo
       </div>
 
       {list.length === 0 ? (
-        <p className="card p-5 text-sm text-muted">{trainers.length ? "Nenhum personal com esse filtro." : "Nenhum personal cadastrado ainda."}</p>
+        trainers.length ? (
+          <EmptyState
+            icon={SearchX}
+            title="Nenhum personal com esse filtro"
+            action={
+              <button type="button" className="btn btn-outline" onClick={() => (setQ(""), setFilter("todos"), setPlan("todos"))}>
+                Limpar filtros
+              </button>
+            }
+          >
+            Tente outro nome, situação ou plano.
+          </EmptyState>
+        ) : (
+          <EmptyState icon={Inbox} title="Nenhum personal cadastrado ainda">
+            Os personais aparecem aqui assim que criarem a conta.
+          </EmptyState>
+        )
       ) : (
-        <ul className="evo-admin-list card">
+        <div className="evo-admin-list card" role="table" aria-label="Personais" aria-rowcount={list.length + 1}>
+          <div className="evo-admin-row evo-admin-head" role="row">
+            <span role="columnheader">Personal</span>
+            <span role="columnheader">Cadastro</span>
+            <span role="columnheader">Último acesso</span>
+            <span role="columnheader">Alunos</span>
+            <span role="columnheader">Fichas</span>
+            <span role="columnheader">Treinos 7d</span>
+            <span role="columnheader">
+              <span className="sr-only">Ações</span>
+            </span>
+          </div>
           {list.map((t) => (
-            <li key={t.id} className="evo-admin-row">
-              <div className="min-w-0">
-                <p className="flex flex-wrap items-center gap-2 font-semibold">
-                  <span className="truncate">{t.name}</span>
+            <div key={t.id} className="evo-admin-row" role="row">
+              <div className="evo-admin-who min-w-0" role="cell">
+                <p className="truncate font-semibold">{t.name}</p>
+                <p className="truncate text-sm text-muted">{t.email ?? "sem e-mail"}</p>
+                <p className="mt-1.5 flex flex-wrap gap-1.5">
                   {t.id === me && <span className="badge">você</span>}
                   {t.suspended && <span className="badge badge-danger">Suspenso</span>}
                   {!t.suspended && isIdle(t) && <span className="badge badge-warning">Parado</span>}
@@ -331,35 +384,26 @@ function TrainersSection({ trainers, me, access, reload }: { trainers: TrainerRo
                   {t.directoryVisible && <span className="badge badge-accent">No diretório</span>}
                   <AccessBadge a={access[t.id]} />
                 </p>
-                <p className="truncate text-sm text-muted">{t.email ?? "sem e-mail"}</p>
               </div>
-              <dl className="evo-admin-metrics">
-                <div>
-                  <dt>Cadastro</dt>
-                  <dd>{fmtDate(t.createdAt)}</dd>
-                </div>
-                <div>
-                  <dt>Último acesso</dt>
-                  <dd>{t.lastLoginAt ? relativeDays(t.lastLoginAt) : "nunca"}</dd>
-                </div>
-                <div>
-                  <dt>Alunos</dt>
-                  <dd className="tabular">
-                    {t.students}
-                    <small> · {t.studentLogins} login</small>
-                  </dd>
-                </div>
-                <div>
-                  <dt>Fichas</dt>
-                  <dd className="tabular">{t.workouts}</dd>
-                </div>
-                <div>
-                  <dt>Treinos 7d</dt>
-                  <dd className="tabular">{t.sessions7}</dd>
-                </div>
-              </dl>
-              <details className="evo-admin-menu">
-                <summary className="btn btn-ghost btn-icon btn-sm" aria-label={`Ações para ${t.name}`}>
+              <div className="evo-admin-cell" role="cell" data-label="Cadastro">
+                {fmtDate(t.createdAt)}
+              </div>
+              <div className="evo-admin-cell" role="cell" data-label="Último acesso">
+                {t.lastLoginAt ? relativeDays(t.lastLoginAt) : "nunca"}
+              </div>
+              <div className="evo-admin-cell evo-admin-num" role="cell" data-label="Alunos">
+                {t.students}
+                <small>{t.studentLogins} com login</small>
+              </div>
+              <div className="evo-admin-cell evo-admin-num" role="cell" data-label="Fichas">
+                {t.workouts}
+              </div>
+              <div className="evo-admin-cell evo-admin-num" role="cell" data-label="Treinos 7d">
+                {t.sessions7}
+              </div>
+              <div className="evo-admin-menu" role="cell">
+              <details>
+                <summary className="btn btn-ghost btn-icon" aria-label={`Ações para ${t.name}`}>
                   <MoreHorizontal size={18} aria-hidden />
                 </summary>
                 <div role="menu" className="evo-admin-menu-panel">
@@ -387,9 +431,10 @@ function TrainersSection({ trainers, me, access, reload }: { trainers: TrainerRo
                   )}
                 </div>
               </details>
-            </li>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
 
       {pending?.kind === "access" && <TrainerAccessDialog trainer={pending.t} onClose={() => setPending(null)} reload={reload} />}
