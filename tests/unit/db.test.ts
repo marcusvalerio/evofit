@@ -55,7 +55,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql", "015_messages_consent.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -192,8 +192,10 @@ describe("aluno com convite", () => {
     await expectStatus(Auth.createInvite(bia, "al-duda", db), 404) // aluno de outro personal
     const { code } = await Auth.createInvite(ana, "al-carlos", db)
     expect(await Auth.inviteInfo(code, db)).toEqual({ trainerName: "Ana Personal", studentName: "Carlos Aluno" })
-    const { token } = await Auth.acceptInvite(code, { email: "carlos@exemplo.com", password: "senha-do-aluno" }, db)
+    const { token } = await Auth.acceptInvite(code, { email: "carlos@exemplo.com", password: "senha-do-aluno", consent: true }, db)
     carlos = (await Auth.accountFromToken(token, db))!
+    const consent = await db.tx((q) => q.query<{ c: string | null }>("select messages_consent_at as c from users where lower(email) = 'carlos@exemplo.com'"))
+    expect(consent.rows[0]?.c).toBeTruthy()
     expect(carlos).toMatchObject({ role: "student", studentId: "al-carlos", trainerId: ana.trainerId })
     await expectStatus(Auth.acceptInvite(code, { email: "outro@exemplo.com", password: "senha-do-aluno" }, db), 410)
     await expectStatus(Auth.createInvite(ana, "al-carlos", db), 409)

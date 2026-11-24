@@ -14,7 +14,7 @@ export const POST = handle(async (req, ctx) => {
   if (!(await throttle(`invite:${clientIp(req)}`, 20, 15))) throw new HttpError(429, "Muitas tentativas. Aguarde alguns minutos.")
   const { code } = await ctx.params
   const body = await readJson(req, 4096)
-  const { token } = await acceptInvite(code, { email: body.email, password: body.password })
+  const { token } = await acceptInvite(code, { email: body.email, password: body.password, consent: body.consent })
   await setSessionCookie(token)
   return json({ ok: true, role: "student" })
 })

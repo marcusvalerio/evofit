@@ -343,7 +343,7 @@ export async function inviteInfo(code: string, db: Db = getDb()) {
   )
 }
 
-export async function acceptInvite(code: string, input: { email: unknown; password: unknown }, db: Db = getDb()) {
+export async function acceptInvite(code: string, input: { email: unknown; password: unknown; consent?: unknown }, db: Db = getDb()) {
   const errors = validateCredentials(input.email, input.password)
   if (Object.keys(errors).length) throw Object.assign(new HttpError(400, "Verifique os campos."), { fields: errors })
   const email = String(input.email).trim().toLowerCase()
@@ -360,6 +360,7 @@ export async function acceptInvite(code: string, input: { email: unknown; passwo
       if ((e as { code?: string }).code === "23505") throw new HttpError(409, "Este aluno já tem acesso ao app.")
       throw e
     })
+    if (input.consent === true) await q.query("update users set messages_consent_at = now() where id = $1", [userId])
     return { token: await createSession(q, userId), role: "student" as const }
   })
 }
