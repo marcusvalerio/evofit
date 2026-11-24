@@ -1835,7 +1835,8 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-body-fig svg { width: 100%; max-width: 9.5rem; height: auto; }
 .evo-body.is-compact .evo-body-fig svg { max-width: 5.5rem; }
 .evo-body-fig figcaption { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); }
-.evo-body-base { fill: color-mix(in srgb, var(--fg) 9%, transparent); }
+.evo-body-outline { fill: color-mix(in srgb, var(--fg) 4%, transparent); stroke: color-mix(in srgb, var(--fg) 22%, transparent); stroke-width: 0.8; stroke-linejoin: round; }
+.evo-body-base { fill: color-mix(in srgb, var(--fg) 8%, transparent); }
 .evo-body-part { fill: color-mix(in srgb, var(--fg) 13%, transparent); transition: fill 0.4s ease; }
 .evo-body-part[data-level="1"] { fill: color-mix(in srgb, var(--mp-otan) 28%, var(--surface)); }
 .evo-body-part[data-level="2"] { fill: color-mix(in srgb, var(--mp-otan) 50%, var(--surface)); }
