@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { LegalDoc } from "@/components/legal-doc"
 import { LEGAL } from "@/lib/legal"
-import { PLANS, FREE_MAX_STUDENTS, brl } from "@/lib/plans"
+import { PLANS, brl } from "@/lib/plans"
 
 export const metadata: Metadata = { title: "Termos de Uso" }
 
@@ -43,7 +43,7 @@ export default function Termos() {
 
       <h2>5. Planos, teste grátis e pagamento</h2>
       <ul>
-        <li>Toda conta nova começa no plano grátis, com todas as funções liberadas para até {FREE_MAX_STUDENTS} alunos ativos, sem cartão e sem prazo. Para mais alunos, é preciso um plano pago.</li>
+        <li>Toda conta nova começa no plano grátis, com todas as funções liberadas e sem limite de alunos durante a beta, sem cartão.</li>
         <li>
           Planos vigentes: Inicial ({brl(PLANS.inicial.amount)}/mês), Anual ({brl(PLANS.anual.amount)}/ano) e ofertas especiais divulgadas na plataforma. O aluno não paga.
         </li>

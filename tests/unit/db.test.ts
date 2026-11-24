@@ -151,14 +151,12 @@ describe("dados do personal no banco", () => {
 })
 
 describe("plano grátis", () => {
-  it("sem plano pago, aceita até 2 alunos ativos; com plano, sem limite", async () => {
+  it("na beta, sem limite de alunos mesmo sem plano pago", async () => {
     const t = await signup("Livre", "livre@exemplo.com")
     const base = (await load(ana)).students[0]
     const aluno = (id: string) => ({ ...base, id, name: `Aluno ${id}`, status: "ativo" as const })
     const run = (ids: string[], paid: boolean) => withTenant(tenant(t), (q) => applyChanges(q, tenant(t), { students: { upsert: ids.map(aluno), delete: [] } }, { paid }), db)
-    await run(["a1", "a2"], false)
-    await expectStatus(run(["a3"], false), 402)
-    await run(["a3"], true)
+    await run(["a1", "a2", "a3", "a4"], false)
   })
   it("conta nova exige senha forte", async () => {
     await expectStatus(Auth.signupTrainer({ name: "Fraca", email: "fraca@exemplo.com", password: "senhasemforca", acceptTerms: true }, db), 400)

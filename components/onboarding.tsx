@@ -6,7 +6,6 @@ import { flush, update, useData } from "@/lib/store"
 import { addStudent, saveProfile, validateProfile, validateStudent } from "@/lib/actions"
 import { postJson, hardNavigate } from "@/lib/account-client"
 import { MODALITY_LABEL, type Modality } from "@/lib/types"
-import { FREE_MAX_STUDENTS } from "@/lib/plans"
 import { Field, cx } from "./ui"
 import { BrandMark } from "./chrome"
 
@@ -146,7 +145,7 @@ export function Onboarding() {
             <BadgeCheck size={20} aria-hidden /> Você está na beta
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Na beta você usa todas as funções com até {FREE_MAX_STUDENTS} alunos, sem cartão. O que você contar pra gente molda o que vem depois.
+            Na beta você usa todas as funções, sem limite de alunos e sem cartão. O que você contar pra gente molda o que vem depois.
           </p>
           <div className="mt-5 grid gap-2 text-sm text-muted">
             <p className="flex items-center gap-2">
