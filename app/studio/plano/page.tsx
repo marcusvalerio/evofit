@@ -5,7 +5,7 @@ import { BadgeCheck, Check, ExternalLink, Info } from "@/components/icons"
 import { Field, Modal, PageHeader, cx } from "@/components/ui"
 import { useDemoState } from "@/lib/store"
 import { postJson } from "@/lib/account-client"
-import { PLANS, FREE_MAX_STUDENTS, brl, type BillingStatus, type Plan, type PlanId } from "@/lib/plans"
+import { PLANS, brl, type BillingStatus, type Plan, type PlanId } from "@/lib/plans"
 
 const dmy = (iso: string) => new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(new Date(iso))
 const per = (p: Plan) => (p.interval === "month" ? "/mês" : p.interval === "year" ? (p.bonusMonths ? ` por ${12 + p.bonusMonths} meses` : "/ano") : " pagamento único")
@@ -121,7 +121,7 @@ function Plano() {
                   ? `Plano ${current.name}: pagamento pendente. Atualize o cartão para não perder o acesso.`
                   : current && status.status === "canceled"
                     ? `Plano ${current.name} cancelado${status.currentPeriodEnd ? ` · acesso até ${dmy(status.currentPeriodEnd)}` : ""}.`
-                    : `Plano grátis: tudo liberado para até ${FREE_MAX_STUDENTS} alunos ativos. Os planos para mais alunos chegam em breve.`}
+                    : "Em beta: tudo liberado, sem limite de alunos."}
           </p>
           {!status.stripeReady && <p className="mt-2 text-sm text-warning">Os pagamentos ainda não foram configurados neste ambiente.</p>}
           {subscribed && !status.lifetime && status.source !== "manual" && (
@@ -133,7 +133,7 @@ function Plano() {
       )}
       {!isAccount && (
         <p className="card mb-6 flex items-center gap-2 p-4 text-sm text-muted">
-          <Info size={18} aria-hidden /> Você está na demonstração. Crie sua conta e teste grátis com até {FREE_MAX_STUDENTS} alunos.
+          <Info size={18} aria-hidden /> Você está na demonstração. Crie sua conta e use tudo durante a beta, sem limite de alunos.
         </p>
       )}
 
@@ -189,7 +189,7 @@ function Plano() {
       )}
       {subscribed && !status?.lifetime && <p className="mt-3 text-sm text-muted">Para trocar de plano ou cancelar, use “Gerenciar assinatura”.</p>}
       <p className="mt-6 text-xs text-muted">
-        Pagamento processado pelo Stripe. Plano grátis com até {FREE_MAX_STUDENTS} alunos, sem cartão. Assinaturas renovam automaticamente e podem ser canceladas a qualquer momento.
+        Pagamento processado pelo Stripe. Na beta, tudo liberado e sem limite de alunos, sem cartão. Assinaturas renovam automaticamente e podem ser canceladas a qualquer momento.
       </p>
 
       <Modal

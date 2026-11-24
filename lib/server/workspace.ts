@@ -5,7 +5,6 @@ import { isoDayOf } from "../date"
 import { isAssessment, isPayment, isExercise, isProfile, isSession, isStudent, isWorkout } from "../validate"
 import { normalizeInstagram, normalizePhone, validateAssessment, validateMedia, validateProfile, validateStudent, validateWorkout } from "../actions"
 import { isCatalogId } from "../catalog"
-import { FREE_MAX_STUDENTS } from "../plans"
 import type { Changes, MediaRow } from "../sync"
 import { affected, type Queryable, type Tenant } from "./db"
 
@@ -249,11 +248,7 @@ export async function applyChanges(q: Queryable, ctx: Ctx, c: Changes, opts: { p
     )
   }
 
-  // Plano grátis: até FREE_MAX_STUDENTS alunos ativos. Quem chama informa se o personal tem plano pago.
-  if (c.students?.upsert.length && opts.paid === false) {
-    const n = Number((await q.query<{ n: string }>("select count(*) as n from students where status = 'ativo'")).rows[0]?.n ?? 0)
-    if (n > FREE_MAX_STUDENTS) throw new HttpError(402, `O plano grátis vai até ${FREE_MAX_STUDENTS} alunos ativos. Arquive um aluno ou aguarde os planos, que chegam em breve.`)
-  }
+  // Beta: sem limite de alunos por personal.
 
   for (const e of c.exercises?.upsert ?? []) {
     checkExercise(e)
