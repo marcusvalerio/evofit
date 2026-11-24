@@ -14,6 +14,7 @@ type Props = Omit<SVGProps<SVGSVGElement>, "ref"> & {
 }
 
 const D: Record<string, string> = {
+  Bell: "<path d=\"M6 16v-5a6 6 0 0 1 12 0v5l1.5 2h-15Z\"/><path d=\"M10 20.5h4\"/>",
   ArrowLeft: "<path d=\"M19 12H5M11 5.5 4.5 12l6.5 6.5\"/>",
   ArrowRight: "<path d=\"M5 12h14M13 5.5l6.5 6.5-6.5 6.5\"/>",
   ArrowUp: "<path d=\"M12 19V5M5.5 11 12 4.5l6.5 6.5\"/>",
@@ -166,3 +167,4 @@ export const VolumeX = make("VolumeX"), Wallet = make("Wallet"), CheckCircle2 = 
 export const Bench = make("Bench"), JumpRope = make("JumpRope"), Bottle = make("Bottle"), Sneaker = make("Sneaker"), Scale = make("Scale"), Home = make("Home")
 export const BarChart = make("BarChart"), Flame = make("Flame"), Heart = make("Heart"), MedicineBall = make("MedicineBall"), Shaker = make("Shaker"), PlyoBox = make("PlyoBox")
 export const YogaMat = make("YogaMat"), PullUpBar = make("PullUpBar"), UserRoundPlus = make("UserRoundPlus"), TriangleAlert = make("TriangleAlert")
+export const Bell = make("Bell")
