@@ -12,6 +12,7 @@ import { useToast } from "./providers"
 import { FirstAccessPassword } from "./first-access"
 import { usePrecacheWorkouts } from "./offline"
 import { GateScreen, useLoginGate } from "./login-gate"
+import { WhatsNew } from "./whats-new"
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const path = usePathname()
@@ -84,6 +85,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
         />
       )}
 
+      <WhatsNew who="aluno" ready={!!data && !gated && !mustChange && !inWorkout && role !== "trainer" && !!student} createdAt={account?.createdAt} />
       <StudentPicker open={picking} onClose={() => setPicking(false)} />
     </div>
   )

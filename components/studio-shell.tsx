@@ -8,6 +8,7 @@ import { useDemoState } from "@/lib/store"
 import { FirstAccessPassword } from "./first-access"
 import { AccessLocked, Onboarding } from "./onboarding"
 import { GateScreen, useLoginGate } from "./login-gate"
+import { WhatsNew } from "./whats-new"
 
 const NAV = [
   { href: "/studio", label: "Painel", icon: LayoutDashboard, exact: true },
@@ -137,6 +138,8 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           </main>
         </div>
       </div>
+
+      <WhatsNew who="personal" ready={!!data && !gated && !mustChange && !needsOnboarding && !locked && !isStudent} createdAt={account?.createdAt} />
 
       {/* Navegação inferior (mobile/tablet) */}
       <nav aria-label="Studio" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line lg:hidden">
