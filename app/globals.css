@@ -1931,7 +1931,7 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 
 /* ---------- Entrada e onboarding: aura de abertura (Design System · Aura) ---------- */
 .auth-split { position: relative; display: grid; gap: 24px; width: 100%; max-width: 1100px; margin: 0 auto; padding: 8px 0 32px; }
-.auth-aura { position: relative; overflow: hidden; isolation: isolate; height: 180px; border-radius: 32px; background: #e3f6f4; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
+.auth-aura { position: relative; overflow: hidden; isolation: isolate; height: 180px; border-radius: 32px; clip-path: inset(0 round 32px); -webkit-mask-image: -webkit-radial-gradient(white, black); transform: translateZ(0); background: #e3f6f4; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
 .auth-aura i { position: absolute; width: 70%; aspect-ratio: 1; border-radius: 50%; filter: blur(40px); opacity: .9; z-index: -1; animation: auraf 14s ease-in-out infinite alternate; }
 .auth-aura .b1 { background: #b6f7fd; left: -15%; top: -30%; }
 .auth-aura .b2 { background: #46b8ba; right: -20%; bottom: -40%; animation-duration: 17s; opacity: .7; }
@@ -1979,7 +1979,7 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .medal-card b { font: 800 17px var(--font-display); letter-spacing: -.02em; }
 .medal-card small { font: 500 13px var(--font-label); color: var(--fg-muted); }
 /* Fim do treino: aura de conquista */
-.done-aura { position: relative; overflow: hidden; isolation: isolate; border-radius: 32px; padding: 32px 20px; background: #dcedec; }
+.done-aura { position: relative; overflow: hidden; isolation: isolate; border-radius: 32px; clip-path: inset(0 round 32px); transform: translateZ(0); padding: 32px 20px; background: #dcedec; }
 .done-aura i { position: absolute; z-index: -1; width: 70%; aspect-ratio: 1; border-radius: 50%; filter: blur(40px); animation: auraf 14s ease-in-out infinite alternate; }
 .done-aura .c1 { background: #46b8ba; left: -20%; top: -30%; opacity: .7; }
 .done-aura .c2 { background: #e6b422; right: -20%; top: 10%; opacity: .55; animation-duration: 17s; }
