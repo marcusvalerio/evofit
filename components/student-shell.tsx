@@ -2,7 +2,7 @@
 import { GlassNav } from "@/components/glass-nav"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
-import { BarChart, Check, Home, LayoutDashboard } from "@/components/icons"
+import { BarChart, Check, Home, LayoutDashboard, UserRound } from "@/components/icons"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
@@ -68,7 +68,8 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
           label="Aluno"
           items={[
             { href: "/aluno", label: "Treinos", icon: Home, on: path === "/aluno" },
-            { href: "/aluno/historico", label: "Histórico", icon: BarChart, on: path.startsWith("/aluno/historico") },
+            { href: "/aluno/historico", label: "Evolução", icon: BarChart, on: path.startsWith("/aluno/historico") },
+            { href: "/aluno/perfil", label: "Perfil", icon: UserRound, on: path.startsWith("/aluno/perfil") },
             ...(role ? [] : [{ href: "/studio", label: "Studio", icon: LayoutDashboard, on: false }]),
           ]}
         />
