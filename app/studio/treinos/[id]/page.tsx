@@ -103,7 +103,7 @@ function Editor({ workout }: { workout: Workout }) {
         </span>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
+      <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="min-w-0 space-y-4">
           <div className="card space-y-4 p-5">
             <Field label="Nome da ficha" error={show.name}>
@@ -273,6 +273,10 @@ function Editor({ workout }: { workout: Workout }) {
         </div>
 
         <aside className="space-y-4">
+        <section className="card hidden max-h-[70dvh] overflow-y-auto p-5 lg:block" aria-label="Biblioteca de exercícios">
+          <h2 className="t-h2 mb-3">Biblioteca</h2>
+          <ExerciseLibrary inline onPick={(exerciseId) => setDraft((w) => ({ ...w, items: [...w.items, newWorkoutItem(exerciseId)] }))} selected={draft.items.map((i) => i.exerciseId)} />
+        </section>
           <WorkoutBalance d={d} items={draft.items} />
           <div className="card p-5">
             <h2 className="t-h2">Alunos</h2>
@@ -406,6 +410,29 @@ const PAGE = 40
 
 function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; onPick: (id: string) => void; selected: string[] }) {
   const d = useData()
+  const total = useMemo(() => allExercises(d).length, [d])
+  const [added, setAdded] = useState(0)
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Adicionar exercícios"
+      description={`${total} exercícios com demonstração. Toque para adicionar — dá para escolher vários antes de fechar.`}
+      wide
+      footer={
+        <button type="button" className="btn btn-primary" onClick={onClose}>
+          Concluir{added > 0 && ` (${added} adicionado${added > 1 ? "s" : ""})`}
+        </button>
+      }
+    >
+      <ExerciseLibrary onPick={(id) => (onPick(id), setAdded((n) => n + 1))} selected={selected} />
+    </Modal>
+  )
+}
+
+/** Biblioteca de exercícios: no celular dentro do modal; no desktop largo, fixa ao lado da ficha. */
+function ExerciseLibrary({ onPick, selected, inline = false }: { onPick: (id: string) => void; selected: string[]; inline?: boolean }) {
+  const d = useData()
   const [q, setQ] = useState("")
   const [group, setGroup] = useState("")
   const [equipment, setEquipment] = useState("")
@@ -415,31 +442,20 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
   const list = useMemo(() => filterExercises(all, { q, group, equipment }), [all, q, group, equipment])
   const reset = () => setLimit(PAGE)
   return (
-    <Modal
-      open
-      onClose={onClose}
-      title="Adicionar exercícios"
-      description={`${all.length} exercícios com demonstração. Toque para adicionar — dá para escolher vários antes de fechar.`}
-      wide
-      footer={
-        <button type="button" className="btn btn-primary" onClick={onClose}>
-          Concluir{added.length > 0 && ` (${added.length} adicionado${added.length > 1 ? "s" : ""})`}
-        </button>
-      }
-    >
-      <div className="sticky -top-4 z-10 -mx-5 -mt-4 mb-3 space-y-2 bg-surface px-5 pb-3 pt-4">
-        <div className="flex gap-2">
+    <>
+      <div className={inline ? "sticky top-0 z-10 mb-3 space-y-2 bg-surface pb-3" : "sticky -top-4 z-10 -mx-5 -mt-4 mb-3 space-y-2 bg-surface px-5 pb-3 pt-4"}>
+        <div className={inline ? "flex flex-col gap-2" : "flex gap-2"}>
           <div className="relative flex-1">
             <Search size={18} aria-hidden className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-            <label htmlFor="pick-q" className="sr-only">
+            <label htmlFor={inline ? "lib-q" : "pick-q"} className="sr-only">
               Buscar exercício
             </label>
-            <input id="pick-q" type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus={autoFocusOk()} />
+            <input id={inline ? "lib-q" : "pick-q"} type="search" className="input pl-10" placeholder="Ex.: supino, agachamento, squat" value={q} onChange={(e) => (setQ(e.target.value), reset())} autoFocus={!inline && autoFocusOk()} />
           </div>
-          <label htmlFor="pick-eq" className="sr-only">
+          <label htmlFor={inline ? "lib-eq" : "pick-eq"} className="sr-only">
             Equipamento
           </label>
-          <select id="pick-eq" className="input !w-36 sm:!w-48" value={equipment} onChange={(e) => (setEquipment(e.target.value), reset())}>
+          <select id={inline ? "lib-eq" : "pick-eq"} className={inline ? "input" : "input !w-36 sm:!w-48"} value={equipment} onChange={(e) => (setEquipment(e.target.value), reset())}>
             <option value="">Equipamento</option>
             {CATALOG_EQUIPMENT.map((g) => (
               <option key={g}>{g}</option>
@@ -507,7 +523,7 @@ function ExercisePicker({ onClose, onPick, selected }: { onClose: () => void; on
       <span className="sr-only" aria-live="polite">
         {added.length ? `${added.length} exercício(s) adicionado(s)` : ""}
       </span>
-    </Modal>
+    </>
   )
 }
 
