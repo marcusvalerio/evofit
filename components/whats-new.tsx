@@ -7,7 +7,7 @@ import { HexMedal } from "./medal"
 import { useReducedMotion } from "./motion"
 import { cx } from "./ui"
 import { MEDAL_RULES } from "@/lib/medals"
-import { storySvg } from "@/lib/story-card"
+import { storySvg } from "@/lib/whats-new-story"
 import { WHATS_NEW, WHATS_NEW_KEY, WHATS_NEW_VERSION, whatsNewDecision, type WhatsNewScene, type WhatsNewWho } from "@/lib/whats-new"
 
 const readSeen = () => {
