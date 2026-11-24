@@ -39,3 +39,14 @@ describe("avisos do personal", () => {
     expect(list[0].priority).toBe("alta")
   })
 })
+
+import { isOpen } from "@/lib/chat-hours"
+describe("horário de atendimento", () => {
+  it("24h sempre aberto; com horário, respeita dia e hora de Brasília", () => {
+    expect(isOpen({ always: true, from: 0, to: 0, days: 0 })).toBe(true)
+    const h = { always: false, from: 8 * 60, to: 18 * 60, days: 0b0111110 } // seg a sex, 8h–18h
+    expect(isOpen(h, new Date("2026-11-24T13:00:00Z"))).toBe(true) // terça 10h em Brasília
+    expect(isOpen(h, new Date("2026-11-24T23:30:00Z"))).toBe(false) // terça 20h30
+    expect(isOpen(h, new Date("2026-11-22T13:00:00Z"))).toBe(false) // domingo
+  })
+})

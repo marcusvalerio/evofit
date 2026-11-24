@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Share2, Timer, Trophy, X } from "@/components/icons"
+import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Share2, MessageCircle, Timer, Trophy, X } from "@/components/icons"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
@@ -289,6 +289,13 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                 <button type="button" className="btn btn-ghost btn-icon btn-sm text-muted" onClick={() => setHowTo(sets[0].exerciseId)} aria-label={`Ver como fazer ${sets[0].exerciseName}`}>
                   <PlayCircle size={20} aria-hidden />
                 </button>
+                <Link
+                  href={`/aluno/chat?sobre=${encodeURIComponent(commentAbout(session.workoutName, sets))}`}
+                  className="btn btn-ghost btn-icon btn-sm text-muted"
+                  aria-label={`Comentar ${sets[0].exerciseName} com o personal`}
+                >
+                  <MessageCircle size={20} aria-hidden />
+                </Link>
               </div>
               {item?.notes && <p className="evo-lift-note">{item.notes}</p>}
 
@@ -451,6 +458,13 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
       />
     </div>
   )
+}
+
+/** Texto do "sobre o quê" do comentário: exercício e a última série feita (kg × reps). */
+function commentAbout(workout: string, sets: { load: number | null; reps: number | null; done: boolean; setIndex: number; exerciseName: string }[]) {
+  const last = [...sets].reverse().find((x) => x.done)
+  const set = last ? ` · série ${last.setIndex + 1}: ${last.load ?? "—"} kg × ${last.reps ?? "—"}` : ""
+  return `${sets[0].exerciseName}${set} (${workout})`.slice(0, 160)
 }
 
 /* ---------- Concluído ---------- */

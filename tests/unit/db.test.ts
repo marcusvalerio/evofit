@@ -56,7 +56,7 @@ let bia: Acc
 
 beforeAll(async () => {
   db = await pglite()
-  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql", "015_messages_consent.sql", "016_messages.sql"])
+  expect(await migrate(db)).toEqual(["001_init.sql", "002_assessments_phone.sql", "003_student_credentials.sql", "0042_exercise_illustrations.sql", "004_fees_checkin.sql", "005_admin.sql", "006_contacts_admin_flag.sql", "007_workout_dates.sql", "008_billing.sql", "009_admin_access.sql", "010_admin_team_notes.sql", "011_whatsapp.sql", "012_whatsapp_leads.sql", "013_reset_terms.sql", "014_errors_email.sql", "015_messages_consent.sql", "016_messages.sql", "017_chat_hours_push.sql"])
   ana = await signup("Ana Personal", "ana@exemplo.com")
   bia = await signup("Bia Personal", "bia@exemplo.com")
 }, 60_000)
@@ -229,6 +229,15 @@ describe("aluno com convite", () => {
     await expect(withTenant(tc, (q) => q.query("insert into messages (trainer_id, student_id, sender, body) values ($1, 'al-carlos', 'trainer', 'oi')", [ana.trainerId]), db)).rejects.toThrow()
     await expect(withTenant(tc, (q) => q.query("update messages set body = 'mudei'"), db)).rejects.toThrow()
     await expectStatus(withTenant(tc, (q) => Chat.sendMessage(q, tc, "   "), db), 400)
+    // comentário numa série vai junto com a mensagem
+    const c = await withTenant(tc, (q) => Chat.sendMessage(q, tc, "Doeu o ombro aqui", undefined, "Supino reto · série 3: 45 kg × 8"), db)
+    expect(c.context).toBe("Supino reto · série 3: 45 kg × 8")
+    // horário: padrão livre 24h; só o personal muda; aluno lê
+    expect((await withTenant(tc, (q) => Chat.getHours(q, ana.trainerId), db)).always).toBe(true)
+    await withTenant(ta, (q) => Chat.setHours(q, ta, { always: false, from: 420, to: 1260, days: 62 }), db)
+    expect(await withTenant(tc, (q) => Chat.getHours(q, ana.trainerId), db)).toEqual({ always: false, from: 420, to: 1260, days: 62 })
+    await expectStatus(withTenant(tc, (q) => Chat.setHours(q, tc, { always: true, from: 0, to: 0, days: 0 }), db), 403)
+    await expectStatus(withTenant(ta, (q) => Chat.setHours(q, ta, { always: false, from: 2000, to: 0, days: 0 }), db), 400)
   })
 
   it("aluno registra o treino; personal acompanha", async () => {
