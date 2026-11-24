@@ -20,7 +20,7 @@ test.describe("acesso público sem login", () => {
     ["/studio/exercicios/Barbell_Squat", /Agachamento com barra/],
     ["/studio/perfil", /Perfil profissional/],
     ["/aluno", /Bora treinar/],
-    ["/aluno/historico", /Histórico/],
+    ["/aluno/historico", /Evolução/],
     ["/biblioteca", /Veja como se faz/],
     ["/biblioteca/Barbell_Squat", /Agachamento com barra/],
     ["/personais", /Encontre um personal/],
@@ -55,8 +55,8 @@ test.describe("acesso público sem login", () => {
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading)
     }
     await page.goto("/aluno")
-    await page.getByRole("link", { name: "Histórico" }).click()
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Histórico")
+    await page.getByRole("link", { name: "Evolução" }).click()
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Evolução")
     expect(viewport).toBeTruthy()
   })
 })
@@ -251,7 +251,7 @@ test.describe("Aluno", () => {
     await page.getByRole("dialog").getByRole("button", { name: "Concluir" }).click()
     await expect(page.getByText("Treino concluído", { exact: true })).toBeVisible()
 
-    await page.getByRole("link", { name: "Ver histórico" }).click()
+    await page.getByRole("link", { name: "Ver evolução" }).click()
     await page.getByText("Treino A — Superiores").first().click()
     await expect(page.getByText("“Treino de teste”")).toBeVisible()
 
