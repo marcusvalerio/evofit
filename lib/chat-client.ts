@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { postJson } from "./account-client"
 import { useDemoState } from "./store"
+import { DEFAULT_HOURS, type ChatHours } from "./chat-hours"
 
 export interface ChatMsg {
   id: string
@@ -9,6 +10,7 @@ export interface ChatMsg {
   body: string
   createdAt: string
   readAt: string | null
+  context?: string | null
 }
 export interface Thread {
   studentId: string
@@ -76,21 +78,23 @@ export function useThread(as: "trainer" | "student", studentId: string | null) {
   }, [load])
 
   const send = useCallback(
-    async (body: string) => {
+    async (body: string, context?: string | null) => {
       const text = body.trim()
       if (!text || !studentId) return false
       if (demo) {
         const all = demoAll()
-        const m: ChatMsg = { id: `d${Date.now()}`, sender: as, body: text, createdAt: new Date().toISOString(), readAt: null }
+        const m: ChatMsg = { id: `d${Date.now()}`, sender: as, body: text, createdAt: new Date().toISOString(), readAt: null, context: context ?? null }
         all[studentId] = [...(all[studentId] ?? []), m]
         demoSave(all)
         setMessages(all[studentId])
+        window.dispatchEvent(new Event("evofit-chat"))
         return true
       }
-      const r = await postJson<{ message: ChatMsg }>("/api/chat/thread", { body: text, aluno: as === "trainer" ? studentId : undefined }).catch(() => null)
+      const r = await postJson<{ message: ChatMsg }>("/api/chat/thread", { body: text, context: context ?? undefined, aluno: as === "trainer" ? studentId : undefined }).catch(() => null)
       if (r?.ok) {
         setMessages((l) => [...l, r.data.message])
         setError(null)
+        window.dispatchEvent(new Event("evofit-chat"))
         return true
       }
       setError(r?.data.error ?? "Não foi possível enviar. Tente de novo.")
@@ -129,9 +133,12 @@ export function useThreads(names: { id: string; name: string }[]) {
     }
     void load()
     const t = setInterval(() => document.visibilityState === "visible" && void load(), POLL_MS)
+    const now = () => void load()
+    window.addEventListener("evofit-chat", now)
     return () => {
       alive = false
       clearInterval(t)
+      window.removeEventListener("evofit-chat", now)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega quando muda a lista de alunos
   }, [demo, key])
@@ -163,4 +170,78 @@ export function useUnread(as: "trainer" | "student", studentId: string | null) {
     }
   }, [as, demo, studentId])
   return n
+}
+
+const HOURS_KEY = "evofit:demo-chat-hours"
+
+/** Horário de atendimento do personal (o aluno vê; o personal edita). */
+export function useChatHours() {
+  const { mode } = useDemoState()
+  const demo = mode !== "account"
+  const [hours, setHoursState] = useState<ChatHours>(DEFAULT_HOURS)
+  useEffect(() => {
+    let alive = true
+    if (demo) {
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- lido do navegador depois da hidratação
+        setHoursState({ ...DEFAULT_HOURS, ...(JSON.parse(localStorage.getItem(HOURS_KEY) ?? "{}") as Partial<ChatHours>) })
+      } catch {}
+      return
+    }
+    void fetch("/api/chat", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { hours?: ChatHours } | null) => alive && d?.hours && setHoursState(d.hours))
+      .catch(() => {})
+    return () => {
+      alive = false
+    }
+  }, [demo])
+  const save = useCallback(
+    async (h: ChatHours) => {
+      setHoursState(h)
+      if (demo) {
+        try {
+          localStorage.setItem(HOURS_KEY, JSON.stringify(h))
+        } catch {}
+        return true
+      }
+      const r = await postJson("/api/chat", { hours: h }, "PUT").catch(() => null)
+      return !!r?.ok
+    },
+    [demo],
+  )
+  return { hours, save }
+}
+
+/** Avisos no celular deste aparelho (Web Push). */
+export function usePush() {
+  const { mode } = useDemoState()
+  const key = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window
+  const available = mode === "account" && !!key && supported
+  const [on, setOn] = useState(false)
+  useEffect(() => {
+    if (!available) return
+    void navigator.serviceWorker.ready.then((r) => r.pushManager.getSubscription()).then((s) => setOn(!!s))
+  }, [available])
+  const enable = useCallback(async () => {
+    if (!available || !key) return false
+    if ((await Notification.requestPermission()) !== "granted") return false
+    const reg = await navigator.serviceWorker.ready
+    const raw = atob(key.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (key.length % 4)) % 4))
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: Uint8Array.from(raw, (c) => c.charCodeAt(0)) })
+    const r = await postJson("/api/push", { subscription: sub.toJSON() }).catch(() => null)
+    setOn(!!r?.ok)
+    return !!r?.ok
+  }, [available, key])
+  const disable = useCallback(async () => {
+    const reg = await navigator.serviceWorker.ready
+    const sub = await reg.pushManager.getSubscription()
+    if (sub) {
+      await postJson("/api/push", { endpoint: sub.endpoint }, "DELETE").catch(() => null)
+      await sub.unsubscribe().catch(() => {})
+    }
+    setOn(false)
+  }, [])
+  return { available, on, enable, disable }
 }

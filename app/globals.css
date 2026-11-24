@@ -2007,3 +2007,8 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .thread-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; border-radius: 20px; text-align: left; }
 .thread-row:hover { background: var(--line); }
 .thread-row[aria-current="true"] { background: var(--menta); }
+.chat-ctx { display: block; margin-bottom: 6px; padding: 6px 10px; border-radius: 8px; background: rgb(70 184 186 / .16); border-left: 3px solid var(--verde-agua); font: 600 12px/1.3 var(--font-label); }
+.chat-row.mine .chat-ctx { background: rgb(255 255 255 / .12); }
+.chat-pending { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px 0; background: var(--surface); }
+.chat-pending .chat-ctx { margin: 0; flex: 1; }
+.chat-notice { margin: 0 12px 8px; padding: 10px 12px; border-radius: 12px; background: #fff1bf; color: #5c4300; font: 500 13px/1.4 var(--font-label); }

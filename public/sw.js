@@ -5,7 +5,7 @@
  *  - páginas e dados de navegação do Next: rede primeiro (com tempo limite), cache como reserva.
  * Dados da conta NUNCA passam por aqui: /api/* fica fora (exceto as animações públicas).
  */
-const VERSION = "v3"
+const VERSION = "v4"
 const SHELL = `evofit-shell-${VERSION}`
 const PAGES = `evofit-pages-${VERSION}`
 const MEDIA = `evofit-media-${VERSION}`
@@ -96,5 +96,25 @@ self.addEventListener("message", (event) => {
       caches.open(PAGES).then((c) => Promise.all(pages.map((u) => c.match(u).then((hit) => hit ?? c.add(u)).catch(() => {})))),
       caches.open(MEDIA).then((c) => Promise.all(media.map((u) => c.match(u).then((hit) => hit ?? c.add(u)).catch(() => {})))),
     ]),
+  )
+})
+
+/* Avisos no celular (chat): mostra a notificação e, ao tocar, abre a conversa. */
+self.addEventListener("push", (event) => {
+  let p = { title: "evofit", body: "", url: "/", tag: "evofit" }
+  try {
+    p = { ...p, ...event.data.json() }
+  } catch {}
+  event.waitUntil(self.registration.showNotification(p.title, { body: p.body, tag: p.tag, renotify: true, icon: "/icons/icon-192.png", badge: "/icons/icon-192.png", data: { url: p.url } }))
+})
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  const url = (event.notification.data && event.notification.data.url) || "/"
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+      for (const c of list) if ("focus" in c) return c.navigate(url).then((w) => (w || c).focus())
+      return self.clients.openWindow(url)
+    }),
   )
 })

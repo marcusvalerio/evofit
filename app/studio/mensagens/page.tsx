@@ -1,9 +1,11 @@
 "use client"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, MessageCircle } from "@/components/icons"
 import { useData } from "@/lib/store"
 import { useThread, useThreads } from "@/lib/chat-client"
 import { ChatView } from "@/components/chat-view"
+import { ChatHoursForm } from "@/components/chat-hours-form"
+import { PushToggle } from "@/components/push-toggle"
 import { Avatar, EmptyState, cx } from "@/components/ui"
 
 const short = (iso: string) => {
@@ -20,6 +22,12 @@ export default function MensagensPage() {
   const [open, setOpen] = useState<string | null>(null)
   const current = threads.find((t) => t.studentId === open) ?? null
   const chat = useThread("trainer", open)
+  useEffect(() => {
+    // vindo do aviso no celular: /studio/mensagens?aluno=...
+    const a = new URLSearchParams(window.location.search).get("aluno")
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- lido da URL depois da hidratação
+    if (a) setOpen(a)
+  }, [])
 
   if (students.length === 0) {
     return (
@@ -32,6 +40,10 @@ export default function MensagensPage() {
     <div className="fade-in">
       <h1 className="t-h1">Mensagens</h1>
       <p className="mt-1 text-muted">Conversas 1 a 1 com seus alunos, sobre o treino.</p>
+      <div className="mt-4 space-y-3">
+        <ChatHoursForm />
+        <PushToggle />
+      </div>
       <div className="mt-6 grid gap-4 lg:grid-cols-[20rem_1fr]">
         <ul className={cx("card space-y-1 p-2", open && "hidden lg:block")} aria-label="Conversas">
           {threads.map((t) => (

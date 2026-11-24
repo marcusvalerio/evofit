@@ -134,3 +134,24 @@ export async function trialReminders(db: Db = getDb(), now = Date.now()) {
   }
   return { checked: rows.length, sent }
 }
+
+/** Resumo diário do chat: lembra o personal de mensagens de alunos ainda não lidas (uma vez por dia). */
+export async function chatDigest(db: Db = getDb(), now = new Date()) {
+  const rows = (
+    await db.tx((q) =>
+      q.query<{ trainer_id: string; n: string }>(
+        "select trainer_id, count(*) as n from messages where sender = 'student' and read_at is null and created_at < now() - interval '2 hours' group by trainer_id",
+      ),
+    )
+  ).rows
+  let sent = 0
+  const day = now.toISOString().slice(0, 10)
+  for (const r of rows) {
+    const c = await trainerContact(r.trainer_id, db)
+    if (!c.whatsapp) continue
+    const n = Number(r.n)
+    const text = `Oi, ${c.name.split(" ")[0]}! Você tem ${n} ${n === 1 ? "mensagem" : "mensagens"} de alunos esperando resposta no evofit.`
+    if ((await sendWhatsApp(c.whatsapp, text, "chat_resumo", `${r.trainer_id}:${day}`, db)) === "enviado") sent++
+  }
+  return { trainers: rows.length, sent }
+}
