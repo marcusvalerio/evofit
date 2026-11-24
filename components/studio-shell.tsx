@@ -43,7 +43,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
       <DemoBanner />
       <div className="mx-auto flex max-w-7xl">
         {/* Sidebar (desktop) */}
-        <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-line px-3 py-5 lg:flex">
+        <aside className="side-glass sticky top-3 m-3 hidden h-[calc(100dvh-1.5rem)] w-60 shrink-0 flex-col rounded-[32px] px-3 py-5 lg:flex">
           <div className="px-3">
             <Brand suffix="Studio" />
           </div>
@@ -57,10 +57,10 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                   aria-current={on ? "page" : undefined}
                   className={cx(
                     "flex h-10 items-center gap-3 rounded-xl px-3 text-[0.9375rem] font-medium transition-colors",
-                    on ? "bg-surface text-fg shadow-[var(--shadow)]" : "text-muted hover:bg-line hover:text-fg",
+                    on ? "side-on text-fg" : "text-muted hover:bg-line hover:text-fg",
                   )}
                 >
-                  <Icon size={18} aria-hidden className={on ? "text-accent" : undefined} />
+                  <Icon size={20} aria-hidden filled={on} className={on ? "text-accent" : undefined} />
                   {label}
                 </Link>
               )
