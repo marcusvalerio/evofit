@@ -16,7 +16,7 @@ import { useToast } from "@/components/providers"
 import { getExercise } from "@/lib/catalog"
 import { parseVideoUrl } from "@/lib/video"
 import { ExerciseGuide, ExerciseThumb } from "@/components/exercise"
-import { Confetti, CountUp, Ring, haptic } from "@/components/motion"
+import { Confetti, CountUp, haptic } from "@/components/motion"
 
 /** Folha "Como fazer": demonstração, vídeo do personal, dica e passo a passo. */
 function HowTo({ d, exerciseId, onClose }: { d: DemoData; exerciseId: string | null; onClose: () => void }) {
@@ -291,8 +291,8 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
 
               <div className="evo-sets" role="group" aria-label={`Séries de ${sets[0].exerciseName}`}>
                 <div className="evo-sets-row evo-sets-head" aria-hidden>
-                  <span>Série</span>
-                  <span>Anterior</span>
+                  <span>#</span>
+                  <span>Antes</span>
                   <span>Kg</span>
                   <span>Reps</span>
                   <span className="sr-only">Feito</span>
@@ -301,8 +301,10 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                 {sets.map((s) => {
                   const p = prev[s.setIndex]
                   const prevText = p ? `${p.load ?? "—"} × ${p.reps ?? "—"}` : "—"
+                  const cur = !s.done && sets.find((x) => !x.done)?.setIndex === s.setIndex
+                  const pr = s.done && p?.load != null && s.load != null && s.load > p.load
                   return (
-                    <div key={s.setIndex} className={cx("evo-sets-row", s.done && "is-done")}>
+                    <div key={s.setIndex} className={cx("evo-sets-row", s.done && "is-done", pr && "is-pr", cur && "is-cur")}>
                       <span className="evo-sets-n tabular">{s.setIndex + 1}</span>
                       {p ? (
                         <button
@@ -366,20 +368,19 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
       <div className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
         <div className="mx-auto max-w-xl px-4 py-3">
           {restLeft !== null && restLeft > -5 ? (
-            <div className="fade-in flex items-center gap-3" role="timer" aria-live="off">
-              <Ring value={restTotal ? (Math.max(0, restLeft) / restTotal) * 100 : 0} size={60} stroke={6} className={cx(restLeft <= 0 && "pulse-soft")} label="Tempo de descanso restante">
-                <Timer size={20} aria-hidden className={restLeft <= 0 ? "text-accent" : "text-muted"} />
-              </Ring>
+            <div className="evo-rest fade-in" role="timer" aria-live="off">
+              <Timer size={22} aria-hidden className="shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-muted">{restLeft > 0 ? "Descanso" : "Bora, próxima série!"}</p>
-                <p className={cx("text-3xl font-bold tabular", restLeft <= 0 && "text-accent")}>{mmss(Math.max(0, restLeft))}</p>
+                <p className="evo-rest-l">{restLeft > 0 ? "Descanso" : "Bora, próxima série!"}</p>
+                <p className="evo-rest-t tabular">{mmss(Math.max(0, restLeft))}</p>
               </div>
-              <button type="button" className="btn btn-outline btn-lg px-4" onClick={() => setRestUntil((r) => (r ?? Date.now()) + 15_000)} aria-label="Adicionar 15 segundos">
+              <button type="button" className="evo-rest-b" onClick={() => setRestUntil((r) => (r ?? Date.now()) + 15_000)} aria-label="Adicionar 15 segundos">
                 +15s
               </button>
-              <button type="button" className="btn btn-inverse btn-lg" onClick={() => setRestUntil(null)}>
+              <button type="button" className="evo-rest-b on" onClick={() => setRestUntil(null)}>
                 {restLeft > 0 ? "Pular" : "Ok"}
               </button>
+              <i className="evo-rest-bar" style={{ transform: `scaleX(${restTotal ? Math.max(0, restLeft) / restTotal : 0})` }} aria-hidden />
             </div>
           ) : (
             <button type="button" className={cx("btn btn-primary btn-lg w-full", progress.done === progress.total && "shine glow")} onClick={() => setFinishing(true)}>

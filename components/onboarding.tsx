@@ -10,7 +10,7 @@ import { FREE_MAX_STUDENTS } from "@/lib/plans"
 import { Field, cx } from "./ui"
 import { BrandMark } from "./chrome"
 
-const STEPS = ["Seu perfil", "Primeiro aluno", "Seu plano"] as const
+const STEPS = ["Seu perfil", "Primeiro aluno", "Em beta"] as const
 
 /**
  * Boas-vindas do personal na primeira entrada: perfil profissional, primeiro aluno (opcional) e
@@ -143,10 +143,10 @@ export function Onboarding() {
       {step === 2 && (
         <section className="card mt-6 p-5 sm:p-6" aria-labelledby="ob3">
           <h2 id="ob3" className="t-h2 flex items-center gap-2">
-            <BadgeCheck size={20} aria-hidden /> Tudo liberado pra você testar
+            <BadgeCheck size={20} aria-hidden /> Você está na beta
           </h2>
           <p className="mt-1 text-sm text-muted">
-            No plano grátis você usa todas as funções com até {FREE_MAX_STUDENTS} alunos, sem cartão e sem prazo. Os planos pra mais alunos chegam em breve.
+            Na beta você usa todas as funções com até {FREE_MAX_STUDENTS} alunos, sem cartão. O que você contar pra gente molda o que vem depois.
           </p>
           <div className="mt-5 grid gap-2 text-sm text-muted">
             <p className="flex items-center gap-2">

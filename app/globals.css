@@ -1598,24 +1598,26 @@ body::before { content: ""; position: fixed; inset: 0 0 auto 0; z-index: 100; he
 .evo-lift-name { font-size: 1rem; font-weight: 700; line-height: 1.2; }
 .evo-lift-meta { margin-top: 0.15rem; font-size: 0.8125rem; color: var(--fg-muted); }
 .evo-lift-note { margin-top: 0.6rem; padding-left: 0.6rem; border-left: 2px solid var(--mp-otan); font-size: 0.875rem; color: var(--fg); }
-.evo-sets { margin-top: 0.6rem; display: grid; gap: 0.15rem; }
-.evo-sets-row { display: grid; grid-template-columns: 2rem minmax(0, 1fr) 4.25rem 4.25rem 2.5rem; align-items: center; gap: 0.4rem; padding: 0.2rem 0.15rem; border-radius: 8px; transition: background-color 0.3s ease; }
-.evo-sets-row.is-done { background: var(--success-soft); }
-.evo-sets-head { padding-block: 0.1rem; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); }
-.evo-sets-head > *:nth-child(n + 3) { text-align: center; }
-.evo-sets-head svg { justify-self: center; }
-.evo-sets-n { text-align: center; font-weight: 700; }
-.evo-sets-prev { justify-self: start; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.25rem 0.3rem; border-radius: 8px; font-size: 0.875rem; color: var(--fg-muted); }
+.evo-sets { margin-top: 12px; display: grid; gap: 4px; }
+.evo-sets-row { display: grid; grid-template-columns: 32px repeat(3, minmax(0, 1fr)) 44px; align-items: center; justify-items: center; gap: 8px; padding: 6px 8px; border-radius: 12px; transition: background-color .36s cubic-bezier(.16,1,.3,1), box-shadow .24s; }
+.evo-sets-row.is-done { background: var(--menta); }
+.evo-sets-row.is-pr { background: #fff1bf; }
+.evo-sets-row.is-cur { box-shadow: inset 0 2px 0 var(--verde-agua); }
+.evo-sets-head { padding-block: 2px; font: 600 11px var(--font-label); letter-spacing: .06em; text-transform: uppercase; color: var(--fg-muted); }
+.evo-sets-n { font: 800 15px var(--font-num); }
+.evo-sets-prev { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 4px 6px; border-radius: 8px; font: 500 14px var(--font-num); color: var(--fg-muted); }
 button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var(--line); color: var(--fg); }
-.evo-sets-prev.is-empty { opacity: 0.5; }
-.evo-sets-input { width: 100%; height: 2.4rem; border: 0; border-radius: 8px; background: var(--surface-2); text-align: center; font-size: 1rem; font-weight: 650; color: var(--fg); -moz-appearance: textfield; }
+.evo-sets-prev.is-empty { opacity: .5; }
+.evo-sets-input { width: 100%; max-width: 72px; height: 40px; border: 0; border-radius: 12px; background: var(--surface-2); text-align: center; font: 800 16px var(--font-num); color: var(--fg); -moz-appearance: textfield; }
 .evo-sets-input::-webkit-outer-spin-button, .evo-sets-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-.evo-sets-input::placeholder { color: var(--fg-muted); opacity: 0.6; }
-.evo-sets-input:focus-visible { outline: 2px solid var(--mp-otan); outline-offset: 0; }
+.evo-sets-input::placeholder { color: var(--fg-muted); opacity: .6; }
+.evo-sets-row.is-cur .evo-sets-input { background: var(--surface); box-shadow: inset 0 0 0 1.5px var(--verde-agua); }
+.evo-sets-input:focus-visible { outline: 2px solid var(--verde-agua); outline-offset: 0; }
 .evo-sets-row.is-done .evo-sets-input { background: transparent; }
-.evo-sets-check { display: grid; place-items: center; width: 2.4rem; height: 2.4rem; border-radius: 8px; background: var(--surface-2); color: var(--fg-muted); transition: background-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
-.evo-sets-check:active { transform: scale(0.9); }
-.evo-sets-check[aria-pressed="true"] { background: var(--success); color: var(--bg); }
+.evo-sets-check { display: grid; place-items: center; width: 44px; height: 40px; border-radius: 12px; background: var(--surface-2); color: var(--fg-muted); transition: background-color .24s, color .24s, transform .12s; }
+.evo-sets-check:active { transform: scale(.9); }
+.evo-sets-check[aria-pressed="true"] { background: var(--petroleo); color: #fff; }
+.evo-sets-row.is-pr .evo-sets-check[aria-pressed="true"] { background: var(--dourado); color: var(--navy); }
 
 /* Ficha antes de iniciar: lista limpa */
 .evo-plan { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.15rem; border-radius: 20px; background: var(--surface); border: 1px solid var(--line); padding: 0.35rem; }
@@ -1935,3 +1937,12 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
   .auth-form { align-self: center; }
 }
 @media (prefers-reduced-motion: reduce) { .auth-aura i { animation: none; } }
+
+/* Descanso (Design System): cartão navy, tempo em limão, barra que esvazia. */
+.evo-rest { position: relative; overflow: hidden; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 20px; background: var(--navy); color: #f3f3f1; }
+.evo-rest-l { font: 600 13px var(--font-label); color: #9aa6a8; }
+.evo-rest-t { font: 800 30px/1 var(--font-num); letter-spacing: -.02em; color: var(--limao); }
+.evo-rest-b { min-width: 48px; height: 44px; padding: 0 12px; border-radius: 12px; font: 600 14px var(--font-label); color: #f3f3f1; box-shadow: inset 0 0 0 1.5px rgb(243 243 241 / .25); }
+.evo-rest-b.on { background: #f3f3f1; color: var(--navy); box-shadow: none; }
+.evo-rest-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--limao); transform-origin: left; transition: transform 1s linear; }
+@media (prefers-reduced-motion: reduce) { .evo-rest-bar { transition: none; } }
