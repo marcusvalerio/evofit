@@ -299,7 +299,7 @@ const ACCENT_BG: Record<string, string> = {
   smoke: "bg-brand-smoke text-brand-cotton",
 }
 
-export function Avatar({ name, accent = "smoke", size = "md" }: { name: string; accent?: string; size?: "sm" | "md" | "lg" | "xl" }) {
+export function Avatar({ name, accent = "smoke", size = "md", src }: { name: string; accent?: string; size?: "sm" | "md" | "lg" | "xl"; src?: string | null }) {
   const initials = name
     .split(/\s+/)
     .filter(Boolean)
@@ -307,6 +307,10 @@ export function Avatar({ name, accent = "smoke", size = "md" }: { name: string; 
     .map((w) => w[0]?.toUpperCase())
     .join("")
   const s = { sm: "size-8 text-xs", md: "size-10 text-sm", lg: "size-14 text-lg", xl: "size-20 text-2xl" }[size]
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element -- data URL local, sem otimização do next/image
+    return <img src={src} alt="" aria-hidden className={cx("shrink-0 rounded-full object-cover", s)} />
+  }
   return (
     <span aria-hidden className={cx("grid shrink-0 place-items-center rounded-full font-bold tracking-tight", s, ACCENT_BG[accent] ?? ACCENT_BG.smoke)}>
       {initials || "?"}

@@ -85,7 +85,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
           <div className="mt-auto flex items-center gap-3 rounded-xl px-3 py-2">
-            {data && <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" />}
+            {data && <Avatar name={data.profile.name} accent={data.profile.accent} src={data.profile.photo} size="sm" />}
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{data?.profile.name ?? "…"}</p>
               <p className="text-xs text-muted">{mode === "account" ? "Conta EVOFIT" : "Conta demonstrativa"}</p>
@@ -118,7 +118,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
                 <ThemeToggle />
               </span>
               <Link href="/studio/perfil" className="grid h-11 w-11 shrink-0 place-items-center" aria-label="Perfil">
-                {data ? <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" /> : <UserRound size={18} aria-hidden />}
+                {data ? <Avatar name={data.profile.name} accent={data.profile.accent} src={data.profile.photo} size="sm" /> : <UserRound size={18} aria-hidden />}
               </Link>
             </div>
           </header>
