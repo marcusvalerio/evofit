@@ -1783,23 +1783,44 @@ button.evo-sets-prev:hover, button.evo-sets-prev:focus-visible { background: var
 .evo-forgot summary:hover { text-decoration: underline; }
 
 /* Administração */
+.evo-admin-anchor { scroll-margin-top: 7.5rem; }
+@media (min-width: 1024px) { .evo-admin-anchor { scroll-margin-top: 1.5rem; } }
+.evo-admin-jump { display: flex; gap: 0.5rem; overflow-x: auto; padding: 0 1rem 0.625rem; scrollbar-width: none; }
+.evo-admin-jump::-webkit-scrollbar { display: none; }
+.evo-admin-jump .chip { min-height: 2.75rem; }
+.evo-admin-mini { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; }
+.evo-admin-mini > div { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.875rem 1rem; }
+.evo-admin-mini > div:nth-child(odd) { border-right: 1px solid var(--line); }
+.evo-admin-mini > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+.evo-admin-mini dt { font: 600 0.6875rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.evo-admin-mini dd { font: 800 1.5rem/1 var(--font-num); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+@media (min-width: 1024px) {
+  .evo-admin-mini { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .evo-admin-mini > div:nth-child(n) { border-top: 0; border-right: 1px solid var(--line); }
+  .evo-admin-mini > div:last-child { border-right: 0; }
+}
 .evo-admin-list { padding: 0; overflow: visible; }
-.evo-admin-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem 1rem; align-items: center; padding: 1rem 1.1rem; }
+.evo-admin-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 0.75rem 1rem; align-items: center; padding: 1rem; }
 .evo-admin-row + .evo-admin-row { border-top: 1px solid var(--line); }
-.evo-admin-metrics { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: 0.5rem 1rem; }
-.evo-admin-metrics dt { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
-.evo-admin-metrics dd { font-size: 0.9375rem; font-weight: 600; }
-.evo-admin-metrics small { font-weight: 500; color: var(--fg-muted); }
-.evo-admin-menu { position: relative; grid-column: 2; grid-row: 1; }
+.evo-admin-head { display: none; }
+.evo-admin-who { grid-column: 1 / 4; grid-row: 1; }
+.evo-admin-menu { grid-column: 4; grid-row: 1; align-self: start; position: relative; }
+.evo-admin-cell { font-size: 0.875rem; font-weight: 600; }
+.evo-admin-cell::before { content: attr(data-label); display: block; margin-bottom: 0.125rem; font: 600 0.6875rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.evo-admin-num { font-family: var(--font-num); font-variant-numeric: tabular-nums; font-size: 1rem; }
+.evo-admin-num small { display: block; font: 500 0.75rem/1.3 var(--font-body, inherit); color: var(--fg-muted); }
 .evo-admin-menu summary { list-style: none; }
 .evo-admin-menu summary::-webkit-details-marker { display: none; }
-.evo-admin-menu-panel { position: absolute; right: 0; top: calc(100% + 0.25rem); z-index: 20; display: grid; min-width: 14rem; padding: 0.35rem; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-lg, var(--shadow)); }
-.evo-admin-menu-panel button { display: flex; align-items: center; gap: 0.6rem; height: 2.5rem; padding: 0 0.75rem; border-radius: 8px; font-size: 0.875rem; font-weight: 500; text-align: left; }
+.evo-admin-menu-panel { position: absolute; right: 0; top: calc(100% + 0.25rem); z-index: 20; display: grid; min-width: 14rem; padding: 0.35rem; border-radius: var(--r-12); border: 1px solid var(--line); background: var(--surface); box-shadow: var(--shadow-lg, var(--shadow)); }
+.evo-admin-menu-panel button { display: flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding: 0 0.75rem; border-radius: var(--r-8); font-size: 0.875rem; font-weight: 500; text-align: left; }
 .evo-admin-menu-panel button:hover, .evo-admin-menu-panel button:focus-visible { background: var(--line); }
 @media (min-width: 1024px) {
-  .evo-admin-row { grid-template-columns: minmax(14rem, 1.2fr) minmax(0, 2fr) auto; }
-  .evo-admin-metrics { grid-column: auto; grid-template-columns: repeat(5, minmax(0, 1fr)); }
-  .evo-admin-menu { grid-column: 3; }
+  .evo-admin-row { grid-template-columns: minmax(16rem, 2.4fr) repeat(5, minmax(5.5rem, 1fr)) 2.75rem; padding: 0.875rem 1.25rem; }
+  .evo-admin-head { display: grid; padding-block: 0.75rem; font: 600 0.6875rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+  .evo-admin-head > span:not(:first-child) { text-align: center; }
+  .evo-admin-who, .evo-admin-menu { grid-column: auto; grid-row: auto; align-self: center; }
+  .evo-admin-cell { text-align: center; }
+  .evo-admin-cell::before { display: none; }
 }
 .evo-admin-health > div { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.6rem 0; }
 .evo-admin-health > div + div { border-top: 1px solid var(--line); }

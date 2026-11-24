@@ -12,3 +12,4 @@ playwright-report/
 coverage/
 npm-debug.log*
 .DS_Store
+.claude/worktrees/
