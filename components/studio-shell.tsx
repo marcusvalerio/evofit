@@ -96,9 +96,9 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
 
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Topo (mobile/tablet) */}
-          <header className="glass sticky top-[var(--safe-top)] z-30 flex h-14 items-center justify-between border-b border-line px-4 lg:hidden">
+          <header className="glass sticky top-[var(--safe-top)] z-30 flex h-14 min-w-0 items-center justify-between gap-2 border-b border-line px-4 lg:hidden">
             <Brand suffix="Studio" />
-            <div className="flex items-center gap-0.5">
+            <div className="flex shrink-0 items-center gap-0.5">
               {isAdmin && (
                 <Link href="/admin" className="btn btn-ghost btn-icon btn-sm" aria-label="Administração">
                   <ShieldCheck size={17} aria-hidden />
@@ -117,7 +117,7 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               <span className="hidden sm:contents">
                 <ThemeToggle />
               </span>
-              <Link href="/studio/perfil" className=" grid h-11 w-11 place-items-center" aria-label="Perfil">
+              <Link href="/studio/perfil" className="grid h-11 w-11 shrink-0 place-items-center" aria-label="Perfil">
                 {data ? <Avatar name={data.profile.name} accent={data.profile.accent} size="sm" /> : <UserRound size={18} aria-hidden />}
               </Link>
             </div>
