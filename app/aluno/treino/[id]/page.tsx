@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Timer, Trophy, X } from "@/components/icons"
+import { ArrowLeft, Check, Flag, Link2, Medal, Play, PlayCircle, Share2, Timer, Trophy, X } from "@/components/icons"
 import { update } from "@/lib/store"
 import { useActiveStudent } from "@/lib/use-student"
 import type { Checkin, DemoData, Pain, Session, Sleep, Workout } from "@/lib/types"
@@ -11,6 +11,7 @@ import { supersets } from "@/lib/superset"
 import { discardSession, finishSession, startSession, uid, updateSet } from "@/lib/actions"
 import { medalsEarnedBy, type Medal as EvoMedal } from "@/lib/medals"
 import { HexMedal } from "@/components/medal"
+import { shareStory } from "@/lib/story-card"
 import { inProgressSession, personalRecords, previousSets, sessionProgress, sessionVolume, type PersonalRecord } from "@/lib/metrics"
 import { durationMin } from "@/lib/date"
 import { ConfirmDialog, Field, Modal, NotFoundState, Progress, cx } from "@/components/ui"
@@ -518,6 +519,26 @@ function Summary({ session, records, medals }: { session: Session; records: Pers
         </section>
       )}
       <div className="mx-auto mt-8 flex max-w-sm flex-col gap-2">
+        <button
+          type="button"
+          className="btn btn-outline btn-lg"
+          onClick={() => {
+            const r = records[0]
+            void shareStory({
+              tag: r ? "Recorde pessoal" : "Treino feito",
+              big: r ? String(r.load).replace(".", ",") : `${p.done}`,
+              unit: r ? "kg" : "séries",
+              line: r ? r.exerciseName : session.workoutName,
+              stats: [
+                { label: "Tempo", value: `${durationMin(session.startedAt, session.finishedAt)} min` },
+                { label: "Séries", value: `${p.done}` },
+                { label: "Volume", value: vol ? `${Math.round(vol).toLocaleString("pt-BR")} kg` : "—" },
+              ],
+            })
+          }}
+        >
+          <Share2 size={18} aria-hidden /> Compartilhar nos stories
+        </button>
         <Link href="/aluno/historico" className="btn btn-primary btn-lg">
           Ver evolução
         </Link>
