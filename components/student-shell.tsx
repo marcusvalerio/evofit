@@ -1,8 +1,8 @@
 "use client"
+import { GlassNav } from "@/components/glass-nav"
 import { useState } from "react"
-import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Check, Dumbbell, History, LayoutDashboard } from "@/components/icons"
+import { BarChart, Check, Home, LayoutDashboard } from "@/components/icons"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
 import { Avatar, LoadingScreen, Modal, NotFoundState, cx } from "./ui"
@@ -64,24 +64,14 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
       <main className={cx("mx-auto max-w-xl px-4 pt-5", inWorkout ? "pb-40" : "pb-28")}>{content}</main>
 
       {!inWorkout && !mustChange && (
-        <nav aria-label="Aluno" className="glass pb-safe fixed inset-x-0 bottom-0 z-40 border-t border-line">
-          <ul className={cx("mx-auto grid max-w-xl", role ? "grid-cols-2" : "grid-cols-3")}>
-            {[
-              { href: "/aluno", label: "Treinos", icon: Dumbbell, on: path === "/aluno" },
-              { href: "/aluno/historico", label: "Histórico", icon: History, on: path.startsWith("/aluno/historico") },
-              ...(role ? [] : [{ href: "/studio", label: "Studio", icon: LayoutDashboard, on: false }]),
-            ].map(({ href, label, icon: Icon, on }) => (
-              <li key={href}>
-                <Link href={href} aria-current={on ? "page" : undefined} className={cx("flex h-16 flex-col items-center justify-center gap-0.5 text-[0.6875rem] font-semibold transition-colors", on ? "text-accent" : "text-muted")}>
-                  <span className={cx("grid h-7 w-12 place-items-center rounded-full transition-all duration-300", on ? "scale-100 bg-accent-soft" : "scale-90")}>
-                    <Icon size={20} aria-hidden strokeWidth={on ? 2.25 : 1.75} />
-                  </span>
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <GlassNav
+          label="Aluno"
+          items={[
+            { href: "/aluno", label: "Treinos", icon: Home, on: path === "/aluno" },
+            { href: "/aluno/historico", label: "Histórico", icon: BarChart, on: path.startsWith("/aluno/historico") },
+            ...(role ? [] : [{ href: "/studio", label: "Studio", icon: LayoutDashboard, on: false }]),
+          ]}
+        />
       )}
 
       <StudentPicker open={picking} onClose={() => setPicking(false)} />
