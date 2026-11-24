@@ -132,7 +132,7 @@ function Overview({ d, workout, studentId, other }: { d: DemoData; workout: Work
                 update((x) => startSession(x, studentId, workout.id, uid("se")))
               }}
             >
-              <Play size={20} aria-hidden fill="currentColor" /> Iniciar treino
+              <Play size={20} aria-hidden filled /> Iniciar treino
             </button>
           )}
         </div>
@@ -263,7 +263,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                   {ex ? <ExerciseThumb ex={ex} className="w-12" /> : <span className="thumb w-12" />}
                   {allDone && (
                     <span className="evo-lift-check pop">
-                      <Check size={12} strokeWidth={3.5} aria-label="concluído" />
+                      <Check size={12} strokeWidth={2.25} aria-label="concluído" />
                     </span>
                   )}
                 </button>
@@ -296,7 +296,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                   <span>Kg</span>
                   <span>Reps</span>
                   <span className="sr-only">Feito</span>
-                  <Check size={14} strokeWidth={3} />
+                  <Check size={14} strokeWidth={2} />
                 </div>
                 {sets.map((s) => {
                   const p = prev[s.setIndex]
@@ -351,7 +351,7 @@ function Running({ d, workout, session, onFinished }: { d: DemoData; workout: Wo
                         onClick={() => toggleSet(itemId, s.setIndex, !s.done, restSec)}
                         className="evo-sets-check"
                       >
-                        <Check key={String(s.done)} size={18} strokeWidth={3} aria-hidden className={s.done ? "pop" : undefined} />
+                        <Check key={String(s.done)} size={18} strokeWidth={2} aria-hidden className={s.done ? "pop" : undefined} />
                       </button>
                     </div>
                   )

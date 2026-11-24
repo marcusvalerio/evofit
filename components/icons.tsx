@@ -1,190 +1,168 @@
 /**
- * Ícones EVO: família "gordinha" (formas cheias, curvas gordas, sem quinas).
- * Cada ícone é desenhado numa grade de 24 como máscara: o que é branco aparece, o que é preto vira recorte.
- * Mantém os mesmos nomes e props usados antes (size, className, color, aria-*), então substitui o lucide-react
- * sem mudar as telas. strokeWidth e fill são aceitos e ignorados.
+ * Ícones evofit v3: linha com traço 1,75 numa grade de 24, pontas redondas (ver Design System).
+ * Mantém os nomes e props usados antes (size, className, color, strokeWidth, aria-*).
+ * Os itens da navegação (Home, ClipboardList, BarChart, UserRound, Play) têm versão cheia: prop `filled`.
  */
-import { forwardRef, useId, type CSSProperties, type SVGProps } from "react"
+import { forwardRef, type CSSProperties, type SVGProps } from "react"
 
 type Props = Omit<SVGProps<SVGSVGElement>, "ref"> & {
   size?: number | string
   strokeWidth?: number | string
   absoluteStrokeWidth?: boolean
   color?: string
+  filled?: boolean
 }
-export type EvoIcon = ReturnType<typeof make>
-export type LucideIcon = EvoIcon
 
-// ---------- primitivas (strings SVG dentro da máscara) ----------
-const S = (d: string, w = 3.4) => `<path d="${d}" fill="none" stroke="#fff" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`
-const C = (x: number, y: number, r: number) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff"/>`
-const R = (x: number, y: number, w: number, h: number, r: number) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#fff"/>`
-const P = (d: string) => `<path d="${d}" fill="#fff"/>`
-const HS = (d: string, w = 2.4) => `<path d="${d}" fill="none" stroke="#000" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`
-const HC = (x: number, y: number, r: number) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#000"/>`
-const HP = (d: string) => `<path d="${d}" fill="#000"/>`
-const HR = (x: number, y: number, w: number, h: number, r: number) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#000"/>`
-/** Linha "solta" (setas, x, +): traço grosso de ponta redonda, sem forma de fundo. */
-const L = (d: string, w = 3) => S(d, w)
-
-// ---------- desenhos ----------
-const play = P("M8.6 5.5v13c0 1.1 1.2 1.8 2.2 1.2l10-6.5c.9-.6.9-1.8 0-2.4l-10-6.5c-1-.6-2.2.1-2.2 1.2Z")
-const user = C(12, 7.6, 5) + P("M12 13.5c5.2 0 8.8 2.8 8.8 6.2 0 1.3-1 2.3-2.3 2.3H5.5c-1.3 0-2.3-1-2.3-2.3 0-3.4 3.6-6.2 8.8-6.2Z")
-const userSmall = C(9.5, 7.6, 4.6) + P("M9.5 13.4c4.6 0 7.8 2.6 7.8 5.8 0 1.4-1 2.3-2.3 2.3H4c-1.3 0-2.3-.9-2.3-2.3 0-3.2 3.2-5.8 7.8-5.8Z")
-const plusBadge = C(18.5, 16, 4.6)
-const plusBadgeHole = HS("M18.5 13.6v4.8M16.1 16h4.8", 2)
-const warn = P("M10.3 3.2c.8-1.3 2.6-1.3 3.4 0l8.1 14c.8 1.3-.2 3-1.7 3H3.9c-1.5 0-2.5-1.7-1.7-3Z")
-const warnHole = HS("M12 9v4", 2.8) + HC(12, 16.6, 1.6)
-const shield = P("M12 2.2c.3 0 .6.1.9.2l6.7 2.6c.8.3 1.4 1.1 1.4 2v4.6c0 5.2-3.8 9.2-8.4 10.7-.4.1-.8.1-1.2 0C6.8 20.8 3 16.8 3 11.6V7c0-.9.6-1.7 1.4-2l6.7-2.6c.3-.1.6-.2.9-.2Z")
-const circle = C(12, 12, 10)
-const box = R(2.5, 2.5, 19, 19, 6.5)
-const msg = P("M7 3h10a5 5 0 0 1 5 5v5a5 5 0 0 1-5 5h-4.6l-4.6 3.3c-.7.5-1.6 0-1.6-.8V18A5 5 0 0 1 2 13V8a5 5 0 0 1 5-5Z")
-const calendar = R(2.8, 4.4, 18.4, 17.6, 5.5) + S("M8 2.5v4M16 2.5v4", 3.2)
-const clipboard = R(3.5, 3.5, 17, 18.5, 5) + R(8, 1.6, 8, 4.4, 2.2)
-const archive = R(2, 3, 20, 6.4, 3) + R(3.5, 8.4, 17, 13, 4.5)
-const phone = R(5, 1.8, 14, 20.4, 5)
-
-const D: Record<string, [string, string?]> = {
-  // navegação e setas (traços)
-  ArrowLeft: [L("M19 12H5.5M11 5.5 4.5 12l6.5 6.5")],
-  ArrowRight: [L("M5 12h13.5M13 5.5l6.5 6.5-6.5 6.5")],
-  ArrowUp: [L("M12 19V5.5M5.5 11 12 4.5l6.5 6.5")],
-  ArrowDown: [L("M12 5v13.5M5.5 13l6.5 6.5 6.5-6.5")],
-  ChevronLeft: [L("M15 5.5 8.5 12l6.5 6.5", 3.4)],
-  ChevronRight: [L("M9 5.5l6.5 6.5L9 18.5", 3.4)],
-  ChevronDown: [L("M5.5 9l6.5 6.5L18.5 9", 3.4)],
-  X: [L("M6 6l12 12M18 6 6 18", 3.2)],
-  Plus: [L("M12 4.5v15M4.5 12h15", 3.2)],
-  Check: [L("m4.5 12.5 4.8 4.8L19.5 7", 3.4)],
-  MoreHorizontal: [C(5, 12, 2.4) + C(12, 12, 2.4) + C(19, 12, 2.4)],
-  Undo2: [L("M9 4.5 4.5 9 9 13.5M4.5 9h10a5 5 0 0 1 0 10H11")],
-  RotateCcw: [L("M4.5 4.5v5h5M5.2 9.5A8 8 0 1 1 4 13")],
-  RefreshCw: [L("M19.5 4.5v5h-5M4.5 19.5v-5h5M18.8 9.5A7.5 7.5 0 0 0 5.6 8M5.2 14.5A7.5 7.5 0 0 0 18.4 16")],
-  History: [circle, HS("M12 7.2V12l3.2 2", 2.6)],
-  ExternalLink: [box, HS("M10 14l6-6M11.5 8H16v4.5", 2.4)],
-  Link2: [L("M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8.5 12h7")],
-  Unlink: [L("M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M12 4v2.5M12 17.5V20")],
-  LogIn: [R(13, 2.5, 8.5, 19, 4.5) + L("M3 12h9M8.5 7.5 13 12l-4.5 4.5")],
-  LogOut: [R(2.5, 2.5, 8.5, 19, 4.5) + L("M11 12h10M16.5 7.5 21 12l-4.5 4.5")],
-  Download: [L("M12 3.5v11M7 10l5 5 5-5") + R(3, 18, 18, 3.6, 1.8)],
-  Share2: [C(18, 5.5, 3.6) + C(6, 12, 3.6) + C(18, 18.5, 3.6) + S("M8.6 10.6l6.8-3.6M8.6 13.4l6.8 3.6", 2.6)],
-  Copy: [R(8, 8, 13.5, 13.5, 4.5) + S("M5.5 15.5h-.5a2.5 2.5 0 0 1-2.5-2.5V5A2.5 2.5 0 0 1 5 2.5h8a2.5 2.5 0 0 1 2.5 2.5v.5", 3)],
-  // treino
-  Dumbbell: [R(2, 7.5, 5, 9, 2.4) + R(17, 7.5, 5, 9, 2.4) + R(6, 10.8, 12, 2.4, 1.2), ""],
-  Play: [play],
-  PlayCircle: [circle, HP("M9.8 7.9v8.2c0 .9 1 1.4 1.7.9l6-4.1c.6-.4.6-1.4 0-1.8l-6-4.1c-.7-.5-1.7 0-1.7.9Z")],
-  Pause: [R(5, 3.5, 5, 17, 2.5) + R(14, 3.5, 5, 17, 2.5)],
-  Timer: [C(12, 13.3, 8.8) + R(9, 1.4, 6, 3, 1.5), HS("M12 9.2v4.4l2.6 1.7", 2.6)],
-  Clock: [circle, HS("M12 7v5l3 2", 2.6)],
-  Activity: [L("M2.5 12h4l3-7 5 14 3-7h4", 3.2)],
-  Trophy: [P("M6.5 2.5h11a1.5 1.5 0 0 1 1.5 1.5v4a7 7 0 0 1-14 0V4a1.5 1.5 0 0 1 1.5-1.5Z") + S("M5.4 5.5H4a2 2 0 0 0 0 4c.8 0 1.4-.2 1.8-.6M18.6 5.5H20a2 2 0 0 1 0 4c-.8 0-1.4-.2-1.8-.6", 2.6) + S("M12 15v3", 3.6) + R(6.5, 18.4, 11, 3.6, 1.8)],
-  Medal: [S("M8.2 2.6 12 9l3.8-6.4", 3.4) + C(12, 15.4, 7), HS("M12.3 12.9v5M10.6 14.3l1.7-1.4", 2)],
-  BadgeCheck: [P("M12 1.8 14.6 4l3.4-.3.8 3.3 3 1.7-1.4 3.1 1.4 3.1-3 1.7-.8 3.3-3.4-.3L12 22.2 9.4 20l-3.4.3-.8-3.3-3-1.7L3.6 12 2.2 8.9l3-1.7.8-3.3 3.4.3Z"), HS("m8 12.2 2.8 2.8L16 9.6", 2.6)],
-  Ruler: [P("M3.4 15.7 15.7 3.4a2 2 0 0 1 2.8 0l2.1 2.1a2 2 0 0 1 0 2.8L8.3 20.6a2 2 0 0 1-2.8 0l-2.1-2.1a2 2 0 0 1 0-2.8Z"), HS("M8.5 11.5l1.6 1.6M11.5 8.5l1.6 1.6M14.5 5.5l1.6 1.6", 1.8)],
-  Flag: [S("M5 21.5V3.5", 3.2) + P("M6.5 3h11.6c1 0 1.6 1.1 1 1.9L16.8 8l2.3 3.1c.6.8 0 1.9-1 1.9H6.5Z")],
-  // pessoas
-  UserRound: [user],
-  UserPlus: [userSmall + plusBadge, plusBadgeHole],
-  UserRoundPlus: [userSmall + plusBadge, plusBadgeHole],
-  Users: [C(8.8, 8, 4.3) + P("M8.8 13.6c4.3 0 7.3 2.4 7.3 5.4 0 1.2-.9 2-2 2H3.5c-1.1 0-2-.8-2-2 0-3 3-5.4 7.3-5.4Z") + C(17.3, 6.6, 3.2) + P("M17.6 11.6c3 0 5 1.7 5 4 0 .9-.6 1.5-1.5 1.5h-3.3c-.2-2.2-1.2-4.1-2.8-5.3.8-.1 1.6-.2 2.6-.2Z")],
-  // comunicação
-  MessageCircle: [P("M12 2a10 10 0 0 0-8.7 15l-1.2 3.6c-.2.7.4 1.3 1.1 1.1L6.9 20.6A10 10 0 1 0 12 2Z"), HC(7.8, 12, 1.5) + HC(12, 12, 1.5) + HC(16.2, 12, 1.5)],
-  MessageSquare: [msg, HC(7.8, 10.5, 1.5) + HC(12, 10.5, 1.5) + HC(16.2, 10.5, 1.5)],
-  Inbox: [R(2.5, 3.5, 19, 17, 5.5), HP("M2.5 12.5h5l1.5 2.5h6l1.5-2.5h5v3H2.5Z")],
-  Instagram: [R(2.5, 2.5, 19, 19, 6.5), HC(12, 12, 4.4) + HC(17.4, 6.6, 1.4)],
-  // conteúdo e ações
-  Search: [C(10.5, 10.5, 8) + S("m16.5 16.5 4.5 4.5", 4.2), HC(10.5, 10.5, 4.2)],
-  SearchX: [C(10.5, 10.5, 8) + S("m16.5 16.5 4.5 4.5", 4.2), HS("M8 8l5 5M13 8l-5 5", 2.4)],
-  Pencil: [P("M15.6 3.4a2.8 2.8 0 0 1 4 0l1 1a2.8 2.8 0 0 1 0 4L9.4 19.6c-.4.4-.8.6-1.3.7l-4.4 1c-.6.1-1.1-.4-1-1l1-4.4c.1-.5.3-.9.7-1.3Z")],
-  Trash2: [R(2.5, 4.5, 19, 3.6, 1.8) + R(9, 1.8, 6, 3.6, 1.8) + P("M4.6 9h14.8l-1 10.3A3 3 0 0 1 15.4 22H8.6a3 3 0 0 1-3-2.7Z"), HS("M10 12.5v5M14 12.5v5", 2)],
-  Archive: [archive, HS("M9.5 13h5", 2.4)],
-  ArchiveRestore: [archive, HS("M12 18.5v-6M9.5 15 12 12.5l2.5 2.5", 2.2)],
-  ClipboardList: [clipboard, HS("M8 12h8M8 16.5h5")],
-  CalendarCheck: [calendar, HS("m8.6 15 2.2 2.2 4.6-4.6", 2.4)],
-  Eye: [P("M12 4.5c5 0 8.8 3.6 10.2 6.3.4.8.4 1.6 0 2.4C20.8 15.9 17 19.5 12 19.5S3.2 15.9 1.8 13.2a2.6 2.6 0 0 1 0-2.4C3.2 8.1 7 4.5 12 4.5Z"), HC(12, 12, 3.6)],
-  EyeOff: [P("M12 4.5c5 0 8.8 3.6 10.2 6.3.4.8.4 1.6 0 2.4C20.8 15.9 17 19.5 12 19.5S3.2 15.9 1.8 13.2a2.6 2.6 0 0 1 0-2.4C3.2 8.1 7 4.5 12 4.5Z"), HS("M3.5 3.5l17 17", 4.6)],
-  KeyRound: [C(8, 16, 6) + S("M12 12l8.5-8.5M17 7l2.5 2.5", 3.4), HC(8, 16, 2.2)],
-  Info: [circle, HS("M12 11v5.5", 2.8) + HC(12, 7.6, 1.6)],
-  Lightbulb: [P("M12 1.8a7.6 7.6 0 0 1 4.6 13.7c-.7.5-1.1 1.3-1.1 2.1H8.5c0-.8-.4-1.6-1.1-2.1A7.6 7.6 0 0 1 12 1.8Z") + R(8.5, 18.8, 7, 3.4, 1.7)],
-  Ban: [circle, HS("M5.5 5.5l13 13", 3) + HC(12, 12, 6.6)],
-  // alertas e proteção
-  AlertTriangle: [warn, warnHole],
-  TriangleAlert: [warn, warnHole],
-  ShieldCheck: [shield, HS("m8.4 12 2.6 2.6 4.8-4.8", 2.6)],
-  ShieldAlert: [shield, HS("M12 7.5v5", 2.8) + HC(12, 16, 1.5)],
-  // sistema
-  LayoutDashboard: [R(2.5, 2.5, 8.5, 11, 3.5) + R(13, 2.5, 8.5, 6.5, 3.5) + R(2.5, 15.5, 8.5, 6, 3.5) + R(13, 11, 8.5, 10.5, 3.5)],
-  SlidersHorizontal: [L("M3 6.5h18M3 17.5h18", 2.6) + C(8.5, 6.5, 3.2) + C(15.5, 17.5, 3.2)],
-  Monitor: [R(1.8, 3, 20.4, 14, 4.5) + S("M8 21h8M12 17v4", 3)],
-  Smartphone: [phone, HR(10, 17.4, 4, 1.8, .9)],
-  Moon: [P("M20.6 14.6c.9-.3 1.7.6 1.3 1.4A10 10 0 1 1 8 2.1c.8-.4 1.7.4 1.4 1.3A8 8 0 0 0 20.6 14.6Z")],
-  Sun: [C(12, 12, 5.2) + L("M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6", 2.8)],
-  CloudOff: [P("M7 19.5a5 5 0 0 1-.8-9.9A7 7 0 0 1 19.6 9a5.3 5.3 0 0 1-1.6 10.5Z"), HS("M4 3.5l16 17", 4)],
-  Database: [P("M12 2c5 0 9 1.8 9 4v12c0 2.2-4 4-9 4s-9-1.8-9-4V6c0-2.2 4-4 9-4Z"), HS("M3.5 10c1.5 1.4 4.8 2.3 8.5 2.3s7-.9 8.5-2.3M3.5 15.5c1.5 1.4 4.8 2.3 8.5 2.3s7-.9 8.5-2.3", 1.8)],
-  FlaskConical: [P("M9 2.5h6v6.3l5.6 9.4c.9 1.6-.2 3.3-2 3.3H5.4c-1.8 0-2.9-1.7-2-3.3L9 8.8Z"), HP("M6.8 15h10.4l1.6 2.8c.2.4 0 .7-.4.7H5.6c-.4 0-.6-.3-.4-.7Z")],
-  Radar: [circle, HC(12, 12, 6.4)],
-  MapPin: [P("M12 2a8.5 8.5 0 0 1 8.5 8.5c0 5-5.5 10.2-7.3 11.4-.7.5-1.7.5-2.4 0C9 20.7 3.5 15.5 3.5 10.5A8.5 8.5 0 0 1 12 2Z"), HC(12, 10.3, 3.3)],
-  Video: [R(1.5, 5, 15, 14, 5) + P("M17.5 10.5 21 8.3c.7-.4 1.5.1 1.5.9v5.6c0 .8-.8 1.3-1.5.9l-3.5-2.2Z")],
-  Volume2: [P("M3 9.2c0-.8.6-1.4 1.4-1.4h2.4l4.6-3.7c.8-.6 1.9-.1 1.9.9v14c0 1-1.1 1.5-1.9.9l-4.6-3.7H4.4c-.8 0-1.4-.6-1.4-1.4Z") + L("M16.5 8.5a5 5 0 0 1 0 7M19.5 5.5a9 9 0 0 1 0 13", 2.6)],
-  VolumeX: [P("M3 9.2c0-.8.6-1.4 1.4-1.4h2.4l4.6-3.7c.8-.6 1.9-.1 1.9.9v14c0 1-1.1 1.5-1.9.9l-4.6-3.7H4.4c-.8 0-1.4-.6-1.4-1.4Z") + L("M16.5 9.5l5 5M21.5 9.5l-5 5", 2.6)],
-  // equipamentos e treino (biblioteca EVO)
-  Kettlebell: [P("M5.4 10.6V8a5.2 5.2 0 0 1 5.2-5.2h2.8A5.2 5.2 0 0 1 18.6 8v2.6Z") + P("M5.6 10.6c1.6-1.1 3.8-1.7 6.4-1.7s4.8.6 6.4 1.7c1.3 1.1 2 2.8 2 4.8v1.6a4.6 4.6 0 0 1-4.6 4.6H8.2A4.6 4.6 0 0 1 3.6 17v-1.6c0-2 .7-3.7 2-4.8Z"), HP("M8 9.9V8.6a2.5 2.5 0 0 1 2.5-2.5h3A2.5 2.5 0 0 1 16 8.6v1.3c-1.2-.4-2.5-.6-4-.6s-2.8.2-4 .6Z")],
-  WeightPlate: [C(12, 12, 10), HC(12, 12, 2.2) + HR(8, 4.4, 8, 2.6, 1.3) + HR(8, 17, 8, 2.6, 1.3)],
-  Barbell: [R(1.6, 6.5, 3.4, 11, 1.6) + R(5.4, 8.5, 2.4, 7, 1.2) + R(16.2, 8.5, 2.4, 7, 1.2) + R(19, 6.5, 3.4, 11, 1.6) + R(7, 10.9, 10, 2.2, 1.1), ""],
-  Bench: [R(2.2, 6.5, 19.6, 4.4, 2.2) + R(5, 10, 2.8, 8, 1.4) + R(16.2, 10, 2.8, 8, 1.4) + R(3.2, 16.8, 6.4, 2.8, 1.4) + R(14.4, 16.8, 6.4, 2.8, 1.4), ""],
-  JumpRope: [R(3, 2, 4, 8, 2) + R(17, 2, 4, 8, 2) + S("M5 10v3.2a7 7 0 0 0 14 0V10", 2.2), ""],
-  Bottle: [P("M9.3 1.8h5.4v2.4l1.5 2.4c.4.7.7 1.5.7 2.3V19a3 3 0 0 1-3 3H10a3 3 0 0 1-3-3V8.9c0-.8.3-1.6.7-2.3l1.6-2.4Z"), HR(7.4, 11.2, 9.2, 4.2, 1.2)],
-  Sneaker: [P("M1.8 14.2c0-3.4.9-6.9 2.6-8.4l2.4 1.7c1.6 1.1 3.4 1.1 4.8-.1l1.2-1 4.8 4.4c2.8.5 4.6 1.8 4.6 4.6v1.8a2.4 2.4 0 0 1-2.4 2.4H4.2a2.4 2.4 0 0 1-2.4-2.4Z"), HR(1, 15.3, 22, 1.8, .9)],
-  Scale: [R(2.5, 2.5, 19, 19, 6), HS("M7.6 10a5.2 5.2 0 0 1 8.8 0", 2.2) + HS("M12 10.6l1.6-2.4", 1.9)],
-  Home: [P("M10.3 3.1c1-.9 2.4-.9 3.4 0l6.8 6c.6.5.9 1.2.9 2V18.5a3 3 0 0 1-3 3H5.6a3 3 0 0 1-3-3v-7.4c0-.8.3-1.5.9-2Z"), HR(9.8, 14, 4.4, 8.5, 2.2)],
-  BarChart: [R(2.5, 2.5, 19, 19, 6), HR(6.6, 12.2, 3, 5.6, 1.5) + HR(10.5, 9.4, 3, 8.4, 1.5) + HR(14.4, 6.6, 3, 11.2, 1.5)],
-  Flame: [P("M12 1.8c.7 3.1 4.3 5.1 6.1 8.7 1.6 3.1.8 7.2-2.4 9.4-1.1.8-2.4 1.3-3.7 1.3s-2.6-.5-3.7-1.3c-3.2-2.2-4-6.3-2.4-9.4.7-1.4 1.8-2.4 2.7-3.6.4 1.5 1.1 2.4 2 3-.3-3.3.4-6 1.4-8.1Z"), HP("M12 12.8c1.7 1.5 2.7 2.8 2.7 4.4a2.7 2.7 0 0 1-5.4 0c0-1.6 1-2.9 2.7-4.4Z")],
-  Heart: [P("M12 21.2c-.4 0-.8-.1-1.2-.4C6.4 17.2 2.3 13.8 2.3 9.3 2.3 6.3 4.7 3.8 7.6 3.8c1.8 0 3.4.9 4.4 2.3 1-1.4 2.6-2.3 4.4-2.3 2.9 0 5.3 2.5 5.3 5.5 0 4.5-4.1 7.9-8.5 11.5-.4.3-.8.4-1.2.4Z")],
-  MedicineBall: [C(12, 12, 9.4), HS("M3.4 9.6c5.8 2 11.4 2 17.2 0M3.4 14.4c5.8-2 11.4-2 17.2 0", 1.6)],
-  Shaker: [R(7, 2, 10, 4.2, 1.8) + P("M6.6 7.4h10.8l-1.1 12.6a2.2 2.2 0 0 1-2.2 2H9.9a2.2 2.2 0 0 1-2.2-2Z"), HR(9, 12, 6, 2.8, 1.4)],
-  PlyoBox: [P("M2.5 8.2 5.6 3.4A2 2 0 0 1 7.3 2.5h9.4a2 2 0 0 1 1.7.9l3.1 4.8v11.3a2.5 2.5 0 0 1-2.5 2.5H5a2.5 2.5 0 0 1-2.5-2.5Z"), HS("M3 8.4h18", 1.8) + HR(8.6, 12.4, 6.8, 3.6, 1.8)],
-  YogaMat: [C(7.2, 14.8, 5) + R(7.2, 9.8, 14, 10, 2), HC(7.2, 14.8, 2) + HS("M12.6 9.8v10", 1.2)],
-  PullUpBar: [R(1.6, 3.6, 20.8, 3.2, 1.6) + R(5, 5, 3, 16, 1.5) + R(16, 5, 3, 16, 1.5), ""],
-  Wallet: [R(1.5, 5, 21, 15.5, 5) + R(4, 2.5, 14, 4.5, 2.2), HC(17, 13, 1.8)],
-  CheckCircle2: [circle, HS("m7.6 12.3 3 3 5.8-6", 3)],
+const D: Record<string, string> = {
+  ArrowLeft: "<path d=\"M19 12H5M11 5.5 4.5 12l6.5 6.5\"/>",
+  ArrowRight: "<path d=\"M5 12h14M13 5.5l6.5 6.5-6.5 6.5\"/>",
+  ArrowUp: "<path d=\"M12 19V5M5.5 11 12 4.5l6.5 6.5\"/>",
+  ArrowDown: "<path d=\"M12 5v14M5.5 13l6.5 6.5 6.5-6.5\"/>",
+  ChevronLeft: "<path d=\"m15 5.5-6.5 6.5 6.5 6.5\"/>",
+  ChevronRight: "<path d=\"m9 5.5 6.5 6.5L9 18.5\"/>",
+  ChevronDown: "<path d=\"m5.5 9 6.5 6.5L18.5 9\"/>",
+  X: "<path d=\"M6 6l12 12M18 6 6 18\"/>",
+  Plus: "<path d=\"M12 5v14M5 12h14\"/>",
+  Check: "<path d=\"m5 12.5 4.5 4.5L19 7.5\"/>",
+  MoreHorizontal: "<circle cx=\"5\" cy=\"12\" r=\"1.2\" fill=\"currentColor\"/><circle cx=\"12\" cy=\"12\" r=\"1.2\" fill=\"currentColor\"/><circle cx=\"19\" cy=\"12\" r=\"1.2\" fill=\"currentColor\"/>",
+  Undo2: "<path d=\"M9 4.5 4.5 9 9 13.5M4.5 9h10a5 5 0 0 1 0 10H11\"/>",
+  RotateCcw: "<path d=\"M4.5 4.5v5h5M5.2 9.5A8 8 0 1 1 4 13\"/>",
+  RefreshCw: "<path d=\"M19.5 4.5v5h-5M4.5 19.5v-5h5M18.8 9.5A7.5 7.5 0 0 0 5.6 8M5.2 14.5A7.5 7.5 0 0 0 18.4 16\"/>",
+  History: "<path d=\"M4.5 4.5v5h5M5.2 9.5A8 8 0 1 1 4 13M12 8v4l2.5 1.8\"/>",
+  ExternalLink: "<path d=\"M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4\"/>",
+  Link2: "<path d=\"M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M8.5 12h7\"/>",
+  Unlink: "<path d=\"M9 7H7a5 5 0 0 0 0 10h2M15 7h2a5 5 0 0 1 0 10h-2M12 4v2.5M12 17.5V20\"/>",
+  LogIn: "<path d=\"M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4M4 12h10M10 7.5 14.5 12 10 16.5\"/>",
+  LogOut: "<path d=\"M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M10 12h10M15.5 7.5 20 12l-4.5 4.5\"/>",
+  Download: "<path d=\"M12 4v11M7 10.5l5 5 5-5M5 20h14\"/>",
+  Share2: "<path d=\"M12 15V4M8 7.5 12 3.5l4 4M8 11H6.5A2.5 2.5 0 0 0 4 13.5v4A2.5 2.5 0 0 0 6.5 20h11a2.5 2.5 0 0 0 2.5-2.5v-4A2.5 2.5 0 0 0 17.5 11H16\"/>",
+  Copy: "<rect x=\"8\" y=\"8\" width=\"12\" height=\"12\" rx=\"3\"/><path d=\"M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2\"/>",
+  Dumbbell: "<path d=\"M3 9.5v5M6.5 6.5v11M17.5 6.5v11M21 9.5v5M6.5 12h11\"/>",
+  Play: "<path d=\"M8 5.6v12.8a1 1 0 0 0 1.5.9l9.9-6.4a1 1 0 0 0 0-1.7L9.5 4.7A1 1 0 0 0 8 5.6Z\"/>",
+  PlayCircle: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M10.2 9v6l5-3Z\"/>",
+  Pause: "<path d=\"M9 5.5v13M15 5.5v13\"/>",
+  Timer: "<circle cx=\"12\" cy=\"13.5\" r=\"7\"/><path d=\"M12 10v3.5l2.2 1.8M10 3h4\"/>",
+  Clock: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 7.5V12l3 2\"/>",
+  Activity: "<path d=\"M3 12h4l3-7 4 14 3-7h4\"/>",
+  Trophy: "<path d=\"M7.5 4h9v5a4.5 4.5 0 0 1-9 0Z\"/><path d=\"M7.5 6H5v.8A3.2 3.2 0 0 0 7.9 10M16.5 6H19v.8a3.2 3.2 0 0 1-2.9 3.2M12 13.5V17M8.5 20h7M9.5 20l.5-3h4l.5 3\"/>",
+  Medal: "<path d=\"M8.5 3 11 8.6M15.5 3 13 8.6\"/><circle cx=\"12\" cy=\"14.5\" r=\"5.5\"/><path d=\"m12 12.2.8 1.6 1.7.2-1.2 1.2.3 1.7-1.6-.8-1.6.8.3-1.7-1.2-1.2 1.7-.2Z\"/>",
+  BadgeCheck: "<path d=\"m12 3 2.3 1.8 2.9-.3.8 2.8 2.5 1.5-1 2.7 1 2.7-2.5 1.5-.8 2.8-2.9-.3L12 21l-2.3-1.8-2.9.3-.8-2.8-2.5-1.5 1-2.7-1-2.7 2.5-1.5.8-2.8 2.9.3Z\"/><path d=\"m8.8 12.2 2.2 2.2 4.2-4.4\"/>",
+  Ruler: "<rect x=\"3\" y=\"8\" width=\"18\" height=\"8\" rx=\"2\"/><path d=\"M7 8v3M11 8v4M15 8v3M19 8v2\"/>",
+  Flag: "<path d=\"M5 21V4M5 4h11l-2 4 2 4H5\"/>",
+  UserRound: "<circle cx=\"12\" cy=\"8\" r=\"3.75\"/><path d=\"M4.5 20c.9-3.6 3.8-5.5 7.5-5.5s6.6 1.9 7.5 5.5\"/>",
+  UserPlus: "<circle cx=\"10\" cy=\"8\" r=\"3.5\"/><path d=\"M3.5 20c.8-3.4 3.4-5.2 6.5-5.2 1.7 0 3.2.5 4.4 1.5M18 13v6M15 16h6\"/>",
+  Users: "<circle cx=\"9\" cy=\"8.5\" r=\"3.25\"/><path d=\"M3 19.5c.7-3.2 3.1-4.8 6-4.8s5.3 1.6 6 4.8M15.5 5.6a3.25 3.25 0 0 1 0 5.8M18 14.9c1.6.7 2.6 2.2 3 4.6\"/>",
+  MessageCircle: "<path d=\"M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10L5 20Z\"/><path d=\"M9 8.5h6M9 11.5h4\"/>",
+  MessageSquare: "<path d=\"M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7a2.5 2.5 0 0 1-2.5 2.5H10L5 20Z\"/><path d=\"M9 8.5h6M9 11.5h4\"/>",
+  Inbox: "<path d=\"M4 13h4.5l1.5 2.5h4l1.5-2.5H20\"/><path d=\"M6.5 5h11L20 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-5Z\"/>",
+  Instagram: "<rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"5\"/><circle cx=\"12\" cy=\"12\" r=\"4\"/><circle cx=\"17\" cy=\"7\" r=\".9\" fill=\"currentColor\"/>",
+  Search: "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4 4\"/>",
+  SearchX: "<circle cx=\"11\" cy=\"11\" r=\"6.5\"/><path d=\"m16 16 4 4M9 9l4 4M13 9l-4 4\"/>",
+  Pencil: "<path d=\"M15 4.5 19.5 9 9 19.5 4 20l.5-5Z\"/>",
+  Trash2: "<path d=\"M4 7h16M10 3.5h4M6 7l1 12.2A2 2 0 0 0 9 21h6a2 2 0 0 0 2-1.8L18 7M10 11v6M14 11v6\"/>",
+  Archive: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"5\" rx=\"1.5\"/><path d=\"M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4\"/>",
+  ArchiveRestore: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"5\" rx=\"1.5\"/><path d=\"M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M12 17v-5M9.5 14.5 12 12l2.5 2.5\"/>",
+  ClipboardList: "<rect x=\"5\" y=\"3.5\" width=\"14\" height=\"17\" rx=\"3\"/><path d=\"M9 8.5h6M9 12h6M9 15.5h3.5\"/>",
+  CalendarCheck: "<rect x=\"4\" y=\"5\" width=\"16\" height=\"15\" rx=\"3.5\"/><path d=\"M8 3v4M16 3v4M4 10h16M9 14.5l2 2 4-4\"/>",
+  Eye: "<path d=\"M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>",
+  EyeOff: "<path d=\"M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z\"/><path d=\"M4 4l16 16\"/>",
+  KeyRound: "<circle cx=\"8\" cy=\"15\" r=\"4.5\"/><path d=\"m11.5 11.5 8-8M16.5 6.5l2.5 2.5\"/>",
+  Info: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M12 11v5.5\"/><circle cx=\"12\" cy=\"7.8\" r=\".9\" fill=\"currentColor\"/>",
+  Lightbulb: "<path d=\"M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3Z\"/>",
+  Ban: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"m6 6 12 12\"/>",
+  AlertTriangle: "<path d=\"M10.3 4.2a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 3H4.5a2 2 0 0 1-1.7-3Z\"/><path d=\"M12 9.5v4\"/><circle cx=\"12\" cy=\"16.8\" r=\".9\" fill=\"currentColor\"/>",
+  ShieldCheck: "<path d=\"M12 3 5 6v5.5c0 4.4 3 7.9 7 9.5 4-1.6 7-5.1 7-9.5V6Z\"/><path d=\"m9 12 2.2 2.2L15.5 10\"/>",
+  ShieldAlert: "<path d=\"M12 3 5 6v5.5c0 4.4 3 7.9 7 9.5 4-1.6 7-5.1 7-9.5V6Z\"/><path d=\"M12 8v4.5\"/><circle cx=\"12\" cy=\"15.6\" r=\".9\" fill=\"currentColor\"/>",
+  LayoutDashboard: "<rect x=\"3.5\" y=\"3.5\" width=\"7\" height=\"9\" rx=\"2\"/><rect x=\"13.5\" y=\"3.5\" width=\"7\" height=\"5\" rx=\"2\"/><rect x=\"3.5\" y=\"15.5\" width=\"7\" height=\"5\" rx=\"2\"/><rect x=\"13.5\" y=\"11.5\" width=\"7\" height=\"9\" rx=\"2\"/>",
+  SlidersHorizontal: "<path d=\"M4 7h16M4 17h16\"/><circle cx=\"9\" cy=\"7\" r=\"2.2\" fill=\"var(--bg,#fff)\"/><circle cx=\"15\" cy=\"17\" r=\"2.2\" fill=\"var(--bg,#fff)\"/>",
+  Monitor: "<rect x=\"3\" y=\"4\" width=\"18\" height=\"12\" rx=\"3\"/><path d=\"M8 20h8M12 16v4\"/>",
+  Smartphone: "<rect x=\"6.5\" y=\"2.5\" width=\"11\" height=\"19\" rx=\"3\"/><path d=\"M11 18.5h2\"/>",
+  Moon: "<path d=\"M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z\"/>",
+  Sun: "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4\"/>",
+  CloudOff: "<path d=\"M7 19h10.5a4 4 0 0 0 .6-8A6.5 6.5 0 0 0 6.3 9.6 4.8 4.8 0 0 0 7 19Z\"/><path d=\"M4 4l16 16\"/>",
+  Database: "<ellipse cx=\"12\" cy=\"6\" rx=\"7.5\" ry=\"3\"/><path d=\"M4.5 6v12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3\"/>",
+  FlaskConical: "<path d=\"M9.5 3h5M10 3v6l-5.4 9.3A1.8 1.8 0 0 0 6.2 21h11.6a1.8 1.8 0 0 0 1.6-2.7L14 9V3M7.5 15h9\"/>",
+  Radar: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><circle cx=\"12\" cy=\"12\" r=\"4.5\"/><path d=\"m12 12 6-6\"/><circle cx=\"15.5\" cy=\"15\" r=\".9\" fill=\"currentColor\"/>",
+  MapPin: "<path d=\"M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11Z\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/>",
+  Video: "<rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"3.5\"/><path d=\"M10.2 9.2v5.6l4.6-2.8Z\"/>",
+  Volume2: "<path d=\"M4 9.5v5h3.5L12 18V6L7.5 9.5Z\"/><path d=\"M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11\"/>",
+  VolumeX: "<path d=\"M4 9.5v5h3.5L12 18V6L7.5 9.5Z\"/><path d=\"m16 9.5 5 5M21 9.5l-5 5\"/>",
+  Wallet: "<rect x=\"3\" y=\"6\" width=\"18\" height=\"14\" rx=\"3.5\"/><path d=\"M6 6V5a2 2 0 0 1 2-2h8M16 13h2\"/>",
+  CheckCircle2: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"m8.5 12.3 2.4 2.4 4.6-5\"/>",
+  Kettlebell: "<path d=\"M8.5 9V7.5a3.5 3.5 0 0 1 7 0V9\"/><path d=\"M6 15a6 6 0 0 1 12 0v3.5a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 6 18.5Z\"/>",
+  WeightPlate: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/>",
+  Barbell: "<path d=\"M3 9.5v5M6.5 6.5v11M17.5 6.5v11M21 9.5v5M6.5 12h11\"/>",
+  Bench: "<path d=\"M3 9h18M6 9v8M18 9v8M4 17h4M16 17h4\"/>",
+  JumpRope: "<path d=\"M5 3v6M19 3v6M5 9v3a7 7 0 0 0 14 0V9\"/>",
+  Bottle: "<path d=\"M10 3h4v2.5l1.5 2.5V19a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2V8L10 5.5ZM8.5 12h7\"/>",
+  Sneaker: "<path d=\"M3 15c0-3.5.8-7 2.5-8.5l2.5 1.7c1.5 1 3 1 4.3-.1l1-.8 4.7 4.2c2.5.5 3.5 1.8 3.5 4V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2ZM3 15.5h18\"/>",
+  Scale: "<rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"4.5\"/><path d=\"M8 10a5 5 0 0 1 8 0M12 10.5l1.5-2\"/>",
+  Home: "<path d=\"M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1Z\"/>",
+  BarChart: "<path d=\"M4 20h16M7 16.5v-3M12 16.5v-7M17 16.5V5.5\"/>",
+  Flame: "<path d=\"M12 3.5c.9 3.6 5.5 5.6 5.5 10.2a5.5 5.5 0 0 1-11 0c0-2.8 1.8-3.9 1.8-5.6 1.9.9 2.7 2.8 2.7 2.8s1-3.3 1-7.4Z\"/>",
+  Heart: "<path d=\"M12 20s-8-4.7-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.3 12 20 12 20Z\"/>",
+  MedicineBall: "<circle cx=\"12\" cy=\"12\" r=\"8.5\"/><path d=\"M4 10c5.3 1.8 10.7 1.8 16 0M4 14c5.3-1.8 10.7-1.8 16 0\"/>",
+  Shaker: "<path d=\"M7.5 3h9M7 6h10l-1 13.5a1.8 1.8 0 0 1-1.8 1.5H9.8A1.8 1.8 0 0 1 8 19.5ZM9 12h6\"/>",
+  PlyoBox: "<path d=\"M4 8 6 4h12l2 4v11a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19ZM4 8h16M9.5 13.5h5\"/>",
+  YogaMat: "<circle cx=\"7\" cy=\"15\" r=\"4\"/><path d=\"M7 11h13v8H7\"/>",
+  PullUpBar: "<path d=\"M3 5h18M6 5v15M18 5v15\"/>",
+  UserRoundPlus: "<circle cx=\"10\" cy=\"8\" r=\"3.5\"/><path d=\"M3.5 20c.8-3.4 3.4-5.2 6.5-5.2 1.7 0 3.2.5 4.4 1.5M18 13v6M15 16h6\"/>",
+  TriangleAlert: "<path d=\"M10.3 4.2a2 2 0 0 1 3.4 0l7.5 13a2 2 0 0 1-1.7 3H4.5a2 2 0 0 1-1.7-3Z\"/><path d=\"M12 9.5v4\"/><circle cx=\"12\" cy=\"16.8\" r=\".9\" fill=\"currentColor\"/>",
+}
+const F: Record<string, string> = {
+  Home: "<path d=\"M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5h-5v5H5a1 1 0 0 1-1-1Z\" fill=\"currentColor\"/>",
+  ClipboardList: "<rect x=\"5\" y=\"3.5\" width=\"14\" height=\"17\" rx=\"3\" fill=\"currentColor\"/><path d=\"M9 8.5h6M9 12h6M9 15.5h3.5\" stroke=\"var(--icon-knock,#fff)\"/>",
+  BarChart: "<path d=\"M4 20h16\"/><path d=\"M7 16.5v-3M12 16.5v-7M17 16.5V5.5\" stroke-width=\"3\"/>",
+  UserRound: "<circle cx=\"12\" cy=\"8\" r=\"4\" fill=\"currentColor\"/><path d=\"M4.5 20c.9-3.6 3.8-5.5 7.5-5.5s6.6 1.9 7.5 5.5Z\" fill=\"currentColor\"/>",
+  Play: "<path d=\"M8 5.6v12.8a1 1 0 0 0 1.5.9l9.9-6.4a1 1 0 0 0 0-1.7L9.5 4.7A1 1 0 0 0 8 5.6Z\" fill=\"currentColor\"/>",
 }
 
 function make(name: string) {
-  const [body, holes = ""] = D[name]
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strokeWidth, absoluteStrokeWidth e fill vêm do lucide e são ignorados
-  const Icon = forwardRef<SVGSVGElement, Props>(function EvoIconImpl({ size = 24, color, style, strokeWidth: _sw, absoluteStrokeWidth: _a, fill: _f, ...rest }, ref) {
-    const id = `ei${useId().replace(/[^a-zA-Z0-9]/g, "")}`
+  const Icon = forwardRef<SVGSVGElement, Props>(function EvoIconImpl(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- absoluteStrokeWidth vem da API antiga e é ignorado
+    { size = 24, color, style, strokeWidth = 1.75, absoluteStrokeWidth: _a, filled = false, ...rest },
+    ref,
+  ) {
     const css: CSSProperties = color ? { color, ...style } : (style ?? {})
+    const body = filled && F[name] ? F[name] : D[name]
     return (
-      <svg ref={ref} xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" style={css} aria-hidden={rest["aria-label"] ? undefined : true} {...rest}>
-        <defs>
-          <mask id={id} maskUnits="userSpaceOnUse" x="-2" y="-2" width="28" height="28" dangerouslySetInnerHTML={{ __html: `<rect x="-2" y="-2" width="28" height="28" fill="#000"/>${body}${holes}` }} />
-        </defs>
-        <rect x="-2" y="-2" width="28" height="28" fill="currentColor" mask={`url(#${id})`} />
-      </svg>
+      <svg
+        ref={ref}
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        style={css}
+        aria-hidden={rest["aria-label"] ? undefined : true}
+        {...rest}
+        dangerouslySetInnerHTML={{ __html: body }}
+      />
     )
   })
   Icon.displayName = name
   return Icon
 }
+export type EvoIcon = ReturnType<typeof make>
+export type LucideIcon = EvoIcon
 
-export const ArrowLeft = make("ArrowLeft"), ArrowRight = make("ArrowRight"), ArrowUp = make("ArrowUp"), ArrowDown = make("ArrowDown")
-export const ChevronLeft = make("ChevronLeft"), ChevronRight = make("ChevronRight"), ChevronDown = make("ChevronDown")
-export const X = make("X"), Plus = make("Plus"), Check = make("Check"), MoreHorizontal = make("MoreHorizontal")
-export const Undo2 = make("Undo2"), RotateCcw = make("RotateCcw"), RefreshCw = make("RefreshCw"), History = make("History")
-export const ExternalLink = make("ExternalLink"), Link2 = make("Link2"), Unlink = make("Unlink"), LogIn = make("LogIn"), LogOut = make("LogOut")
-export const Download = make("Download"), Share2 = make("Share2"), Copy = make("Copy")
-export const Dumbbell = make("Dumbbell"), Play = make("Play"), PlayCircle = make("PlayCircle"), Pause = make("Pause"), Timer = make("Timer"), Clock = make("Clock")
-export const Activity = make("Activity"), Trophy = make("Trophy"), Medal = make("Medal"), BadgeCheck = make("BadgeCheck"), Ruler = make("Ruler"), Flag = make("Flag")
-export const UserRound = make("UserRound"), UserPlus = make("UserPlus"), UserRoundPlus = make("UserRoundPlus"), Users = make("Users")
-export const MessageCircle = make("MessageCircle"), MessageSquare = make("MessageSquare"), Inbox = make("Inbox"), Instagram = make("Instagram")
+export const ArrowLeft = make("ArrowLeft"), ArrowRight = make("ArrowRight"), ArrowUp = make("ArrowUp"), ArrowDown = make("ArrowDown"), ChevronLeft = make("ChevronLeft"), ChevronRight = make("ChevronRight")
+export const ChevronDown = make("ChevronDown"), X = make("X"), Plus = make("Plus"), Check = make("Check"), MoreHorizontal = make("MoreHorizontal"), Undo2 = make("Undo2")
+export const RotateCcw = make("RotateCcw"), RefreshCw = make("RefreshCw"), History = make("History"), ExternalLink = make("ExternalLink"), Link2 = make("Link2"), Unlink = make("Unlink")
+export const LogIn = make("LogIn"), LogOut = make("LogOut"), Download = make("Download"), Share2 = make("Share2"), Copy = make("Copy"), Dumbbell = make("Dumbbell")
+export const Play = make("Play"), PlayCircle = make("PlayCircle"), Pause = make("Pause"), Timer = make("Timer"), Clock = make("Clock"), Activity = make("Activity")
+export const Trophy = make("Trophy"), Medal = make("Medal"), BadgeCheck = make("BadgeCheck"), Ruler = make("Ruler"), Flag = make("Flag"), UserRound = make("UserRound")
+export const UserPlus = make("UserPlus"), Users = make("Users"), MessageCircle = make("MessageCircle"), MessageSquare = make("MessageSquare"), Inbox = make("Inbox"), Instagram = make("Instagram")
 export const Search = make("Search"), SearchX = make("SearchX"), Pencil = make("Pencil"), Trash2 = make("Trash2"), Archive = make("Archive"), ArchiveRestore = make("ArchiveRestore")
-export const ClipboardList = make("ClipboardList"), CalendarCheck = make("CalendarCheck"), Eye = make("Eye"), EyeOff = make("EyeOff"), KeyRound = make("KeyRound")
-export const Info = make("Info"), Lightbulb = make("Lightbulb"), Ban = make("Ban"), AlertTriangle = make("AlertTriangle"), TriangleAlert = make("TriangleAlert")
-export const ShieldCheck = make("ShieldCheck"), ShieldAlert = make("ShieldAlert"), LayoutDashboard = make("LayoutDashboard"), SlidersHorizontal = make("SlidersHorizontal")
-export const Monitor = make("Monitor"), Smartphone = make("Smartphone"), Moon = make("Moon"), Sun = make("Sun"), CloudOff = make("CloudOff"), Database = make("Database")
-export const FlaskConical = make("FlaskConical"), Radar = make("Radar"), MapPin = make("MapPin"), Video = make("Video"), Volume2 = make("Volume2"), VolumeX = make("VolumeX")
-export const Wallet = make("Wallet"), CheckCircle2 = make("CheckCircle2")
-export const Kettlebell = make("Kettlebell"), WeightPlate = make("WeightPlate"), Barbell = make("Barbell"), Bench = make("Bench"), JumpRope = make("JumpRope"), Bottle = make("Bottle")
-export const Sneaker = make("Sneaker"), Scale = make("Scale"), Home = make("Home"), BarChart = make("BarChart"), Flame = make("Flame"), Heart = make("Heart")
-export const MedicineBall = make("MedicineBall"), Shaker = make("Shaker"), PlyoBox = make("PlyoBox"), YogaMat = make("YogaMat"), PullUpBar = make("PullUpBar")
+export const ClipboardList = make("ClipboardList"), CalendarCheck = make("CalendarCheck"), Eye = make("Eye"), EyeOff = make("EyeOff"), KeyRound = make("KeyRound"), Info = make("Info")
+export const Lightbulb = make("Lightbulb"), Ban = make("Ban"), AlertTriangle = make("AlertTriangle"), ShieldCheck = make("ShieldCheck"), ShieldAlert = make("ShieldAlert"), LayoutDashboard = make("LayoutDashboard")
+export const SlidersHorizontal = make("SlidersHorizontal"), Monitor = make("Monitor"), Smartphone = make("Smartphone"), Moon = make("Moon"), Sun = make("Sun"), CloudOff = make("CloudOff")
+export const Database = make("Database"), FlaskConical = make("FlaskConical"), Radar = make("Radar"), MapPin = make("MapPin"), Video = make("Video"), Volume2 = make("Volume2")
+export const VolumeX = make("VolumeX"), Wallet = make("Wallet"), CheckCircle2 = make("CheckCircle2"), Kettlebell = make("Kettlebell"), WeightPlate = make("WeightPlate"), Barbell = make("Barbell")
+export const Bench = make("Bench"), JumpRope = make("JumpRope"), Bottle = make("Bottle"), Sneaker = make("Sneaker"), Scale = make("Scale"), Home = make("Home")
+export const BarChart = make("BarChart"), Flame = make("Flame"), Heart = make("Heart"), MedicineBall = make("MedicineBall"), Shaker = make("Shaker"), PlyoBox = make("PlyoBox")
+export const YogaMat = make("YogaMat"), PullUpBar = make("PullUpBar"), UserRoundPlus = make("UserRoundPlus"), TriangleAlert = make("TriangleAlert")

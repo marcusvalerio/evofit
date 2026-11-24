@@ -81,7 +81,7 @@ export default function AlunoHome() {
         <ol className="evo-week-days">
           {days.map(({ day, done, today }) => (
             <li key={day.toISOString()} className={cx(done && "is-done", today && "is-today")}>
-              <span className="evo-week-dot">{done ? <Check size={13} strokeWidth={3.5} aria-hidden /> : null}</span>
+              <span className="evo-week-dot">{done ? <Check size={13} strokeWidth={2.25} aria-hidden /> : null}</span>
               <span className="evo-week-label">{dayName(day.toISOString()).slice(0, 3)}</span>
               <span className="sr-only">{done ? "treinou" : "sem treino"}</span>
             </li>
@@ -123,7 +123,7 @@ export default function AlunoHome() {
             </div>
           )}
           <button type="button" className="evo-student-primary-action" onClick={() => start(next.workout.id)} disabled={next.workout.items.length === 0}>
-            <Play size={18} aria-hidden fill="currentColor" />
+            <Play size={18} aria-hidden filled />
             {live ? "Continuar treino" : "Começar treino"}
           </button>
         </section>

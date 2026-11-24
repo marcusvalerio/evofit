@@ -68,7 +68,7 @@ export function LandingPreview() {
             <span className="lp-week-title">Meta 4x · 3 feitos</span>
             {GOAL.map((d, i) => (
               <span key={i} className="lp-week-day" style={{ "--i": i } as React.CSSProperties}>
-                <span className={d ? "lp-streak on" : "lp-streak"}>{d ? <Check size={10} strokeWidth={3.5} /> : i + 1}</span>
+                <span className={d ? "lp-streak on" : "lp-streak"}>{d ? <Check size={10} strokeWidth={2.25} /> : i + 1}</span>
                 {d ?? "—"}
               </span>
             ))}
