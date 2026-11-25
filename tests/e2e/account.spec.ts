@@ -131,9 +131,9 @@ test.describe("conta real", () => {
     await page.goto("/studio")
     await expect(page.getByText(/Rafa Aluno concluiu Treino Real/).first()).toBeVisible()
 
-    // personal na área do aluno vê orientação
+    // personal que abre a área do aluno (app instalado começa em /aluno) vai para o Studio
     await page.goto("/aluno")
-    await expect(page.getByRole("heading", { name: "Esta é a área do aluno" })).toBeVisible()
+    await expect(page).toHaveURL(/\/studio$/)
 
     // excluir conta apaga tudo, inclusive o acesso do aluno
     await page.goto("/studio/perfil")
