@@ -2,8 +2,8 @@
 import { GlassNav } from "@/components/glass-nav"
 import Link from "next/link"
 import { useUnread } from "@/lib/chat-client"
-import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { BarChart, Check, Home, LayoutDashboard, MessageCircle, UserRound } from "@/components/icons"
 import { update, useDemoState } from "@/lib/store"
 import { Brand, DemoBanner, ThemeToggle } from "./chrome"
@@ -23,17 +23,17 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const unread = useUnread("student", student?.id ?? null)
   const inWorkout = path.startsWith("/aluno/treino/")
   const role = mode === "account" ? account?.role : null
+  const router = useRouter()
+  // Personal que abre o app instalado (que começa em /aluno) vai direto para o Studio.
+  useEffect(() => {
+    if (role === "trainer") router.replace("/studio")
+  }, [role, router])
 
   const mustChange = role === "student" && !!account?.mustChangePassword
   usePrecacheWorkouts(data, student?.id ?? null)
   let content: React.ReactNode = gated ? <GateScreen /> : data ? children : <LoadingScreen action={false} />
   if (data && mustChange) content = <FirstAccessPassword login={account?.email ?? ""} />
-  else if (data && role === "trainer")
-    content = (
-      <NotFoundState title="Esta é a área do aluno" href="/studio/alunos" cta="Ir para meus alunos">
-        Você entrou como personal. Seus alunos acessam o app pelo link de convite que você gera na página de cada aluno.
-      </NotFoundState>
-    )
+  else if (data && role === "trainer") content = <LoadingScreen action={false} />
   else if (data && role === "student" && !student)
     content = (
       <NotFoundState title="Acesso pausado" href="/" cta="Ir para o início">

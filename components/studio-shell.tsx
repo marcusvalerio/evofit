@@ -72,9 +72,11 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
           </nav>
           <div className="mt-8 border-t border-line pt-4">
             <p className="t-eyebrow px-3 pb-2">Outras experiências</p>
+            {!trainerAccount && (
             <Link href="/aluno" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
               <Smartphone size={17} aria-hidden /> App do aluno
             </Link>
+            )}
             <Link href="/personais" className="flex h-10 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted hover:bg-line hover:text-fg">
               <Search size={17} aria-hidden /> Encontrar personal
             </Link>
@@ -110,10 +112,12 @@ export function StudioShell({ children }: { children: React.ReactNode }) {
               <Link href="/studio/avisos" className="btn btn-ghost btn-icon btn-sm" aria-label="Avisos">
                 <Bell size={18} aria-hidden />
               </Link>
+              {!trainerAccount && (
               <Link href="/aluno" className="btn btn-ghost btn-sm" aria-label="Abrir app do aluno">
                 <Smartphone size={17} aria-hidden />
                 <span className="hidden sm:inline">App do aluno</span>
               </Link>
+              )}
               <span className="hidden sm:contents">
                 <ThemeToggle />
               </span>
